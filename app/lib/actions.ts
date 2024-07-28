@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-//import { signIn } from '../../auth';
+import { signIn } from '../../auth';
 import { AuthError } from 'next-auth';
 import bcrypt from 'bcrypt';
 
@@ -106,9 +106,7 @@ export async function deleteInvoice(id: string) {
   revalidatePath('/dashboard/invoices');
 }
 
-
-
-/*export async function authenticate(
+export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
 ) {
@@ -125,10 +123,7 @@ export async function deleteInvoice(id: string) {
     }
     throw error;
   }
-}*/
-
-
-
+}
 
 export async function createUser(prevState: State<{name?: string[], email?: string[], password?: string[]}>, formData: FormData) {
   
