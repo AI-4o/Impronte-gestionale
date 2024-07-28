@@ -8,42 +8,67 @@ import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 import bcrypt from 'bcrypt';
 
+export type State<A> = {
+  message?: string, 
+  errors?: Partial<A>,
+  dbError?: string 
+};
+
+export type CreateInvoiceState = {
+  message?: string, 
+  errors?: {
+  customerId?: string[],
+  amount?: string[],
+  status?: string[]
+  },
+  dbError?: string 
+}
+
 const FormSchema = z.object({
   id: z.string(),
   customerId: z.string(),
-  customerName: z.string(),
-  amount: z.coerce.number(),
+  customerName: z.string().min(4, {message: 'customer name should be at least 4 characters long'}),
+  amount: z.coerce.number({message: 'invalid format'}).gt(0, 'amount must be greater than zero!'),
   status: z.enum(['pending', 'paid']),
   date: z.string(),
 });
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true, customerName: true });
 
-export async function createInvoice(formData: FormData) {
+export async function createInvoice(
+  prevState: State<{ customerId?: string[], amount?: string[], status?: string[] }>, 
+  formData: FormData
+) {
 
-    try {const { customerId, amount, status } = CreateInvoice.parse({
-        customerId: formData.get('customerId'),
-        amount: formData.get('amount'),
-        status: formData.get('status'),
-      });
+  const parsedData = CreateInvoice.safeParse({
+      customerId: formData.get('customerId'),
+      amount: formData.get('amount'),
+      status: formData.get('status'),
+    });
 
-    const amountInCents = amount * 100;
-    const date = new Date().toISOString().split('T')[0];
-
-  await sql`
-  INSERT INTO invoices (customer_id, amount, status, date)
-  VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-`;
-
-}
-catch(error) {
-  return {
-    message: 'Database Error: Failed to Create Invoice.',
-  };
-}
-
-revalidatePath('/dashboard/invoices');
-redirect('/dashboard/invoices');
+    if(!parsedData.success){
+        return {
+          ...prevState,
+          errors: parsedData.error.flatten().fieldErrors,
+          message: 'Missing Fields. Failed to Create Invoice.',
+        }
+    }
+  const amountInCents = parsedData.data.amount * 100;
+  const date = new Date().toISOString().split('T')[0];
+  try {
+    await sql`
+    INSERT INTO invoices (customer_id, amount, status, date)
+    VALUES (${parsedData.data.customerId}, ${amountInCents}, ${parsedData.data.status}, ${date})
+  `;
+  }
+  catch(error) {
+    return {
+      ...prevState,
+      dbError: 'Database Error: Failed to Create Invoice.',
+    };
+  }
+  revalidatePath('/dashboard/invoices');
+  redirect('/dashboard/invoices');
 }
 
 export async function updateInvoice(id: string, formData: FormData) {
@@ -100,18 +125,10 @@ export async function deleteInvoice(id: string) {
   }
 }*/
 
-export type State = {
-  message?: string, 
-  errors?: {
-  name?: string[],
-  email?: string[],
-  password?: string[]
-  },
-  dbError?: string 
-};
 
 
-export async function createUser(prevState: State, formData: FormData) {
+
+export async function createUser(prevState: State<{name: string, email: string, password: string}>, formData: FormData) {
   
     const parsedData = z
     .object({
