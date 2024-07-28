@@ -14,15 +14,7 @@ export type State<A> = {
   dbError?: string 
 };
 
-export type CreateInvoiceState = {
-  message?: string, 
-  errors?: {
-  customerId?: string[],
-  amount?: string[],
-  status?: string[]
-  },
-  dbError?: string 
-}
+export type InvoiceState = State<{ customerId: string[], amount: string[], status: string[] }>
 
 const FormSchema = z.object({
   id: z.string(),
@@ -33,14 +25,14 @@ const FormSchema = z.object({
   date: z.string(),
 });
 
-const CreateInvoice = FormSchema.omit({ id: true, date: true, customerName: true });
+const InvoiceSchema = FormSchema.omit({ id: true, date: true, customerName: true });
 
 export async function createInvoice(
-  prevState: State<{ customerId?: string[], amount?: string[], status?: string[] }>, 
+  prevState: InvoiceState, 
   formData: FormData
 ) {
 
-  const parsedData = CreateInvoice.safeParse({
+  const parsedData = InvoiceSchema.safeParse({
       customerId: formData.get('customerId'),
       amount: formData.get('amount'),
       status: formData.get('status'),
@@ -71,24 +63,34 @@ export async function createInvoice(
   redirect('/dashboard/invoices');
 }
 
-export async function updateInvoice(id: string, formData: FormData) {
+export async function updateInvoice(prevState: InvoiceState & {id: string}, formData: FormData) {
   
-  const data = CreateInvoice.parse({
+  const parsedData = InvoiceSchema.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
-
-  const amountInCents = data.amount * 100;
+  
+  if(!parsedData.success){
+    return {
+      ...prevState,
+      errors: parsedData.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Create Invoice.',
+    }
+  }
+  const amountInCents = parsedData.data.amount * 100;
   
   try {
     await sql`
       UPDATE invoices
-      SET customer_id = ${data.customerId}, amount = ${amountInCents}, status = ${data.status}
-      WHERE id = ${id}
+      SET customer_id = ${parsedData.data.customerId}, amount = ${amountInCents}, status = ${parsedData.data.status}
+      WHERE id = ${prevState.id}
     `;
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Invoice.' };
+    return {
+      ...prevState,
+      dbError: 'Database Error: Failed to update invoice.',
+    };
   }
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
@@ -128,7 +130,7 @@ export async function deleteInvoice(id: string) {
 
 
 
-export async function createUser(prevState: State<{name: string, email: string, password: string}>, formData: FormData) {
+export async function createUser(prevState: State<{name?: string[], email?: string[], password?: string[]}>, formData: FormData) {
   
     const parsedData = z
     .object({
