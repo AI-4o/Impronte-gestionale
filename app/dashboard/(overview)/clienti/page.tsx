@@ -1,4 +1,4 @@
-import { fetchFilteredInvoices, fetchInvoicesPages } from "@/app/lib/data";
+import { fetchFilteredClienti, fetchClientiPages } from "@/app/lib/data";
 import { lusitana } from "@/app/ui/fonts";
 import { CreateInvoice } from "@/app/ui/invoices/buttons";
 import Pagination from "@/app/ui/invoices/pagination";
@@ -10,7 +10,7 @@ import { Suspense } from "react";
 
 
 export const metadata: Metadata = {
-  title: 'Invoices',
+  title: 'Clienti',
 };
 
 /* 
@@ -30,18 +30,18 @@ export default async function Page(
 
   const query = searchParams?.query || '';
   const currentPage = Number(searchParams?.page) || 1;
-  const totalPages = await fetchInvoicesPages(query);
+  const totalPages = await fetchClientiPages(query);
 
   return <div className="w-full">
   <div className="flex w-full items-center justify-between">
-    <h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
+    <h1 className={`${lusitana.className} text-2xl`}>Clienti</h1>
   </div>
   <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-    <Search placeholder="Search invoices..." />
+    <Search placeholder="Search clienti..." />
     <CreateInvoice />
   </div>
    <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
-    <Table dataName="invoices" fetchFunction={() => fetchFilteredInvoices(query, currentPage)} />
+    <Table dataName="clienti" fetchFunction={() => fetchFilteredClienti(query, currentPage)} />
   </Suspense> 
   <div className="mt-5 flex w-full justify-center">
    <Pagination totalPages={totalPages} />

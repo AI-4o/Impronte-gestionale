@@ -13,19 +13,22 @@ export function CreateInvoice() {
     </Link>
   );
 }
-
-export function UpdateInvoice({ id }: { id: string }) {
+export interface UpdateRow{
+  id: string;
+  rowName: string;
+}
+export function UpdateInvoice({ id, rowName }: { id: string, rowName: string }) {
   return (
     <Link
-      href={`/dashboard/invoices/${id}/edit`}
+      href={`/dashboard/${rowName}/${id}/edit`}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />
     </Link>
   );
 }
-
-export function DeleteInvoice({ id }: { id: string }) {
+// TODO: add custom action for delete
+export function DeleteInvoice({ id, rowName }: { id: string, rowName: string }) {
   const deleteInvoiceWithId = deleteInvoice.bind(null, id);
   return (
     <form action={deleteInvoiceWithId}>

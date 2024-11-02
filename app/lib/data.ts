@@ -3,9 +3,17 @@ import {
   CustomerField,
   CustomersTableType,
   InvoiceForm,
-  InvoicesTable,
+  InvoicesTableRow,
   LatestInvoiceRaw,
   Revenue,
+  Cliente,
+  Preventivo,
+  Pratica,
+  Destinazione,
+  Viaggio,
+  PagamentoPreventivo,
+  PagamentoPratica,
+  Pagamento
 } from './definitions';
 import { formatCurrency } from './utils';
 
@@ -83,7 +91,7 @@ export async function fetchCardData() {
   }
 }
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 20;
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
@@ -91,7 +99,7 @@ export async function fetchFilteredInvoices(
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const invoices = await sql<InvoicesTable>`
+    const invoices = await sql<InvoicesTableRow>`
       SELECT
         invoices.id,
         invoices.amount,
@@ -213,5 +221,59 @@ export async function fetchFilteredCustomers(query: string) {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch customer table.');
+  }
+}
+
+export const fetchFilteredClienti = async (
+  query: string,
+  currentPage: number,
+) => {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    const clienti = await sql<Cliente>`
+      SELECT * FROM clienti 
+      WHERE 
+        nome ILIKE ${`%${query}%`} OR 
+        cognome ILIKE ${`%${query}%`} OR 
+        tel ILIKE ${`%${query}%`} OR 
+        email ILIKE ${`%${query}%`} OR 
+        tipo ILIKE ${`%${query}%`} OR 
+        provenienza ILIKE ${`%${query}%`} OR 
+        collegato ILIKE ${`%${query}%`} OR 
+        citta ILIKE ${`%${query}%`} OR 
+        note ILIKE ${`%${query}%`} OR 
+        data_di_nascita::text ILIKE ${`%${query}%`}
+      ORDER BY nome ASC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+    return clienti.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch clienti.');
+  }
+};
+
+export async function fetchClientiPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM clienti
+    WHERE
+      nome ILIKE ${`%${query}%`} OR
+      cognome ILIKE ${`%${query}%`} OR
+      tel ILIKE ${`%${query}%`} OR
+      email ILIKE ${`%${query}%`} OR
+      tipo ILIKE ${`%${query}%`} OR
+      provenienza ILIKE ${`%${query}%`} OR
+      collegato ILIKE ${`%${query}%`} OR
+      citta ILIKE ${`%${query}%`} OR
+      note ILIKE ${`%${query}%`} OR
+      data_di_nascita::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of clienti.', error);
   }
 }
