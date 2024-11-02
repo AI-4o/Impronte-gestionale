@@ -1,6 +1,7 @@
 import { fetchFilteredClienti, fetchClientiPages } from "@/app/lib/data";
+import { Cliente } from "@/app/lib/definitions";
 import { lusitana } from "@/app/ui/fonts";
-import { CreateInvoice } from "@/app/ui/invoices/buttons";
+import { CreateRecord } from "@/app/ui/invoices/buttons";
 import Pagination from "@/app/ui/invoices/pagination";
 import Table from "@/app/ui/invoices/table";
 import Search from "@/app/ui/search";
@@ -38,10 +39,10 @@ export default async function Page(
   </div>
   <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
     <Search placeholder="Search clienti..." />
-    <CreateInvoice />
+    <CreateRecord recordName="clienti" />
   </div>
    <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
-    <Table dataName="clienti" fetchFunction={() => fetchFilteredClienti(query, currentPage)} />
+    <Table<Cliente> dataName="clienti" fetchFunction={() => fetchFilteredClienti(query, currentPage)} />
   </Suspense> 
   <div className="mt-5 flex w-full justify-center">
    <Pagination totalPages={totalPages} />

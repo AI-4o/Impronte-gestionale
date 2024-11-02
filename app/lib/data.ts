@@ -10,10 +10,16 @@ import {
   Preventivo,
   Pratica,
   Destinazione,
-  Viaggio,
-  PagamentoPreventivo,
-  PagamentoPratica,
-  Pagamento
+  Assicurazione,
+  Fornitore,
+  IncassoPartecipante,
+  PagamentoAssicurazione,
+  PagamentoServizioATerra,
+  PagamentoVolo,
+  Partecipante,
+  ServizioATerra,
+  Volo,
+  PreventivoCliente
 } from './definitions';
 import { formatCurrency } from './utils';
 
@@ -277,3 +283,173 @@ export async function fetchClientiPages(query: string) {
     throw new Error('Failed to fetch total number of clienti.', error);
   }
 }
+
+// #### FETCH ALL ENTITIES FUNCTIONS ####
+export const fetchAllClienti = async () => {
+  try {
+    const clienti = await sql<Cliente>`
+      SELECT * FROM clienti
+      ORDER BY nome ASC
+    `;
+    return {entity: 'cliente', data: clienti.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all clienti.');
+  }
+};
+export const fetchAllDestinazioni = async () => {
+  try {
+    const destinazioni = await sql<Destinazione>`
+      SELECT * FROM destinazioni
+      ORDER BY nome ASC
+    `;
+    return {entity: 'destinazione', data: destinazioni.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all destinazioni.');
+  }
+};
+export const fetchAllFornitori = async () => {
+  try {
+    const fornitori = await sql<Fornitore>`
+      SELECT * FROM fornitori
+      ORDER BY nome ASC
+    `;
+    return {entity: 'fornitore', data: fornitori.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all fornitori.');
+  }
+};
+export const fetchAllPratiche = async () => {
+  try {
+    const pratiche = await sql<Pratica>`
+      SELECT * FROM pratiche
+      ORDER BY id ASC
+    `;
+    return {entity: 'pratica', data: pratiche.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all pratiche.');
+  }
+};
+export const fetchAllPreventivi = async () => {
+  try {
+    const preventivi = await sql<Preventivo>`
+      SELECT * FROM preventivi
+      ORDER BY id ASC
+    `;
+    return {entity: 'preventivo', data: preventivi.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all preventivi.');
+  }
+};
+export const fetchAllServiziATerra = async () => {
+  try {
+    const serviziATerra = await sql<ServizioATerra>`
+      SELECT * FROM servizi_a_terra
+      ORDER BY id ASC
+    `;
+    return {entity: 'servizio_a_terra', data: serviziATerra.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all servizi a terra.');
+  }
+};
+export const fetchAllVoli = async () => {
+  try {
+    const voli = await sql<Volo>`
+      SELECT * FROM voli
+      ORDER BY id ASC
+    `;
+    return {entity: 'volo', data: voli.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all voli.');
+  }
+};
+export const fetchAllAssicurazioni = async () => {
+  try {
+    const assicurazioni = await sql<Assicurazione>`
+      SELECT * FROM assicurazioni
+      ORDER BY id ASC
+    `;
+    return {entity: 'assicurazione', data: assicurazioni.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all assicurazioni.');
+  }
+};
+export const fetchAllPagamentiAssicurazioni = async () => {
+  try {
+    const pagamentiAssicurazioni = await sql<PagamentoAssicurazione>`
+      SELECT * FROM pagamenti_assicurazioni
+      ORDER BY id ASC
+    `;
+    return {entity: 'pagamento_assicurazione', data: pagamentiAssicurazioni.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all pagamenti assicurazioni.');
+  }
+};
+export const fetchAllPreventiviClienti = async () => {
+  try {
+    const preventiviClienti = await sql<PreventivoCliente>`
+      SELECT * FROM preventivi_clienti
+      ORDER BY id ASC
+    `;
+    return {entity: 'preventivo_cliente', data: preventiviClienti.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all preventivi clienti.');
+  }
+};
+export const fetchAllPartecipanti = async () => {
+  try {
+    const partecipanti = await sql<Partecipante>`
+      SELECT * FROM partecipanti
+      ORDER BY id ASC
+    `;
+    return {entity: 'partecipante', data: partecipanti.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all partecipanti.');
+  }
+};
+export const fetchAllIncassiPartecipanti = async () => {
+  try {
+    const incassiPartecipanti = await sql<IncassoPartecipante>`
+      SELECT * FROM incassi_partecipanti
+      ORDER BY id ASC
+    `;
+    return {entity: 'incasso_partecipante', data: incassiPartecipanti.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all incassi partecipanti.');
+  }
+};
+export const fetchAllPagamentiServiziATerra = async () => {
+  try {
+    const pagamentiServiziATerra = await sql<PagamentoServizioATerra>`
+      SELECT * FROM pagamenti_servizi_a_terra
+      ORDER BY id ASC
+    `;
+    return {entity: 'pagamento_servizi_a_terra', data: pagamentiServiziATerra.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all pagamenti servizi a terra.');
+  }
+};
+export const fetchAllPagamentiVoli = async () => {
+  try {
+    const pagamentiVoli = await sql<PagamentoVolo>`
+      SELECT * FROM pagamenti_voli
+      ORDER BY id ASC
+    `;
+    return {entity: 'pagamento_voli', data: pagamentiVoli.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all pagamenti voli.');
+  }
+};

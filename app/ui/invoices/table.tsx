@@ -7,7 +7,7 @@ import { fetchFilteredInvoices } from '@/app/lib/data';
 
 export interface TableInterface<T> {
   dataName: string;
-  fetchFunction: <T>() => Promise<T[]>;
+  fetchFunction: () => Promise<T[]>;
 }
 
 export default async function ClientiTable<T>({

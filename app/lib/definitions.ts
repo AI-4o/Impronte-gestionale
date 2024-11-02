@@ -90,6 +90,41 @@ export type InvoiceForm = {
 
 
 // #### SAFARI DEFINITIONS ####
+
+import {
+  fetchAllDestinazioni,
+  fetchAllClienti,
+  fetchAllFornitori,
+  fetchAllPratiche,
+  fetchAllPreventivi,
+  fetchAllServiziATerra,
+  fetchAllVoli,
+  fetchAllAssicurazioni,
+  fetchAllPagamentiAssicurazioni,
+  fetchAllPreventiviClienti,
+  fetchAllPartecipanti,
+  fetchAllIncassiPartecipanti,
+  fetchAllPagamentiServiziATerra,
+  fetchAllPagamentiVoli
+} from './data';
+
+export const entities = [
+  { name: 'destinazione', fetchCallback: fetchAllDestinazioni },
+  { name: 'cliente', fetchCallback: fetchAllClienti },
+  { name: 'fornitore', fetchCallback: fetchAllFornitori },
+  { name: 'pratica', fetchCallback: fetchAllPratiche },
+  { name: 'preventivo', fetchCallback: fetchAllPreventivi },
+  { name: 'servizio_a_terra', fetchCallback: fetchAllServiziATerra },
+  { name: 'volo', fetchCallback: fetchAllVoli },
+  { name: 'assicurazione', fetchCallback: fetchAllAssicurazioni },
+  { name: 'pagamento_assicurazione', fetchCallback: fetchAllPagamentiAssicurazioni },
+  { name: 'preventivo_cliente', fetchCallback: fetchAllPreventiviClienti },
+  { name: 'partecipanti', fetchCallback: fetchAllPartecipanti },
+  { name: 'incasso_partecipante', fetchCallback: fetchAllIncassiPartecipanti },
+  { name: 'pagamento_servizi_a_terra', fetchCallback: fetchAllPagamentiServiziATerra },
+  { name: 'pagamento_voli', fetchCallback: fetchAllPagamentiVoli }
+]
+
 export interface Destinazione {
   id: string;
   nome: string;
@@ -260,7 +295,7 @@ export const sampleAssicurazione: Assicurazione = {
   ricarico: 5,
 };
 
-export interface PreventivoMostrareCliente {
+export interface PreventivoCliente {
   id: string;
   id_preventivo: string;
   id_destinazione: string;
@@ -271,7 +306,7 @@ export interface PreventivoMostrareCliente {
   totale?: number;
 }
 
-export const samplePreventivoMostrareCliente: PreventivoMostrareCliente = {
+export const samplePreventivoMostrareCliente: PreventivoCliente = {
   id: '1',
   id_preventivo: '1',
   id_destinazione: '1',
