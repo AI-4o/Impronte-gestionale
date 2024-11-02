@@ -1,0 +1,76 @@
+{
+    "clienti": [
+        {
+            "nome": "Mario",
+            "cognome": "Rossi",
+            "tel": "+393331234567",
+            "email": "mario.rossi@example.com",
+            "tipo": "PRIVATO",
+            "provenienza": "Passaparola",
+            "collegato": "Giovanni Bianchi",
+            "citta": "Milano",
+            "note": "Cliente vecchio",
+            "data_di_nascita": "1980-01-01"
+        },
+        {
+            "nome": "Luigi",
+            "cognome": "Verdi",
+            "tel": "+393331234568",
+            "email": "luigi.verdi@example.com",
+            "tipo": "AZIENDA",
+            "provenienza": "Sito IWS",
+            "collegato": "Mario Rossi",
+            "citta": "Roma",
+            "note": "Nuovo cliente",
+            "data_di_nascita": "1985-05-15"
+        },
+        {
+            "nome": "Giulia",
+            "cognome": "Bianchi",
+            "tel": "+393331234569",
+            "email": "giulia.bianchi@example.com",
+            "tipo": "AGENZIA VIAGGI",
+            "provenienza": "Telefono",
+            "collegato": "Luigi Verdi",
+            "citta": "Napoli",
+            "note": "Cliente potenziale",
+            "data_di_nascita": "1990-10-20"
+        },
+        {
+            "nome": "Francesca",
+            "cognome": "Neri",
+            "tel": "+393331234570",
+            "email": "francesca.neri@example.com",
+            "tipo": "PRIVATO",
+            "provenienza": "Email Diretta",
+            "collegato": "Giulia Bianchi",
+            "citta": "Torino",
+            "note": "Cliente abituale",
+            "data_di_nascita": "1975-03-30"
+        },
+        {
+            "nome": "Alessandro",
+            "cognome": "Gialli",
+            "tel": "+393331234571",
+            "email": "alessandro.gialli@example.com",
+            "tipo": "AZIENDA",
+            "provenienza": "Sito INO",
+            "collegato": "Francesca Neri",
+            "citta": "Firenze",
+            "note": "Cliente VIP",
+            "data_di_nascita": "1982-07-25"
+        },
+        {
+            "nome": "Elena",
+            "cognome": "Blu",
+            "tel": "+393331234572",
+            "email": "elena.blu@example.com",
+            "tipo": "AGENZIA VIAGGI",
+            "provenienza": "Sito ISE",
+            "collegato": "Alessandro Gialli",
+            "citta": "Bologna",
+            "note": "Cliente nuovo",
+            "data_di_nascita": "1995-12-05"
+        }
+    ]
+}

@@ -18,7 +18,8 @@ export const authConfig = {
       return true;
     },
     async redirect({ url, baseUrl }) {
-      return `${baseUrl}/dashboard`; // Adjust redirect as needed
+      console.log('redirect', url, baseUrl);
+      return `${baseUrl}/dashboard`;
     },
   },
   providers: [], // Add providers with an empty array for now
