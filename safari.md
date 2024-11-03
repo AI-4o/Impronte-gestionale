@@ -209,3 +209,4 @@ totale pratica
 # nice to have
 - alcune celle possono essere modificate solo da alcuni utenti
 - mettere controllo all'inserimento di clienti o fornitori in modo che non si aggiungano doppioni (controllo da fare su nome e cognome)
+
