@@ -4,6 +4,9 @@ import {
   UserGroupIcon,
   HomeIcon,
   DocumentDuplicateIcon,
+  PaperAirplaneIcon,
+  GlobeEuropeAfricaIcon,
+  CurrencyEuroIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import Link from 'next/link';
@@ -19,6 +22,18 @@ const links = [
     icon: DocumentDuplicateIcon,
   },
   { name: 'Clienti', href: '/dashboard/clienti', icon: UserGroupIcon },
+  { name: 'Destinazioni', href: '/dashboard/destinazioni', icon: GlobeEuropeAfricaIcon },
+  { name: 'Fornitori', href: '/dashboard/fornitori', icon: UserGroupIcon },
+  { name: 'Preventivi', href: '/dashboard/preventivi', icon: DocumentDuplicateIcon },
+  { name: 'Preventivi clienti', href: '/dashboard/preventivi-clienti', icon: DocumentDuplicateIcon },
+  { name: 'Servizi a terra', href: '/dashboard/servizi-a-terra', icon: DocumentDuplicateIcon },
+  { name: 'Voli', href: '/dashboard/voli', icon: PaperAirplaneIcon },
+  { name: 'Assicurazioni', href: '/dashboard/assicurazioni', icon: DocumentDuplicateIcon },
+  { name: 'Partecipanti', href: '/dashboard/partecipanti', icon: DocumentDuplicateIcon },
+  { name: 'Pratiche', href: '/dashboard/pratiche', icon: DocumentDuplicateIcon },
+  { name: 'Pagamenti', href: '/dashboard/pagamenti', icon: CurrencyEuroIcon },
+  { name: 'Riepilogo', href: '/dashboard/riepilogo', icon: DocumentDuplicateIcon },
+
 ];
 
 export default function NavLinks() {

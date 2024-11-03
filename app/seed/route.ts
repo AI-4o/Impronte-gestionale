@@ -2,12 +2,23 @@ import { db } from "@vercel/postgres";
 import destinazioni from './destinazioni.json';
 import fornitori from './fornitori.json';
 import clienti from './clienti.json';
+import banche from './banche.json';
 const client = await db.connect();
 
 const createTableDestinazioni = async () => {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
       CREATE TABLE IF NOT EXISTS destinazioni (
+         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+         nome VARCHAR(255) NOT NULL,
+         UNIQUE (nome)
+      );
+    `;
+}
+const createTableBanche = async () => {
+  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await client.sql`
+      CREATE TABLE IF NOT EXISTS banche (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          nome VARCHAR(255) NOT NULL,
          UNIQUE (nome)
@@ -151,7 +162,7 @@ const createTableIncassiPartecipanti = async () => {
       CREATE TABLE IF NOT EXISTS incassi_partecipanti (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_partecipante UUID NOT NULL REFERENCES partecipanti(id),
-         banca VARCHAR(255),
+         id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -165,7 +176,7 @@ const createTablePagamentiServiziATerra = async () => {
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          id_servizio_a_terra UUID NOT NULL REFERENCES servizi_a_terra(id),
-         banca VARCHAR(255),
+         id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -179,7 +190,7 @@ const createTablePagamentiVoli = async () => {
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          id_volo UUID NOT NULL REFERENCES voli(id),
-         banca VARCHAR(255),
+         id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -193,7 +204,7 @@ const createTablePagamentiAssicurazioni = async () => {
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          id_assicurazione UUID NOT NULL REFERENCES assicurazioni(id),
-         banca VARCHAR(255),
+         id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -216,7 +227,6 @@ const createTablePratiche = async () => {
       );
     `;
 }
-
 const seedDestinazioni = async () => {
   for (const nome of destinazioni.destiznazioni) {
     await client.sql`
@@ -244,8 +254,16 @@ const seedClienti = async () => {
     `;
   }
 }
+const seedBanche = async () => {
+  for (const banca of banche.banche) {
+    await client.sql`
+      INSERT INTO banche (nome) VALUES (${banca}) ON CONFLICT (nome) DO NOTHING;
+    `;
+  }
+}
 const seed = async () => {
   await createTableDestinazioni();
+  await createTableBanche();
   await createTableClienti();
   await createTableFornitori();
   await createTablePreventivi();
@@ -264,6 +282,7 @@ const seed = async () => {
   await seedDestinazioni();
   await seedFornitori();
   await seedClienti(); // test data
+  await seedBanche();
 }
 
 export async function GET() {

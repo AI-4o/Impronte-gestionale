@@ -90,53 +90,26 @@ export type InvoiceForm = {
 
 
 // #### SAFARI DEFINITIONS ####
-
-import {
-  fetchAllDestinazioni,
-  fetchAllClienti,
-  fetchAllFornitori,
-  fetchAllPratiche,
-  fetchAllPreventivi,
-  fetchAllServiziATerra,
-  fetchAllVoli,
-  fetchAllAssicurazioni,
-  fetchAllPagamentiAssicurazioni,
-  fetchAllPreventiviClienti,
-  fetchAllPartecipanti,
-  fetchAllIncassiPartecipanti,
-  fetchAllPagamentiServiziATerra,
-  fetchAllPagamentiVoli
-} from './data';
-
-export const entities = [
-  { name: 'destinazione', fetchCallback: fetchAllDestinazioni },
-  { name: 'cliente', fetchCallback: fetchAllClienti },
-  { name: 'fornitore', fetchCallback: fetchAllFornitori },
-  { name: 'pratica', fetchCallback: fetchAllPratiche },
-  { name: 'preventivo', fetchCallback: fetchAllPreventivi },
-  { name: 'servizio_a_terra', fetchCallback: fetchAllServiziATerra },
-  { name: 'volo', fetchCallback: fetchAllVoli },
-  { name: 'assicurazione', fetchCallback: fetchAllAssicurazioni },
-  { name: 'pagamento_assicurazione', fetchCallback: fetchAllPagamentiAssicurazioni },
-  { name: 'preventivo_cliente', fetchCallback: fetchAllPreventiviClienti },
-  { name: 'partecipanti', fetchCallback: fetchAllPartecipanti },
-  { name: 'incasso_partecipante', fetchCallback: fetchAllIncassiPartecipanti },
-  { name: 'pagamento_servizi_a_terra', fetchCallback: fetchAllPagamentiServiziATerra },
-  { name: 'pagamento_voli', fetchCallback: fetchAllPagamentiVoli }
-]
-
-export interface Destinazione {
+export interface Entity {
+  id: string;
+}
+export interface EntityList<T> {
+  entityName: string;
+  data: T[];
+}
+export interface FetchableEntity<T> {
+  name: string;
+  fetchCallback: () => Promise<EntityList<T>>;
+  sampleModel: T;
+}
+export interface Destinazione extends Entity {
   id: string;
   nome: string;
 }
-
-export const sampleDestinazione: Destinazione = {
-  id: '1',
-  nome: 'Rome',
-};
-
-export interface Cliente {
-  id: string;
+export interface Banca extends Entity {
+  nome: string;
+}
+export interface Cliente extends Entity {
   nome: string;
   cognome: string;
   tel?: string;
@@ -154,34 +127,12 @@ export interface Cliente {
   note?: string;
   data_di_nascita?: Date;
 }
-
-export const sampleCliente: Cliente = {
-  id: '1',
-  nome: 'John',
-  cognome: 'Doe',
-  tel: '1234567890',
-  email: 'john.doe@example.com',
-  tipo: 'PRIVATO',
-  provenienza: 'Passaparola',
-  collegato: 'Jane Doe',
-  citta: 'New York',
-  note: 'Regular customer',
-  data_di_nascita: new Date('1990-01-01'),
-};
-
-export interface Fornitore {
+export interface Fornitore extends Entity {
   id: string;
   nome: string;
   valuta?: string;
 }
-
-export const sampleFornitore: Fornitore = {
-  id: '1',
-  nome: 'Supplier A',
-  valuta: 'USD',
-};
-
-export interface Preventivo {
+export interface Preventivo extends Entity{
   id: string;
   id_cliente: string;
   email: string;
@@ -199,27 +150,7 @@ export interface Preventivo {
   numero_preventivo?: string;
   confermato?: boolean;
 }
-
-export const samplePreventivo: Preventivo = {
-  id: '1',
-  id_cliente: '1',
-  email: 'john.doe@example.com',
-  numero_di_telefono: '1234567890',
-  id_fornitore: '1',
-  note: 'Urgent',
-  adulti: 2,
-  bambini: 1,
-  riferimento: 'Ref123',
-  data_partenza: new Date('2023-12-25'),
-  operatore: 'Operator A',
-  feedback: 'Positive',
-  stato: 'confermato',
-  data: new Date(),
-  numero_preventivo: 'PREV123',
-  confermato: true,
-};
-
-export interface ServizioATerra {
+export interface ServizioATerra extends Entity{
   id: string;
   id_preventivo: string;
   id_fornitore: string;
@@ -233,23 +164,7 @@ export interface ServizioATerra {
   ricarico?: number;
   servizio_aggiuntivi?: boolean;
 }
-
-export const sampleServizioATerra: ServizioATerra = {
-  id: '1',
-  id_preventivo: '1',
-  id_fornitore: '1',
-  id_destinazione: '1',
-  descrizione: 'Hotel stay',
-  data: new Date('2023-12-25'),
-  numero_notti: 5,
-  totale: 500,
-  valuta: 'USD',
-  cambio: 1.1,
-  ricarico: 10,
-  servizio_aggiuntivi: true,
-};
-
-export interface Volo {
+export interface Volo extends Entity{
   id: string;
   id_preventivo: string;
   id_fornitore: string;
@@ -262,22 +177,7 @@ export interface Volo {
   cambio?: number;
   ricarico?: number;
 }
-
-export const sampleVolo: Volo = {
-  id: '1',
-  id_preventivo: '1',
-  id_fornitore: '1',
-  compagnia_aerea: 'Airline A',
-  descrizione: 'Flight to Rome',
-  data_partenza: new Date('2023-12-25'),
-  data_arrivo: new Date('2023-12-26'),
-  totale: 300,
-  valuta: 'USD',
-  cambio: 1.1,
-  ricarico: 15,
-};
-
-export interface Assicurazione {
+export interface Assicurazione extends Entity{
   id: string;
   id_preventivo: string;
   id_fornitore: string;
@@ -285,17 +185,7 @@ export interface Assicurazione {
   netto?: number;
   ricarico?: number;
 }
-
-export const sampleAssicurazione: Assicurazione = {
-  id: '1',
-  id_preventivo: '1',
-  id_fornitore: '1',
-  assicurazione: 'Travel Insurance',
-  netto: 50,
-  ricarico: 5,
-};
-
-export interface PreventivoCliente {
+export interface PreventivoCliente extends Entity{
   id: string;
   id_preventivo: string;
   id_destinazione: string;
@@ -305,113 +195,49 @@ export interface PreventivoCliente {
   importo_vendita?: number;
   totale?: number;
 }
-
-export const samplePreventivoMostrareCliente: PreventivoCliente = {
-  id: '1',
-  id_preventivo: '1',
-  id_destinazione: '1',
-  descrizione: 'Trip to Rome',
-  tipo: 'destinazione',
-  costo_individuale: 100,
-  importo_vendita: 120,
-  totale: 240,
-};
-
-export interface Partecipante {
+export interface Partecipante extends Entity{
   id: string;
   id_preventivo: string;
   nome?: string;
   cognome?: string;
   tot_quota?: number;
 }
-
-export const samplePartecipante: Partecipante = {
-  id: '1',
-  id_preventivo: '1',
-  nome: 'Jane',
-  cognome: 'Doe',
-  tot_quota: 200,
-};
-
-export interface IncassoPartecipante {
+export interface IncassoPartecipante extends Entity{
   id: string;
   id_partecipante: string;
-  banca?: string;
+  id_banca?: string;
   importo?: number;
   data_scadenza?: Date;
   data_incasso?: Date;
 }
-
-export const sampleIncassoPartecipante: IncassoPartecipante = {
-  id: '1',
-  id_partecipante: '1',
-  banca: 'Bank A',
-  importo: 200,
-  data_scadenza: new Date('2023-12-01'),
-  data_incasso: new Date('2023-12-05'),
-};
-
-export interface PagamentoServizioATerra {
+export interface PagamentoServizioATerra extends Entity{
   id: string;
   id_fornitore: string;
   id_servizio_a_terra: string;
-  banca?: string;
+  id_banca?: string;
   importo?: number;
   data_scadenza?: Date;
   data_incasso?: Date;
 }
-
-export const samplePagamentoServizioATerra: PagamentoServizioATerra = {
-  id: '1',
-  id_fornitore: '1',
-  id_servizio_a_terra: '1',
-  banca: 'Bank B',
-  importo: 500,
-  data_scadenza: new Date('2023-12-01'),
-  data_incasso: new Date('2023-12-05'),
-};
-
-export interface PagamentoVolo {
+export interface PagamentoVolo extends Entity{
   id: string;
   id_fornitore: string;
   id_volo: string;
-  banca?: string;
+  id_banca?: string;
   importo?: number;
   data_scadenza?: Date;
   data_incasso?: Date;
 }
-
-export const samplePagamentoVolo: PagamentoVolo = {
-  id: '1',
-  id_fornitore: '1',
-  id_volo: '1',
-  banca: 'Bank C',
-  importo: 300,
-  data_scadenza: new Date('2023-12-01'),
-  data_incasso: new Date('2023-12-05'),
-};
-
-export interface PagamentoAssicurazione {
+export interface PagamentoAssicurazione extends Entity{
   id: string;
   id_fornitore: string;
   id_assicurazione: string;
-  banca?: string;
+  id_banca?: string;
   importo?: number;
   data_scadenza?: Date;
   data_incasso?: Date;
 }
-
-export const samplePagamentoAssicurazione: PagamentoAssicurazione = {
-  id: '1',
-  id_fornitore: '1',
-  id_assicurazione: '1',
-  banca: 'Bank D',
-  importo: 50,
-  data_scadenza: new Date('2023-12-01'),
-  data_incasso: new Date('2023-12-05'),
-};
-
-export interface Pratica {
+export interface Pratica extends Entity{
   id: string;
   id_preventivo: string;
   id_cliente: string;
@@ -422,15 +248,3 @@ export interface Pratica {
   numero_passeggeri?: number;
   totale?: number;
 }
-
-export const samplePratica: Pratica = {
-  id: '1',
-  id_preventivo: '1',
-  id_cliente: '1',
-  data_conferma: new Date('2023-12-01'),
-  data_partenza: new Date('2023-12-25'),
-  data_rientro: new Date('2024-01-05'),
-  note: 'Family trip',
-  numero_passeggeri: 3,
-  totale: 1000,
-};

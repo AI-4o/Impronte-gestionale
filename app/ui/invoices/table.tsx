@@ -1,20 +1,17 @@
-import Image from 'next/image';
-import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
+import { UpdateInvoice, DeleteEntity } from '@/app/ui/invoices/buttons';
 import InvoiceStatus from '@/app/ui/invoices/status';
-import { formatDateToLocal, formatCurrency } from '@/app/lib/utils';
-import { fetchFilteredInvoices } from '@/app/lib/data';
-
+import { formatCurrency } from '@/app/lib/utils';
 
 export interface TableInterface<T> {
   dataName: string;
   fetchFunction: () => Promise<T[]>;
 }
 
-export default async function ClientiTable<T>({
+export default async function Table<T>({
   dataName,
   fetchFunction
 }: TableInterface<T>) {
-  const clienti = ((await fetchFunction()) as T[])
+  const data = ((await fetchFunction()) as T[])
   // TODO: generalize with a method
   // that depends directly from the type of the data 
   .map((c: T) => {
@@ -30,7 +27,7 @@ export default async function ClientiTable<T>({
           const year = date.getFullYear();
           acc[key] = `${day}-${month}-${year}`;
         } else {// general object case
-          acc[key] = c[key].toString();
+          acc[key] = c[key]?.toString();
         }
       }
       else {
@@ -39,28 +36,26 @@ export default async function ClientiTable<T>({
       return acc;
     }, {} as Record<string, any>);
   })
-  
-  const columns = Object.keys(clienti[0]);
-  console.log('jhgfds',clienti, columns);
 
-const clientiRows = clienti?.map((clienti) => {
+const rows = data?.map((x) => {
   return (
-    <tr key={clienti.id} className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg">
-      {Object.keys(clienti)
+    <tr key={x.id} className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg">
+      {Object.keys(x)
+      .filter(key => key !== 'id')
       .map((key) => (
         <td key={key} className="whitespace-nowrap py-3 pl-6 pr-3">
           <div className="flex items-center gap-3">
-            <p>{clienti[key]}</p>
+            <p>{x[key]}</p>
           </div>
         </td>
       ))}
       <td className="whitespace-nowrap px-3 py-3">
-        <InvoiceStatus status={clienti.status} />
+        <InvoiceStatus status={x.status} />
       </td>
       <td className="whitespace-nowrap py-3 pl-6 pr-3">
         <div className="flex justify-end gap-3">
-          <UpdateInvoice id={clienti.id} rowName = {dataName} />
-          <DeleteInvoice id={clienti.id} rowName = {dataName}/>
+          <UpdateInvoice id={x.id} entityName = {dataName} />
+          <DeleteEntity id={x.id} entityName = {dataName}/>
         </div>
       </td>
     </tr>
@@ -74,7 +69,9 @@ const clientiRows = clienti?.map((clienti) => {
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
-                {columns?.map((column) => (
+                {Object.keys(data[0])
+                .filter(key => key !== 'id')
+                .map((column) => (
                   <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                     {column}
                   </th>
@@ -82,7 +79,7 @@ const clientiRows = clienti?.map((clienti) => {
               </tr>
             </thead>
             <tbody className="bg-white">
-              {clientiRows}
+              {rows}
             </tbody>
           </table>
         </div>

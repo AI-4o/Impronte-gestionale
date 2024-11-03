@@ -1,4 +1,4 @@
-import { deleteInvoice } from '@/app/lib/actions';
+import { deleteEntity, deleteInvoice } from '@/app/lib/actions';
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -21,10 +21,10 @@ export interface UpdateRow{
   id: string;
   rowName: string;
 }
-export function UpdateInvoice({ id, rowName }: { id: string, rowName: string }) {
+export function UpdateInvoice({ id, entityName }: { id: string, entityName: string }) {
   return (
     <Link
-      href={`/dashboard/${rowName}/${id}/edit`}
+      href={`/dashboard/${entityName}/${id}/edit`}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />
@@ -32,10 +32,10 @@ export function UpdateInvoice({ id, rowName }: { id: string, rowName: string }) 
   );
 }
 // TODO: add custom action for delete
-export function DeleteInvoice({ id, rowName }: { id: string, rowName: string }) {
-  const deleteInvoiceWithId = deleteInvoice.bind(null, id);
+export function DeleteEntity({ id, entityName }: { id: string, entityName: string }) {
+  const deleteEntityWithId = deleteEntity.bind(null, id, entityName);
   return (
-    <form action={deleteInvoiceWithId}>
+    <form action={deleteEntityWithId}>
       <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">
         <span className="sr-only">Delete</span>
         <TrashIcon className="w-5" />

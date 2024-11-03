@@ -19,7 +19,9 @@ import {
   Partecipante,
   ServizioATerra,
   Volo,
-  PreventivoCliente
+  PreventivoCliente,
+  Banca,
+  EntityList
 } from './definitions';
 import { formatCurrency } from './utils';
 
@@ -41,7 +43,6 @@ export async function fetchRevenue() {
     throw new Error('Failed to fetch revenue data.');
   }
 }
-
 export async function fetchLatestInvoices() {
   try {
     const data = await sql<LatestInvoiceRaw>`
@@ -61,7 +62,6 @@ export async function fetchLatestInvoices() {
     throw new Error('Failed to fetch the latest invoices.');
   }
 }
-
 export async function fetchCardData() {
   try {
     // You can probably combine these into a single SQL query
@@ -96,7 +96,6 @@ export async function fetchCardData() {
     throw new Error('Failed to fetch card data.');
   }
 }
-
 const ITEMS_PER_PAGE = 20;
 export async function fetchFilteredInvoices(
   query: string,
@@ -132,7 +131,6 @@ export async function fetchFilteredInvoices(
     throw new Error('Failed to fetch invoices.');
   }
 }
-
 export async function fetchInvoicesPages(query: string) {
   try {
     const count = await sql`SELECT COUNT(*)
@@ -153,7 +151,6 @@ export async function fetchInvoicesPages(query: string) {
     throw new Error('Failed to fetch total number of invoices.');
   }
 }
-
 export async function fetchInvoiceById(id: string) {
   try {
     const data = await sql<InvoiceForm>`
@@ -178,7 +175,6 @@ export async function fetchInvoiceById(id: string) {
     throw new Error('Failed to fetch invoice.');
   }
 }
-
 export async function fetchCustomers() {
   try {
     const data = await sql<CustomerField>`
@@ -196,7 +192,6 @@ export async function fetchCustomers() {
     throw new Error('Failed to fetch all customers.');
   }
 }
-
 export async function fetchFilteredCustomers(query: string) {
   try {
     const data = await sql<CustomersTableType>`
@@ -230,6 +225,9 @@ export async function fetchFilteredCustomers(query: string) {
   }
 }
 
+
+
+// #### 'LIKE' FILTERED LIST FUNCTIONS ####
 export const fetchFilteredClienti = async (
   query: string,
   currentPage: number,
@@ -258,7 +256,46 @@ export const fetchFilteredClienti = async (
     throw new Error('Failed to fetch clienti.');
   }
 };
-
+export const fetchFilteredDestinazioni = async (
+  query: string,
+  currentPage: number,
+) => {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    const destinazioni = await sql<Destinazione>`
+      SELECT * FROM destinazioni 
+      WHERE 
+        nome ILIKE ${`%${query}%`}
+      ORDER BY nome ASC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+    return destinazioni.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch destinazioni.');
+  }
+};
+export const fetchFilteredFornitori = async (
+  query: string,
+  currentPage: number,
+) => {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    const fornitori = await sql<Fornitore>`
+      SELECT * FROM fornitori 
+      WHERE 
+        nome ILIKE ${`%${query}%`} OR
+        valuta ILIKE ${`%${query}%`}
+      ORDER BY nome ASC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+    return fornitori.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch fornitori.');
+  }
+};
+// #### PAGINATION FUNCTIONS ####
 export async function fetchClientiPages(query: string) {
   try {
     const count = await sql`SELECT COUNT(*)
@@ -283,173 +320,564 @@ export async function fetchClientiPages(query: string) {
     throw new Error('Failed to fetch total number of clienti.', error);
   }
 }
+export async function fetchDestinazioniPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM destinazioni
+    WHERE
+      nome ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of destinazioni.', error);
+  }
+}
+export async function fetchFornitoriPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM fornitori
+    WHERE
+      nome ILIKE ${`%${query}%`} OR
+      valuta ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of fornitori.', error);
+  }
+}
+export async function fetchPratichePages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM pratiche
+    WHERE
+      id::text ILIKE ${`%${query}%`} OR
+      data_conferma::text ILIKE ${`%${query}%`} OR
+      data_partenza::text ILIKE ${`%${query}%`} OR
+      data_rientro::text ILIKE ${`%${query}%`} OR
+      numero_passeggeri::text ILIKE ${`%${query}%`} OR
+      totale::text ILIKE ${`%${query}%`} OR
+      note ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of pratiche.', error);
+  }
+}
+export async function fetchPreventiviPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM preventivi
+    WHERE
+      email ILIKE ${`%${query}%`} OR
+      numero_di_telefono::text ILIKE ${`%${query}%`} OR
+      note ILIKE ${`%${query}%`} OR
+      adulti::text ILIKE ${`%${query}%`} OR
+      bambini::text ILIKE ${`%${query}%`} OR
+      riferimento ILIKE ${`%${query}%`} OR
+      data_partenza::text ILIKE ${`%${query}%`} OR
+      operatore ILIKE ${`%${query}%`} OR
+      feedback ILIKE ${`%${query}%`} OR
+      stato ILIKE ${`%${query}%`} OR
+      data::text ILIKE ${`%${query}%`} OR
+      numero_preventivo ILIKE ${`%${query}%`} OR
+      confermato::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of preventivi.', error);
+  }
+}
+export async function fetchServiziATerraPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM servizi_a_terra
+    WHERE
+      nome ILIKE ${`%${query}%`} OR
+      data::text ILIKE ${`%${query}%`} OR
+      numero_notti::text ILIKE ${`%${query}%`} OR
+      totale::text ILIKE ${`%${query}%`} OR
+      descrizione ILIKE ${`%${query}%`} OR
+      valuta ILIKE ${`%${query}%`} OR
+      cambio::text ILIKE ${`%${query}%`} OR
+      ricarico::text ILIKE ${`%${query}%`} OR
+      servizio_aggiuntivi::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of servizi a terra.', error);
+  }
+}
+export async function fetchVoliPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM voli
+    WHERE
+      compagnia_aerea ILIKE ${`%${query}%`} OR
+      descrizione ILIKE ${`%${query}%`} OR
+      data_partenza::text ILIKE ${`%${query}%`} OR
+      data_arrivo::text ILIKE ${`%${query}%`} OR
+      totale::text ILIKE ${`%${query}%`} OR
+      valuta ILIKE ${`%${query}%`} OR
+      cambio::text ILIKE ${`%${query}%`} OR
+      ricarico::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of voli.', error);
+  }
+}
+export async function fetchAssicurazioniPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM assicurazioni
+    WHERE
+      assicurazione ILIKE ${`%${query}%`} OR
+      netto::text ILIKE ${`%${query}%`} OR
+      ricarico::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of assicurazioni.', error);
+  }
+}
+export async function fetchPagamentiAssicurazioniPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM pagamenti_assicurazioni
+    WHERE
+      id::text ILIKE ${`%${query}%`} OR
+      id_fornitore::text ILIKE ${`%${query}%`} OR
+      id_assicurazione::text ILIKE ${`%${query}%`} OR
+      banca ILIKE ${`%${query}%`} OR
+      importo::text ILIKE ${`%${query}%`} OR
+      data_scadenza::text ILIKE ${`%${query}%`} OR
+      data_incasso::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of pagamenti assicurazioni.', error);
+  }
+}
+export async function fetchPreventiviClientiPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM preventivi_clienti
+    WHERE
+      descrizione ILIKE ${`%${query}%`} OR
+      tipo ILIKE ${`%${query}%`} OR
+      costo_individuale::text ILIKE ${`%${query}%`} OR
+      importo_vendita::text ILIKE ${`%${query}%`} OR
+      totale::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of preventivi clienti.', error);
+  }
+}
+export async function fetchPartecipantiPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM partecipanti
+    WHERE
+      id_preventivo::text ILIKE ${`%${query}%`} OR
+      nome ILIKE ${`%${query}%`} OR
+      cognome ILIKE ${`%${query}%`} OR
+      tot_quota::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of partecipanti.', error);
+  }
+}
+export async function fetchIncassiPartecipantiPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM incassi_partecipanti
+    WHERE
+      id_partecipante::text ILIKE ${`%${query}%`} OR
+      id_banca::text ILIKE ${`%${query}%`} OR
+      importo::text ILIKE ${`%${query}%`} OR
+      data_scadenza::text ILIKE ${`%${query}%`} OR
+      data_incasso::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of incassi partecipanti.', error);
+  }
+}
+export async function fetchPagamentiServiziATerraPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM pagamenti_servizi_a_terra
+    WHERE
+      id::text ILIKE ${`%${query}%`} OR
+      id_fornitore::text ILIKE ${`%${query}%`} OR
+      id_servizio_a_terra::text ILIKE ${`%${query}%`} OR
+      id_banca ILIKE ${`%${query}%`} OR
+      importo::text ILIKE ${`%${query}%`} OR
+      data_scadenza::text ILIKE ${`%${query}%`} OR
+      data_incasso::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of pagamenti servizi a terra.', error);
+  }
+}
+export async function fetchPagamentiVoliPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM pagamenti_voli
+    WHERE
+      id::text ILIKE ${`%${query}%`} OR
+      id_fornitore::text ILIKE ${`%${query}%`} OR
+      id_volo::text ILIKE ${`%${query}%`} OR
+      banca ILIKE ${`%${query}%`} OR
+      importo::text ILIKE ${`%${query}%`} OR
+      data_scadenza::text ILIKE ${`%${query}%`} OR
+      data_incasso::text ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of pagamenti voli.', error);
+  }
+}
+
 
 // #### FETCH ALL ENTITIES FUNCTIONS ####
-export const fetchAllClienti = async () => {
+export const fetchAllClienti = async (): Promise<EntityList<Cliente>> => {
   try {
     const clienti = await sql<Cliente>`
       SELECT * FROM clienti
       ORDER BY nome ASC
     `;
-    return {entity: 'cliente', data: clienti.rows};
+    return {entityName: 'cliente', data: clienti.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all clienti.');
   }
 };
-export const fetchAllDestinazioni = async () => {
+export const fetchAllDestinazioni = async (): Promise<EntityList<Destinazione>  > => {
   try {
     const destinazioni = await sql<Destinazione>`
       SELECT * FROM destinazioni
       ORDER BY nome ASC
     `;
-    return {entity: 'destinazione', data: destinazioni.rows};
+    return {entityName: 'destinazione', data: destinazioni.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all destinazioni.');
   }
 };
-export const fetchAllFornitori = async () => {
+export const fetchAllFornitori = async (): Promise<EntityList<Fornitore>> => {
   try {
     const fornitori = await sql<Fornitore>`
       SELECT * FROM fornitori
       ORDER BY nome ASC
     `;
-    return {entity: 'fornitore', data: fornitori.rows};
+    return {entityName: 'fornitore', data: fornitori.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all fornitori.');
   }
 };
-export const fetchAllPratiche = async () => {
+export const fetchAllPratiche = async (): Promise<EntityList<Pratica>> => {
   try {
     const pratiche = await sql<Pratica>`
       SELECT * FROM pratiche
       ORDER BY id ASC
     `;
-    return {entity: 'pratica', data: pratiche.rows};
+    return {entityName: 'pratica', data: pratiche.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all pratiche.');
   }
 };
-export const fetchAllPreventivi = async () => {
+export const fetchAllPreventivi = async (): Promise<EntityList<Preventivo>> => {
   try {
     const preventivi = await sql<Preventivo>`
       SELECT * FROM preventivi
       ORDER BY id ASC
     `;
-    return {entity: 'preventivo', data: preventivi.rows};
+    return {entityName: 'preventivo', data: preventivi.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all preventivi.');
   }
 };
-export const fetchAllServiziATerra = async () => {
+export const fetchAllServiziATerra = async (): Promise<EntityList<ServizioATerra>> => {
   try {
     const serviziATerra = await sql<ServizioATerra>`
       SELECT * FROM servizi_a_terra
       ORDER BY id ASC
     `;
-    return {entity: 'servizio_a_terra', data: serviziATerra.rows};
+    return {entityName: 'servizio_a_terra', data: serviziATerra.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all servizi a terra.');
   }
 };
-export const fetchAllVoli = async () => {
+export const fetchAllVoli = async (): Promise<EntityList<Volo>> => {
   try {
     const voli = await sql<Volo>`
       SELECT * FROM voli
       ORDER BY id ASC
     `;
-    return {entity: 'volo', data: voli.rows};
+    return {entityName: 'volo', data: voli.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all voli.');
   }
 };
-export const fetchAllAssicurazioni = async () => {
+export const fetchAllAssicurazioni = async (): Promise<EntityList<Assicurazione>> => {
   try {
     const assicurazioni = await sql<Assicurazione>`
       SELECT * FROM assicurazioni
       ORDER BY id ASC
     `;
-    return {entity: 'assicurazione', data: assicurazioni.rows};
+    return {entityName: 'assicurazione', data: assicurazioni.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all assicurazioni.');
   }
 };
-export const fetchAllPagamentiAssicurazioni = async () => {
+export const fetchAllPagamentiAssicurazioni = async (): Promise<EntityList<PagamentoAssicurazione>> => {
   try {
     const pagamentiAssicurazioni = await sql<PagamentoAssicurazione>`
       SELECT * FROM pagamenti_assicurazioni
       ORDER BY id ASC
     `;
-    return {entity: 'pagamento_assicurazione', data: pagamentiAssicurazioni.rows};
+    return {entityName: 'pagamento_assicurazione', data: pagamentiAssicurazioni.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all pagamenti assicurazioni.');
   }
 };
-export const fetchAllPreventiviClienti = async () => {
+export const fetchAllPreventiviClienti = async (): Promise<EntityList<PreventivoCliente>> => {
   try {
     const preventiviClienti = await sql<PreventivoCliente>`
       SELECT * FROM preventivi_clienti
       ORDER BY id ASC
     `;
-    return {entity: 'preventivo_cliente', data: preventiviClienti.rows};
+    return {entityName: 'preventivo_cliente', data: preventiviClienti.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all preventivi clienti.');
   }
 };
-export const fetchAllPartecipanti = async () => {
+export const fetchAllPartecipanti = async (): Promise<EntityList<Partecipante>> => {
   try {
     const partecipanti = await sql<Partecipante>`
       SELECT * FROM partecipanti
       ORDER BY id ASC
     `;
-    return {entity: 'partecipante', data: partecipanti.rows};
+    return {entityName: 'partecipante', data: partecipanti.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all partecipanti.');
   }
 };
-export const fetchAllIncassiPartecipanti = async () => {
+export const fetchAllIncassiPartecipanti = async (): Promise<EntityList<IncassoPartecipante>> => {
   try {
     const incassiPartecipanti = await sql<IncassoPartecipante>`
       SELECT * FROM incassi_partecipanti
       ORDER BY id ASC
     `;
-    return {entity: 'incasso_partecipante', data: incassiPartecipanti.rows};
+    return {entityName: 'incasso_partecipante', data: incassiPartecipanti.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all incassi partecipanti.');
   }
 };
-export const fetchAllPagamentiServiziATerra = async () => {
+export const fetchAllPagamentiServiziATerra = async (): Promise<EntityList<PagamentoServizioATerra>> => {
   try {
     const pagamentiServiziATerra = await sql<PagamentoServizioATerra>`
       SELECT * FROM pagamenti_servizi_a_terra
       ORDER BY id ASC
     `;
-    return {entity: 'pagamento_servizi_a_terra', data: pagamentiServiziATerra.rows};
+    return {entityName: 'pagamento_servizi_a_terra', data: pagamentiServiziATerra.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all pagamenti servizi a terra.');
   }
 };
-export const fetchAllPagamentiVoli = async () => {
+export const fetchAllPagamentiVoli = async (): Promise<EntityList<PagamentoVolo>> => {
   try {
     const pagamentiVoli = await sql<PagamentoVolo>`
       SELECT * FROM pagamenti_voli
       ORDER BY id ASC
     `;
-    return {entity: 'pagamento_voli', data: pagamentiVoli.rows};
+    return {entityName: 'pagamento_voli', data: pagamentiVoli.rows};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all pagamenti voli.');
+  }
+};
+export const fetchAllBanche = async (): Promise<EntityList<Banca>> => {
+  try {
+    const banche = await sql<Banca>`
+      SELECT * FROM banche
+      ORDER BY id ASC
+    `;
+    return {entityName: 'banca', data: banche.rows};
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all banche.');
+  }
+};
+
+// #### FETCH ENTITY BY ID FUNCTIONS ####
+export const fetchClienteById = async (id: string): Promise<Cliente | null> => {
+  try {
+    const cliente = await sql<Cliente>`
+      SELECT * FROM clienti
+      WHERE id = ${id}
+    `;
+    return cliente.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch cliente by id.');
+  }
+};
+
+export const fetchDestinazioneById = async (id: string): Promise<Destinazione | null> => {
+  try {
+    const destinazione = await sql<Destinazione>`
+      SELECT * FROM destinazioni
+      WHERE id = ${id}
+    `;
+    return destinazione.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch destinazione by id.');
+  }
+};
+
+export const fetchFornitoreById = async (id: string): Promise<Fornitore | null> => {
+  try {
+    const fornitore = await sql<Fornitore>`
+      SELECT * FROM fornitori
+      WHERE id = ${id}
+    `;
+    return fornitore.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch fornitore by id.');
+  }
+};
+
+export const fetchPraticaById = async (id: string): Promise<Pratica | null> => {
+  try {
+    const pratica = await sql<Pratica>`
+      SELECT * FROM pratiche
+      WHERE id = ${id}
+    `;
+    return pratica.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch pratica by id.');
+  }
+};
+
+export const fetchPreventivoById = async (id: string): Promise<Preventivo | null> => {
+  try {
+    const preventivo = await sql<Preventivo>`
+      SELECT * FROM preventivi
+      WHERE id = ${id}
+    `;
+    return preventivo.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch preventivo by id.');
+  }
+};
+
+export const fetchIncassoPartecipanteById = async (id: string): Promise<IncassoPartecipante | null> => {
+  try {
+    const incassoPartecipante = await sql<IncassoPartecipante>`
+      SELECT * FROM incassi_partecipanti
+      WHERE id = ${id}
+    `;
+    return incassoPartecipante.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch incasso partecipante by id.');
+  }
+};
+
+export const fetchPagamentoServizioATerraById = async (id: string): Promise<PagamentoServizioATerra | null> => {
+  try {
+    const pagamentoServizioATerra = await sql<PagamentoServizioATerra>`
+      SELECT * FROM pagamenti_servizi_a_terra
+      WHERE id = ${id}
+    `;
+    return pagamentoServizioATerra.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch pagamento servizio a terra by id.');
+  }
+};
+
+export const fetchPagamentoVoloById = async (id: string): Promise<PagamentoVolo | null> => {
+  try {
+    const pagamentoVolo = await sql<PagamentoVolo>`
+      SELECT * FROM pagamenti_voli
+      WHERE id = ${id}
+    `;
+    return pagamentoVolo.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch pagamento volo by id.');
+  }
+};
+
+export const fetchBancaById = async (id: string): Promise<Banca | null> => {
+  try {
+    const banca = await sql<Banca>`
+      SELECT * FROM banche
+      WHERE id = ${id}
+    `;
+    return banca.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch banca by id.');
   }
 };
