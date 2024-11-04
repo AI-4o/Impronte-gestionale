@@ -20,7 +20,7 @@ const links = [
   { name: 'Destinazioni', href: '/dashboard/destinazioni', icon: GlobeEuropeAfricaIcon },
   { name: 'Fornitori', href: '/dashboard/fornitori', icon: UserGroupIcon },
   { name: 'Preventivi', href: '/dashboard/preventivi', icon: DocumentDuplicateIcon },
-  { name: 'Preventivi clienti', href: '/dashboard/preventivi-clienti', icon: DocumentDuplicateIcon },
+  { name: 'Preventivi clienti', href: '/dashboard/preventivo_mostrare_cliente', icon: DocumentDuplicateIcon },
   { name: 'Servizi a terra', href: '/dashboard/servizi-a-terra', icon: DocumentDuplicateIcon },
   { name: 'Voli', href: '/dashboard/voli', icon: PaperAirplaneIcon },
   { name: 'Assicurazioni', href: '/dashboard/assicurazioni', icon: DocumentDuplicateIcon },

@@ -4,9 +4,9 @@ import { Suspense } from 'react';
 import { LatestInvoicesSkeleton } from '@/app/ui/skeletons';
 import { entities, getDependenciesAndSampleRecord } from '@/app/lib/entities.utils';
 
-export default async function CreateCliente() {
+export default async function CreatePreventivo() {
 
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('cliente');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivo');
   // fetch all dependencies entities
   const dependenciesData = await Promise.all(
     entities
@@ -19,17 +19,17 @@ export default async function CreateCliente() {
     <main>
       <Breadcrumbs
         breadcrumbs={[
-          { label: 'Clienti', href: '/dashboard/clienti' },
+          { label: 'Preventivi', href: '/dashboard/preventivi' },
           {
-            label: 'Aggiungi Cliente',
-            href: '/dashboard/clienti/create',
+            label: 'Aggiungi Preventivo',
+            href: '/dashboard/preventivi/create',
             active: true,
           },
         ]}
       />
-      <Suspense key="create-cliente" fallback={<LatestInvoicesSkeleton />}>
+      <Suspense key="create-preventivo" fallback={<LatestInvoicesSkeleton />}>
         <CreateRecordForm
-          recordModelName='cliente'
+          recordModelName='preventivo'
           dependenciesData={dependenciesData}
         />
       </Suspense>

@@ -6,7 +6,7 @@ import EntityInputSelect from './entity-input-select';
 import EntityInputGroup from './entity-input-group';
 import { Entity, EntityList } from '@/app/lib/definitions';
 import { useActionState } from 'react';
-import { createCliente, updateCliente } from '@/app/lib/actions';
+import { updateAssicurazione, updateBanca, updateCliente, updateDestinazione, updateFornitore, updateIncassoPartecipante, updatePagamentoServizioATerra, updatePagamentoVolo, updatePartecipante, updatePratica, updatePreventivo, updatePreventivoMostrareCliente, updateServizioATerra, updateVolo } from '@/app/lib/actions/actions';
 import { ExclamationCircleIcon } from '@heroicons/react/16/solid';
 export interface UpdateRecordFormInterface<T> {
     recordModelName: (typeof entities[number]['name']);
@@ -20,6 +20,19 @@ export default function UpdateRecordForm<T>({
 }: UpdateRecordFormInterface<T>) {
     const updateActions = {
         cliente: updateCliente,
+        destinazione: updateDestinazione,
+        fornitore: updateFornitore,
+        preventivo: updatePreventivo,
+        preventivo_mostrare_cliente: updatePreventivoMostrareCliente,
+        servizio_a_terra: updateServizioATerra,
+        volo: updateVolo,
+        incasso_partecipante: updateIncassoPartecipante,
+        pagamento_volo: updatePagamentoVolo,
+        pagamento_servizio_a_terra: updatePagamentoServizioATerra,
+        partecipante: updatePartecipante,
+        assicurazione: updateAssicurazione,
+        banca: updateBanca,
+        pratica: updatePratica, 
     }
     const initialState = {
         values: recordModel,

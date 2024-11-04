@@ -185,7 +185,7 @@ export interface Assicurazione extends Entity{
   netto?: number;
   ricarico?: number;
 }
-export interface PreventivoCliente extends Entity{
+export interface PreventivoMostrareCliente extends Entity{
   id: string;
   id_preventivo: string;
   id_destinazione: string;

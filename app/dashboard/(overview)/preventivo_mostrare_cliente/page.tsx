@@ -1,7 +1,7 @@
 
 
-import { fetchPartecipantiPages, fetchFilteredPartecipanti } from "@/app/lib/data";
-import { Partecipante } from "@/app/lib/definitions";
+import { fetchPreventiviClientiPages, fetchFilteredPreventiviMostrareCliente } from "@/app/lib/data";
+import { PreventivoMostrareCliente } from "@/app/lib/definitions";
 import { lusitana } from "@/app/ui/fonts";
 import { CreateRecord } from "@/app/ui/invoices/buttons";
 import Pagination from "@/app/ui/invoices/pagination";
@@ -12,10 +12,10 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-    title: 'Partecipanti',
+    title: 'Preventivi Clienti',
   };
 
-export default async function Partecipanti(
+export default async function PreventiviClienti(
       props: {
           searchParams?: Promise<{
             query?: string;
@@ -27,18 +27,18 @@ export default async function Partecipanti(
     
       const query = searchParams?.query || '';
       const currentPage = Number(searchParams?.page) || 1;
-      const totalPages = await fetchPartecipantiPages(query);
+      const totalPages = await fetchPreventiviClientiPages(query);
     
       return <div className="w-full">
       <div className="flex w-full items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl`}>Partecipanti</h1>
+        <h1 className={`${lusitana.className} text-2xl`}>Preventivi Clienti</h1>
       </div>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <Search placeholder="Search partecipanti..." />
-        <CreateRecord recordName="partecipante" />
+        <Search placeholder="Search preventivi clienti..." />
+        <CreateRecord recordName="preventivo_cliente" />
       </div>
        <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
-        <Table<Partecipante> dataName="partecipanti" fetchFunction={() => fetchFilteredPartecipanti(query, currentPage)} />
+        <Table<PreventivoMostrareCliente> dataName="preventivo_mostrare_cliente" fetchFunction={() => fetchFilteredPreventiviMostrareCliente(query, currentPage)} />
       </Suspense> 
       <div className="mt-5 flex w-full justify-center">
        <Pagination totalPages={totalPages} />

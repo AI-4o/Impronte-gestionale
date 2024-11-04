@@ -72,7 +72,7 @@ const rows = data?.map((x) => {
                 {Object.keys(data[0])
                 .filter(key => key !== 'id')
                 .map((column) => (
-                  <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                  <th key={column} scope="col" className="px-4 py-5 font-medium sm:pl-6">
                     {column}
                   </th>
                 ))}

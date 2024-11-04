@@ -6,6 +6,7 @@ import InputSelect from "./input-select";
 import InputState from "./input-state";
 import InputText from "./input-text";
 import MoneyInput from "./money-input";
+import { format } from 'date-fns';
 export default function EntityInputGroup({ entityKeys, recordModel, state }: { entityKeys: EntityKey[], recordModel?: any, state?: any }) {
 
     let _entityKeys = entityKeys.filter(k => k.type !== "foreign_key");
@@ -14,9 +15,10 @@ export default function EntityInputGroup({ entityKeys, recordModel, state }: { e
     return (
         <div>
             {_entityKeys.map((k, i) => {
-                const recordModelKeyValue = recordModel ? recordModel[k.keyName] : null;
+                let recordModelKeyValue = recordModel ? recordModel[k.keyName] : null;
                 switch (k.type) {
                     case "date":
+                        recordModelKeyValue = format(recordModelKeyValue as Date, 'yyyy-MM-dd');
                         return <InputDate key={i} label={k.keyName} name={k.keyName} state={state} defaultValue={recordModelKeyValue} />;
                     case "telefono":
                         return <InputTell key={i} state={state} label={k.keyName} defaultValue={recordModelKeyValue} />;

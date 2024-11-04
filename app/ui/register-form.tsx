@@ -6,7 +6,7 @@ import {
   KeyIcon
 } from '@heroicons/react/24/outline';
 import { Button } from './button';
-import { createUser, State } from '../lib/actions';
+import { createUser, State } from '../lib/actions/actions';
 import { useActionState } from 'react';
 import { lusitana } from './fonts';
 

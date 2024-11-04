@@ -1,4 +1,4 @@
-import { Pratica, PagamentoAssicurazione, PagamentoVolo, PagamentoServizioATerra, IncassoPartecipante, Partecipante, PreventivoCliente, Assicurazione, Volo, ServizioATerra, Preventivo, Fornitore, Cliente, Destinazione, Banca } from "./definitions";
+import { Pratica, PagamentoAssicurazione, PagamentoVolo, PagamentoServizioATerra, IncassoPartecipante, Partecipante, PreventivoMostrareCliente, Assicurazione, Volo, ServizioATerra, Preventivo, Fornitore, Cliente, Destinazione, Banca } from "./definitions";
 
 export const samplePratica: Pratica = {
     id: '1',
@@ -53,7 +53,7 @@ export const samplePratica: Pratica = {
     cognome: 'Doe',
     tot_quota: 200,
   };
-  export const samplePreventivoMostrareCliente: PreventivoCliente = {
+  export const samplePreventivoMostrareCliente: PreventivoMostrareCliente = {
     id: '1',
     id_preventivo: '1',
     id_destinazione: '1',

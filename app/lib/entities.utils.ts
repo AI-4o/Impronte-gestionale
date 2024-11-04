@@ -1,3 +1,4 @@
+import { valuteArray } from "./actions/entity-zod-schemas";
 import {
   fetchAllDestinazioni,
   fetchAllClienti,
@@ -119,6 +120,22 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
       type: "email",
     },
     {
+      keyName: "riferimento",
+      type: "text",
+    },
+    {
+      keyName: "operatore",
+      type: "text",
+    },
+    {
+      keyName: "feedback",
+      type: "text",
+    },
+    {
+      keyName: "note",
+      type: "text",
+    },
+    {
       keyName: "numero_di_telefono",
       type: "telefono",
     },
@@ -152,11 +169,43 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
       values: ["da fare", "in trattativa", "confermato", "inviato"],
     },
   ],
+  destinazione: [
+    {
+      keyName: "nome",
+      type: "text",
+    },
+  ],
+  fornitore: [
+    {
+      keyName: "nome",
+      type: "text",
+    },
+    {
+      keyName: "valuta",
+      type: "enum",
+      values: ["EUR", "USD"],
+    },
+  ],
+  banca: [
+    {
+      keyName: "nome",
+      type: "text",
+    },
+  ],
   servizio_a_terra: [
     {
       keyName: "id_preventivo",
       type: "foreign_key",
       entityName: "preventivo",
+    },
+    {
+      keyName: "descrizione",
+      type: "text",
+    },
+    {
+      keyName: "valuta",
+      type: "enum",
+      values: valuteArray,
     },
     {
       keyName: "id_fornitore",
@@ -200,6 +249,19 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
       entityName: "preventivo",
     },
     {
+      keyName: "descrizione",
+      type: "text",
+    },
+    {
+      keyName: "valuta",
+      type: "enum",
+      values: valuteArray,
+    },
+    {
+      keyName: "compagnia_aerea",
+      type: "text",
+    },
+    {
       keyName: "id_fornitore",
       type: "foreign_key",
       entityName: "fornitore",
@@ -227,6 +289,10 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
   ],
   assicurazione: [
     {
+      keyName: "assicurazione",
+      type: "text",
+    },
+    {
       keyName: "id_preventivo",
       type: "foreign_key",
       entityName: "preventivo",
@@ -245,7 +311,11 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  preventivo_cliente: [
+  preventivo_mostrare_cliente: [
+    {
+      keyName: "descrizione",
+      type: "text",
+    },
     {
       keyName: "id_destinazione",
       type: "foreign_key",
@@ -276,6 +346,14 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
   ],
   partecipante: [
     {
+      keyName: "nome",
+      type: "text",
+    },
+    {
+      keyName: "cognome",
+      type: "text",
+    },
+    {
       keyName: "id_preventivo",
       type: "foreign_key",
       entityName: "preventivo",
@@ -286,6 +364,11 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
     },
   ],
   incasso_partecipante: [
+    {
+      keyName: "id_banca",
+      type: "foreign_key",
+      entityName: "banca",
+    },
     {
       keyName: "id_partecipante",
       type: "foreign_key",
@@ -304,7 +387,12 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  pragamento_servizi_a_terra: [
+  pagamento_servizi_a_terra: [
+    {
+      keyName: "id_banca",
+      type: "foreign_key",
+      entityName: "banca",
+    },
     {
       keyName: "id_servizio_a_terra",
       type: "foreign_key",
@@ -330,6 +418,11 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
   ],
   pagamento_voli: [
     {
+      keyName: "id_banca",
+      type: "foreign_key",
+      entityName: "banca",
+    },
+    {
       keyName: "id_volo",
       type: "foreign_key",
       entityName: "volo",
@@ -354,6 +447,11 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
   ],
   pagamento_assicurazione: [
     {
+      keyName: "id_banca",
+      type: "foreign_key",
+      entityName: "banca",
+    },
+    {
       keyName: "id_fornitore",
       type: "foreign_key",
       entityName: "fornitore",
@@ -377,6 +475,10 @@ export const specialKeys: { [key: string]: EntityKey[] } = {
     },
   ],
   pratica: [
+    {
+      keyName: "note",
+      type: "text",
+    },
     {
       keyName: "id_cliente",
       type: "foreign_key",

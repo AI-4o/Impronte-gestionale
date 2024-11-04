@@ -2,6 +2,7 @@ import Link from 'next/link';
 import NavLinks from '@/app/ui/dashboard/nav-links';
 import AcmeLogo from '@/app/ui/acme-logo';
 import SignOut from './signout';
+import { lusitana } from '../fonts';
 
 export default function SideNav() {
 
@@ -12,7 +13,7 @@ export default function SideNav() {
         href="/"
       >
         <div className="w-32 text-white md:w-40">
-          <AcmeLogo />
+          <h1 className={`${lusitana.className} text-2xl`}>Impronte Gestionale</h1>
         </div>
       </Link>
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
