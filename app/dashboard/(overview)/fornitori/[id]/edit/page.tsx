@@ -1,4 +1,4 @@
-import { fetchFornitoreById, fetchCustomers, fetchInvoiceById } from "@/app/lib/data";
+import { fetchFornitoreById } from "@/app/lib/data";
 import { entities, getDependenciesAndSampleRecord } from "@/app/lib/entities.utils";
 import Breadcrumbs from "@/app/ui/invoices/breadcrumbs";
 import UpdateRecordForm from "@/app/ui/invoices/edit-record-form";

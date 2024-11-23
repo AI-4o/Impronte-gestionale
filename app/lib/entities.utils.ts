@@ -35,6 +35,13 @@ import {
   sampleVolo,
 } from "./entities.samples";
 
+/**
+ * Type resuming all the infos on a key of an entity, it is an object with fields:
+ * 1. keyName -> name of the key
+ * 2. type -> type of the key
+ * 3. values -> array of possible values for the key if it is an enum
+ * 4. entityName -> name of the entity if the key is a foreign key
+ */
 export type EntityKey = {
   keyName: string;
   type:
@@ -50,9 +57,12 @@ export type EntityKey = {
   entityName?: string;
 };
 /**
- * list of keys of entities that can have fixed values.
+ * General resuming object.
+ * For each entity E, this object contains the couple key-value of
+ * - E -> name of the entity
+ * - EntityKey[] -> for each key of E, the EntityKey object associated with the key
  */
-export const specialKeys: { [key: string]: EntityKey[] } = {
+export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
   cliente: [
     {
       keyName: "nome",
@@ -585,26 +595,30 @@ export const entities: FetchableEntity<any>[] = [
   },
 ];
 /**
- * get the dependencies entities names and the sample record of a given entity.
+ * Given the entityName of a type of entity, return the names of its foreign_key entities.
+ * 
+ * TODO: refactor -> is sampleRecord needed?  
  * @param entityName the name of the entity.
  * @returns an object with the dependencies entities names and the sample record of the entity.
  */
 export const getDependenciesAndSampleRecord = (
-  entityName: (typeof entities)[number]["name"]
-) => {
+  entityName: string
+): {dependenciesNames: string[], sampleRecord: any} => {
+  // check if the entityName is valid
+  if(!entitiesKeysDictionary[entityName]) throw new Error("Entity not found");
   // get the array of dependencies entities names
   const dependenciesNames: (typeof entities)[number]["name"][] = [];
-  Object.keys(specialKeys).forEach((key) => {
-    if (key == entityName) {
-      // the entity that corresponds to the entityName
-      const entityKeys = specialKeys[key];
-      entityKeys.forEach((entityKey) => {
-        if (entityKey.type == "foreign_key") {
-          dependenciesNames.push(entityKey.entityName);
-        }
-      });
-    }
+  // the EntityKey[] corresponding to the given entityName
+  const entityKeys = entitiesKeysDictionary[entityName];
+  // push to dependenciesNames the entityNames of the dependencies of the given entityName
+  entityKeys.forEach((entityKey) => {
+    if (entityKey.type == "foreign_key") dependenciesNames.push(entityKey.entityName);
   });
-  const entity = entities.find(e => e.name == entityName);
-  return {dependenciesNames: dependenciesNames, sampleRecord: entity?.sampleModel};
+  const entity = entities.find((e) => e.name == entityName);
+  // console.log('lkjhgfds', dependenciesNames);
+  
+  return {
+    dependenciesNames: dependenciesNames,
+    sampleRecord: entity?.sampleModel,
+  };
 };

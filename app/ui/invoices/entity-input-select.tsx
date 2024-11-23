@@ -1,7 +1,7 @@
-import { EntityList } from "@/app/lib/definitions";
+import { TEntityList } from "@/app/lib/definitions";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 
-export default function EntityInputSelect({ data, defaultValue }: { data: EntityList<any>, defaultValue?: string }) {
+export default function EntityInputSelect({ data, defaultValue }: { data: TEntityList<any>, defaultValue?: string }) {
 
     return (
         <>

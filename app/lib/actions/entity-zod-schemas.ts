@@ -6,7 +6,7 @@ export const ClienteSchema = z.object({
   cognome: z.string(),
   note: z.string(),
   tipo: z.enum(["PRIVATO", "AGENZIA VIAGGI", "AZIENDA"]),
-  data_di_nascita: z.string().date(),
+  data_di_nascita: z.string().nullable(),
   email: z.string().email(),
   citta: z.string(),
   collegato: z.string(),
@@ -44,16 +44,13 @@ export const PreventivoSchema = z.object({
   confermato: z.boolean(),
   stato: z.enum(["da fare", "in trattativa", "confermato", "inviato"]),
 });
-
 export const FornitoreSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),
   valuta: z.enum(valuteArray as [string, ...string[]]),
 });
-
 export const BancaSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),
 });
-
 export const ServizioATerraSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
@@ -67,7 +64,6 @@ export const ServizioATerraSchema = z.object({
   ricarico: z.number().nonnegative(),
   servizio_aggiuntivi: z.boolean(),
 });
-
 export const VoloSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
@@ -80,7 +76,6 @@ export const VoloSchema = z.object({
   cambio: z.number().nonnegative(),
   ricarico: z.number().nonnegative(),
 });
-
 export const AssicurazioneSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
@@ -88,7 +83,6 @@ export const AssicurazioneSchema = z.object({
   netto: z.number().nonnegative(),
   ricarico: z.number().nonnegative(),
 });
-
 export const PreventivoMostrareClienteSchema = z.object({
   id_destinazione: z.string(),
   id_preventivo: z.string(),
@@ -98,14 +92,12 @@ export const PreventivoMostrareClienteSchema = z.object({
   importo_vendita: z.number().nonnegative(),
   totale: z.number().nonnegative(),
 });
-
 export const PartecipanteSchema = z.object({
   id_preventivo: z.string(),
   nome: z.string(),
   cognome: z.string(),
   tot_quota: z.number().nonnegative(),
 });
-
 export const IncassoPartecipanteSchema = z.object({
   id_partecipante: z.string(),
   id_banca: z.string(),
@@ -113,7 +105,6 @@ export const IncassoPartecipanteSchema = z.object({
   data_incasso: z.string().date(),
   importo: z.number().nonnegative(),
 });
-
 export const PagamentoServiziATerraSchema = z.object({
   id_servizio_a_terra: z.string(),
   id_fornitore: z.string(),
@@ -122,7 +113,6 @@ export const PagamentoServiziATerraSchema = z.object({
   data_incasso: z.string().date(),
   importo: z.number().nonnegative(),
 });
-
 export const PagamentoVoliSchema = z.object({
   id_volo: z.string(),
   id_fornitore: z.string(),
@@ -131,7 +121,6 @@ export const PagamentoVoliSchema = z.object({
   data_incasso: z.string().date(),
   importo: z.number().nonnegative(),
 });
-
 export const PagamentoAssicurazioneSchema = z.object({
   id_fornitore: z.string(),
   id_assicurazione: z.string(),
@@ -140,7 +129,6 @@ export const PagamentoAssicurazioneSchema = z.object({
   data_incasso: z.string().date(),
   importo: z.number().nonnegative(),
 });
-
 export const PraticaSchema = z.object({
   id_cliente: z.string(),
   id_preventivo: z.string(),

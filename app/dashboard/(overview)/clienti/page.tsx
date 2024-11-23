@@ -1,5 +1,7 @@
 import { fetchFilteredClienti, fetchClientiPages } from "@/app/lib/data";
 import { Cliente } from "@/app/lib/definitions";
+import { getDependenciesAndSampleRecord } from "@/app/lib/entities.utils";
+import { entities } from "@/app/lib/entities.utils";
 import { lusitana } from "@/app/ui/fonts";
 import { CreateRecord } from "@/app/ui/invoices/buttons";
 import Pagination from "@/app/ui/invoices/pagination";
@@ -33,6 +35,14 @@ export default async function Page(
   const currentPage = Number(searchParams?.page) || 1;
   const totalPages = await fetchClientiPages(query);
 
+  const { dependenciesNames } = getDependenciesAndSampleRecord('cliente'); //TODO: refactor this logic
+  const dependenciesData = await Promise.all(
+    entities
+      // filter the entities that are dependencies of the record model
+      .filter(entity => dependenciesNames.includes(entity.name))
+      // fetch the data of such dependencies
+      .map(entity => entity.fetchCallback())
+  );  
   return <div className="w-full">
   <div className="flex w-full items-center justify-between">
     <h1 className={`${lusitana.className} text-2xl`}>Clienti</h1>
@@ -42,10 +52,18 @@ export default async function Page(
     <CreateRecord recordName="clienti" />
   </div>
    <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
-    <Table<Cliente> dataName="clienti" fetchFunction={() => fetchFilteredClienti(query, currentPage)} />
+    <Table<Cliente> dataName="clienti" fetchFunction={() => fetchFilteredClienti(query, currentPage)}  />
   </Suspense> 
   <div className="mt-5 flex w-full justify-center">
    <Pagination totalPages={totalPages} />
   </div>
-</div>;
+
+  <div>
+    <p>Attenzione, se si elimina un cliente, si eliminano anche tutti i dati delle entità che dipendono da esso!
+       Da un cliente possono dipendere:</p>
+    <ul>
+      {dependenciesNames.map(d => <li key={d}>{d}</li>)}
+    </ul>
+  </div>
+  </div>;
 }

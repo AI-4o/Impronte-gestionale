@@ -1,11 +1,5 @@
 import { sql } from '@vercel/postgres';
 import {
-  CustomerField,
-  CustomersTableType,
-  InvoiceForm,
-  InvoicesTableRow,
-  LatestInvoiceRaw,
-  Revenue,
   Cliente,
   Preventivo,
   Pratica,
@@ -21,211 +15,11 @@ import {
   Volo,
   PreventivoMostrareCliente,
   Banca,
-  EntityList
+  TEntityList
 } from './definitions';
 import { formatCurrency } from './utils';
 
-export async function fetchRevenue() {
-  try {
-    // Artificially delay a response for demo purposes.
-    // Don't do this in production :)
-
-    // console.log('Fetching revenue data...');
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const data = await sql<Revenue>`SELECT * FROM revenue`;
-
-    // console.log('Data fetch completed after 3 seconds.');
-
-    return data.rows;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch revenue data.');
-  }
-}
-export async function fetchLatestInvoices() {
-  try {
-    const data = await sql<LatestInvoiceRaw>`
-      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      ORDER BY invoices.date DESC
-      LIMIT 5`;
-
-    const latestInvoices = data.rows.map((invoice) => ({
-      ...invoice,
-      amount: formatCurrency(invoice.amount),
-    }));
-    return latestInvoices;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest invoices.');
-  }
-}
-export async function fetchCardData() {
-  try {
-    // You can probably combine these into a single SQL query
-    // However, we are intentionally splitting them to demonstrate
-    // how to initialize multiple queries in parallel with JS.
-    const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
-    const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
-    const invoiceStatusPromise = sql`SELECT
-         SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
-         SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
-         FROM invoices`;
-
-    const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
-    ]);
-
-    const numberOfInvoices = Number(data[0].rows[0].count ?? '0');
-    const numberOfCustomers = Number(data[1].rows[0].count ?? '0');
-    const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? '0');
-    const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? '0');
-
-    return {
-      numberOfCustomers,
-      numberOfInvoices,
-      totalPaidInvoices,
-      totalPendingInvoices,
-    };
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch card data.');
-  }
-}
 const ITEMS_PER_PAGE = 20;
-export async function fetchFilteredInvoices(
-  query: string,
-  currentPage: number,
-) {
-  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  try {
-    const invoices = await sql<InvoicesTableRow>`
-      SELECT
-        invoices.id,
-        invoices.amount,
-        invoices.date,
-        invoices.status,
-        customers.name,
-        customers.email,
-        customers.image_url
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      WHERE
-        customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`} OR
-        invoices.amount::text ILIKE ${`%${query}%`} OR
-        invoices.date::text ILIKE ${`%${query}%`} OR
-        invoices.status ILIKE ${`%${query}%`}
-      ORDER BY invoices.date DESC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
-
-    return invoices.rows;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoices.');
-  }
-}
-export async function fetchInvoicesPages(query: string) {
-  try {
-    const count = await sql`SELECT COUNT(*)
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
-    WHERE
-      customers.name ILIKE ${`%${query}%`} OR
-      customers.email ILIKE ${`%${query}%`} OR
-      invoices.amount::text ILIKE ${`%${query}%`} OR
-      invoices.date::text ILIKE ${`%${query}%`} OR
-      invoices.status ILIKE ${`%${query}%`}
-  `;
-
-    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
-    return totalPages;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch total number of invoices.');
-  }
-}
-export async function fetchInvoiceById(id: string) {
-  try {
-    const data = await sql<InvoiceForm>`
-      SELECT
-        invoices.id,
-        invoices.customer_id,
-        invoices.amount,
-        invoices.status
-      FROM invoices
-      WHERE invoices.id = ${id};
-    `;
-
-    const invoice = data.rows.map((invoice) => ({
-      ...invoice,
-      // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
-    }));
-
-    return invoice[0];
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoice.');
-  }
-}
-export async function fetchCustomers() {
-  try {
-    const data = await sql<CustomerField>`
-      SELECT
-        id,
-        name
-      FROM customers
-      ORDER BY name ASC
-    `;
-
-    const customers = data.rows;
-    return customers;
-  } catch (err) {
-    console.error('Database Error:', err);
-    throw new Error('Failed to fetch all customers.');
-  }
-}
-export async function fetchFilteredCustomers(query: string) {
-  try {
-    const data = await sql<CustomersTableType>`
-		SELECT
-		  customers.id,
-		  customers.name,
-		  customers.email,
-		  customers.image_url,
-		  COUNT(invoices.id) AS total_invoices,
-		  SUM(CASE WHEN invoices.status = 'pending' THEN invoices.amount ELSE 0 END) AS total_pending,
-		  SUM(CASE WHEN invoices.status = 'paid' THEN invoices.amount ELSE 0 END) AS total_paid
-		FROM customers
-		LEFT JOIN invoices ON customers.id = invoices.customer_id
-		WHERE
-		  customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`}
-		GROUP BY customers.id, customers.name, customers.email, customers.image_url
-		ORDER BY customers.name ASC
-	  `;
-
-    const customers = data.rows.map((customer) => ({
-      ...customer,
-      total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
-    }));
-
-    return customers;
-  } catch (err) {
-    console.error('Database Error:', err);
-    throw new Error('Failed to fetch customer table.');
-  }
-}
-
-
 
 // #### 'LIKE' FILTERED LIST FUNCTIONS ####
 export const fetchFilteredClienti = async (
@@ -250,6 +44,7 @@ export const fetchFilteredClienti = async (
       ORDER BY nome ASC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
+    
     return clienti.rows;
   } catch (error) {
     console.error('Database Error:', error);
@@ -541,7 +336,6 @@ export const fetchFilteredPratiche = async (
   }
 };
 
-
 // #### PAGINATION FUNCTIONS ####
 export async function fetchClientiPages(query: string) {
   try {
@@ -826,8 +620,8 @@ export async function fetchPagamentiVoliPages(query: string) {
   }
 }
 
-// #### FETCH ALL ENTITIES FUNCTIONS ####
-export const fetchAllClienti = async (): Promise<EntityList<Cliente>> => {
+// #### FETCH ALL FUNCTIONS ####
+export const fetchAllClienti = async (): Promise<TEntityList<Cliente>> => {
   try {
     const clienti = await sql<Cliente>`
       SELECT * FROM clienti
@@ -839,7 +633,7 @@ export const fetchAllClienti = async (): Promise<EntityList<Cliente>> => {
     throw new Error('Failed to fetch all clienti.');
   }
 };
-export const fetchAllDestinazioni = async (): Promise<EntityList<Destinazione>  > => {
+export const fetchAllDestinazioni = async (): Promise<TEntityList<Destinazione>  > => {
   try {
     const destinazioni = await sql<Destinazione>`
       SELECT * FROM destinazioni
@@ -851,7 +645,7 @@ export const fetchAllDestinazioni = async (): Promise<EntityList<Destinazione>  
     throw new Error('Failed to fetch all destinazioni.');
   }
 };
-export const fetchAllFornitori = async (): Promise<EntityList<Fornitore>> => {
+export const fetchAllFornitori = async (): Promise<TEntityList<Fornitore>> => {
   try {
     const fornitori = await sql<Fornitore>`
       SELECT * FROM fornitori
@@ -863,7 +657,7 @@ export const fetchAllFornitori = async (): Promise<EntityList<Fornitore>> => {
     throw new Error('Failed to fetch all fornitori.');
   }
 };
-export const fetchAllPratiche = async (): Promise<EntityList<Pratica>> => {
+export const fetchAllPratiche = async (): Promise<TEntityList<Pratica>> => {
   try {
     const pratiche = await sql<Pratica>`
       SELECT * FROM pratiche
@@ -875,7 +669,7 @@ export const fetchAllPratiche = async (): Promise<EntityList<Pratica>> => {
     throw new Error('Failed to fetch all pratiche.');
   }
 };
-export const fetchAllPreventivi = async (): Promise<EntityList<Preventivo>> => {
+export const fetchAllPreventivi = async (): Promise<TEntityList<Preventivo>> => {
   try {
     const preventivi = await sql<Preventivo>`
       SELECT * FROM preventivi
@@ -887,7 +681,7 @@ export const fetchAllPreventivi = async (): Promise<EntityList<Preventivo>> => {
     throw new Error('Failed to fetch all preventivi.');
   }
 };
-export const fetchAllServiziATerra = async (): Promise<EntityList<ServizioATerra>> => {
+export const fetchAllServiziATerra = async (): Promise<TEntityList<ServizioATerra>> => {
   try {
     const serviziATerra = await sql<ServizioATerra>`
       SELECT * FROM servizi_a_terra
@@ -899,7 +693,7 @@ export const fetchAllServiziATerra = async (): Promise<EntityList<ServizioATerra
     throw new Error('Failed to fetch all servizi a terra.');
   }
 };
-export const fetchAllVoli = async (): Promise<EntityList<Volo>> => {
+export const fetchAllVoli = async (): Promise<TEntityList<Volo>> => {
   try {
     const voli = await sql<Volo>`
       SELECT * FROM voli
@@ -911,7 +705,7 @@ export const fetchAllVoli = async (): Promise<EntityList<Volo>> => {
     throw new Error('Failed to fetch all voli.');
   }
 };
-export const fetchAllAssicurazioni = async (): Promise<EntityList<Assicurazione>> => {
+export const fetchAllAssicurazioni = async (): Promise<TEntityList<Assicurazione>> => {
   try {
     const assicurazioni = await sql<Assicurazione>`
       SELECT * FROM assicurazioni
@@ -923,7 +717,7 @@ export const fetchAllAssicurazioni = async (): Promise<EntityList<Assicurazione>
     throw new Error('Failed to fetch all assicurazioni.');
   }
 };
-export const fetchAllPagamentiAssicurazioni = async (): Promise<EntityList<PagamentoAssicurazione>> => {
+export const fetchAllPagamentiAssicurazioni = async (): Promise<TEntityList<PagamentoAssicurazione>> => {
   try {
     const pagamentiAssicurazioni = await sql<PagamentoAssicurazione>`
       SELECT * FROM pagamenti_assicurazioni
@@ -935,7 +729,7 @@ export const fetchAllPagamentiAssicurazioni = async (): Promise<EntityList<Pagam
     throw new Error('Failed to fetch all pagamenti assicurazioni.');
   }
 };
-export const fetchAllPreventiviClienti = async (): Promise<EntityList<PreventivoMostrareCliente>> => {
+export const fetchAllPreventiviClienti = async (): Promise<TEntityList<PreventivoMostrareCliente>> => {
   try {
     const preventiviClienti = await sql<PreventivoMostrareCliente>`
       SELECT * FROM preventivi_clienti
@@ -947,7 +741,7 @@ export const fetchAllPreventiviClienti = async (): Promise<EntityList<Preventivo
     throw new Error('Failed to fetch all preventivi clienti.');
   }
 };
-export const fetchAllPartecipanti = async (): Promise<EntityList<Partecipante>> => {
+export const fetchAllPartecipanti = async (): Promise<TEntityList<Partecipante>> => {
   try {
     const partecipanti = await sql<Partecipante>`
       SELECT * FROM partecipanti
@@ -959,7 +753,7 @@ export const fetchAllPartecipanti = async (): Promise<EntityList<Partecipante>> 
     throw new Error('Failed to fetch all partecipanti.');
   }
 };
-export const fetchAllIncassiPartecipanti = async (): Promise<EntityList<IncassoPartecipante>> => {
+export const fetchAllIncassiPartecipanti = async (): Promise<TEntityList<IncassoPartecipante>> => {
   try {
     const incassiPartecipanti = await sql<IncassoPartecipante>`
       SELECT * FROM incassi_partecipanti
@@ -971,7 +765,7 @@ export const fetchAllIncassiPartecipanti = async (): Promise<EntityList<IncassoP
     throw new Error('Failed to fetch all incassi partecipanti.');
   }
 };
-export const fetchAllPagamentiServiziATerra = async (): Promise<EntityList<PagamentoServizioATerra>> => {
+export const fetchAllPagamentiServiziATerra = async (): Promise<TEntityList<PagamentoServizioATerra>> => {
   try {
     const pagamentiServiziATerra = await sql<PagamentoServizioATerra>`
       SELECT * FROM pagamenti_servizi_a_terra
@@ -983,7 +777,7 @@ export const fetchAllPagamentiServiziATerra = async (): Promise<EntityList<Pagam
     throw new Error('Failed to fetch all pagamenti servizi a terra.');
   }
 };
-export const fetchAllPagamentiVoli = async (): Promise<EntityList<PagamentoVolo>> => {
+export const fetchAllPagamentiVoli = async (): Promise<TEntityList<PagamentoVolo>> => {
   try {
     const pagamentiVoli = await sql<PagamentoVolo>`
       SELECT * FROM pagamenti_voli
@@ -995,7 +789,7 @@ export const fetchAllPagamentiVoli = async (): Promise<EntityList<PagamentoVolo>
     throw new Error('Failed to fetch all pagamenti voli.');
   }
 };
-export const fetchAllBanche = async (): Promise<EntityList<Banca>> => {
+export const fetchAllBanche = async (): Promise<TEntityList<Banca>> => {
   try {
     const banche = await sql<Banca>`
       SELECT * FROM banche
@@ -1008,7 +802,7 @@ export const fetchAllBanche = async (): Promise<EntityList<Banca>> => {
   }
 };
 
-// #### FETCH ENTITY BY ID FUNCTIONS ####
+// #### FETCH BY ID FUNCTIONS ####
 export const fetchClienteById = async (id: string): Promise<Cliente | null> => {
   try {
     const cliente = await sql<Cliente>`

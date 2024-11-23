@@ -1,22 +1,36 @@
-"use client";
+'use client';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { entities, EntityKey, specialKeys } from '@/app/lib/entities.utils';
-import EntityInputSelect from './entity-input-select';
+import { entities, EntityKey, entitiesKeysDictionary } from '@/app/lib/entities.utils';
 import EntityInputGroup from './entity-input-group';
-import { Entity, EntityList } from '@/app/lib/definitions';
 import { useActionState } from 'react';
-import { updateAssicurazione, updateBanca, updateCliente, updateDestinazione, updateFornitore, updateIncassoPartecipante, updatePagamentoServizioATerra, updatePagamentoVolo, updatePartecipante, updatePratica, updatePreventivo, updatePreventivoMostrareCliente, updateServizioATerra, updateVolo } from '@/app/lib/actions/actions';
+import { 
+    updateAssicurazione, 
+    updateBanca, 
+    updateCliente, 
+    updateDestinazione, 
+    updateFornitore, 
+    updateIncassoPartecipante, 
+    updatePagamentoServizioATerra, 
+    updatePagamentoVolo, 
+    updatePartecipante, 
+    updatePratica, 
+    updatePreventivo, 
+    updatePreventivoMostrareCliente, 
+    updateServizioATerra, 
+    updateVolo 
+} from '@/app/lib/actions/actions';
 import { ExclamationCircleIcon } from '@heroicons/react/16/solid';
+import { Entity } from '@/app/lib/definitions';
 export interface UpdateRecordFormInterface<T> {
     recordModelName: (typeof entities[number]['name']);
-    dependenciesData: EntityList<any>[];
-    recordModel: T extends Entity ? T : never;
+    recordModel: Entity;
+    //dependenciesData: TEntityList<any>[];
 }
 export default function UpdateRecordForm<T>({
     recordModelName,
     recordModel,
-    dependenciesData
+    //dependenciesData
 }: UpdateRecordFormInterface<T>) {
     const updateActions = {
         cliente: updateCliente,
@@ -35,24 +49,24 @@ export default function UpdateRecordForm<T>({
         pratica: updatePratica, 
     }
     const initialState = {
-        values: recordModel,
-        errors: {},
+        errors: {}, 
         dbError: '',
         message: '',
+        values: recordModel
     }
     // array of the keys of the record model
-    const recordModelKeys = specialKeys[recordModelName] as EntityKey[];
+    const recordModelKeys = entitiesKeysDictionary[recordModelName] as EntityKey[];
     const [state, formAction] = useActionState(updateActions[recordModelName], initialState);
 
     return (
         <form action={formAction}>
             <div className="rounded-md bg-gray-50 p-4 md:p-6">
                 {/* select dependencies to associate to the new record */}
-                {dependenciesData.map((data, i) => {
+                {/*dependenciesData.map((data, i) => {
                     return <div key={i} className="mb-4">
                         <EntityInputSelect data={data} defaultValue={recordModel[data.entityName] ?? ''} />
                     </div>
-                })}
+                })}*/}
                 <br />
                 <EntityInputGroup entityKeys={recordModelKeys} recordModel={recordModel} state={state} /> {/** add state */}
             </div>

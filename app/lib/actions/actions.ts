@@ -751,9 +751,9 @@ export const updateCliente = async (
   prevState: State<Cliente>,
   formData: FormData
 ) => {
-  console.log("prevState: ", prevState);
+  // console.log("prevState: ", prevState);
   console.log("action updateCliente", {
-    id: prevState,
+    id: prevState.values?.id,
     nome: formData.get("nome"),
     cognome: formData.get("cognome"),
     note: formData.get("note"),
@@ -802,6 +802,8 @@ export const updateCliente = async (
     provenienza = ${parsedData.data.provenienza}
     WHERE id = ${prevState.values?.id}
     `;
+    console.log('SUCCESS UPDATING CLIENTE');
+    
   } catch (error) {
     console.log("db error: ", error);
     return {

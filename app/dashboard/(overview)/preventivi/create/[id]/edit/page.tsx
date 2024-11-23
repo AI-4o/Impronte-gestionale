@@ -8,15 +8,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   
   const id = params.id;
-  const preventivo = await fetchPreventivoById(id);
+
   const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivo');
-  const dependenciesData = await Promise.all(
-    entities
-      // filter the entities that are dependencies of the record model
-      .filter(entity => dependenciesNames.includes(entity.name))
-      // fetch the data of such dependencies
-      .map(entity => entity.fetchCallback())
-  );  
+  
   return <>
   <main>
     <Breadcrumbs
@@ -29,7 +23,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         },
       ]}
     />
-    <UpdateRecordForm recordModelName="preventivo" dependenciesData={dependenciesData} recordModel={preventivo} />    
+    <UpdateRecordForm recordModelName="preventivo" dependenciesNames={dependenciesNames} entityId = {id} />    
   </main>
   </>
 }

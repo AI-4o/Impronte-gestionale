@@ -58,9 +58,11 @@ PAGAMENTI
 * [ ]  sistemare update
 * [ ] sistemare delete
 
-
-
-## NICVE TO HAVE 
+## NICE TO HAVE 
 * [] fix auth error -> maybe connected to cookies?
 * [] NTA -> script transforming .xlsx to .json
 * [] implement table rows custom ordering
+
+# todo
+• fare in modo che nella tabella clienti possano essercxi clienti con nome e cognome uguali, ma ogni riga deve avere email diversa
+• quando si cancella un'entità, mandare un'avviso 'sei sicuro di voler cancellare....' che indica anche le entità collegate

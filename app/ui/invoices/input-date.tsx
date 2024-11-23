@@ -1,4 +1,6 @@
-export default function InputDate({label, name, state, defaultValue}: {label: string, name: string, state?: any, defaultValue?: string  }) {
+import { useState } from "react";
+
+export default function InputDate({label, name, state, defaultValue}: {label: string, name: string, state?: any, defaultValue?: string }) {
     function formatDate(defaultValue: string): string {
         const date = new Date(defaultValue);
         const year = date.getFullYear();
@@ -6,7 +8,9 @@ export default function InputDate({label, name, state, defaultValue}: {label: st
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
-
+   
+    const [isDateRequired, setIsDateRequired] = useState(false)
+    
     if (defaultValue) {
         defaultValue = formatDate(defaultValue);
     }
@@ -19,15 +23,17 @@ export default function InputDate({label, name, state, defaultValue}: {label: st
             {label}
         </label>
         <div className="relative">
-            <input
+            <button onClick={() => setIsDateRequired(!isDateRequired)}>
+                {isDateRequired ? 'Hide' : 'Show'}
+            </button>
+            {isDateRequired && <input
                 className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-3 text-sm outline-2 placeholder:text-gray-500"
                 id="date"
                 type="date"
                 name={name}
                 placeholder="Enter the date"
                 defaultValue={defaultValue ?? ''}
-                required
-            />
+            />}
         </div>
         <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {   state.errors?.[name] &&

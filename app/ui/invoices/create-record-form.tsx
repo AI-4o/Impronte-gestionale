@@ -1,17 +1,17 @@
 "use client";
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { entities, EntityKey, specialKeys } from '@/app/lib/entities.utils';
+import { entities, EntityKey, entitiesKeysDictionary } from '@/app/lib/entities.utils';
 import EntityInputSelect from './entity-input-select';
 import EntityInputGroup from './entity-input-group';
-import { EntityList } from '@/app/lib/definitions';
+import { TEntityList } from '@/app/lib/definitions';
 import { useActionState } from 'react';
 import { ExclamationCircleIcon } from '@heroicons/react/16/solid';
 import { createAssicurazione, createBanca, createCliente, createDestinazione, createFornitore, createIncassoPartecipante, createPagamentoServizioATerra, createPagamentoVolo, createPartecipante, createPratica, createPreventivo, createPreventivoMostrareCliente, createServizioATerra, createVolo } from '@/app/lib/actions/actions';
 
 export interface CreateRecordFormInterface<T> {
     recordModelName: (typeof entities[number]['name']);
-    dependenciesData: EntityList<any>[];
+    dependenciesData: TEntityList<any>[];
 }
 export default function CreateRecordForm<T>({
     recordModelName,
@@ -35,7 +35,7 @@ export default function CreateRecordForm<T>({
         pratica: createPratica
     }
     // array of the keys of the record model
-    const recordModelKeys = specialKeys[recordModelName] as EntityKey[];
+    const recordModelKeys = entitiesKeysDictionary[recordModelName] as EntityKey[];
     const initialState = {
         values: {},
         errors: {},

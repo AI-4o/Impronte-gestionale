@@ -28,10 +28,7 @@ export default async function CreatePreventivoCliente() {
         ]}
       />
       <Suspense key="create-cliente" fallback={<LatestInvoicesSkeleton />}>
-        <CreateRecordForm
-          recordModelName='preventivo_cliente'
-          dependenciesData={dependenciesData}
-        />
+         
       </Suspense>
     </main>
   );

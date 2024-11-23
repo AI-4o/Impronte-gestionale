@@ -17,9 +17,11 @@ export default async function Table<T>({
   .map((c: T) => {
     return Object.keys(c).reduce((acc, key) => {
       if (typeof c[key] === 'number') {
-        acc[key] = formatCurrency(c[key]);
+        acc[key] = c[key].toString();
       }
       else if (typeof c[key] === 'object') {
+        // console.log(c[key], 'object!!');
+        
         if (c[key] instanceof Date) {
           const date = new Date(c[key]);
           const day = date.getDate().toString().padStart(2, '0');
@@ -36,6 +38,16 @@ export default async function Table<T>({
       return acc;
     }, {} as Record<string, any>);
   })
+const columns = 
+<>
+{Object.keys(data?.[0])
+.filter(key => key !== 'id')
+.map((column) => (
+  <th key={column} scope="col" className="px-4 py-5 font-medium sm:pl-6">
+    {column}
+  </th>
+))}
+</>
 
 const rows = data?.map((x) => {
   return (
@@ -69,13 +81,7 @@ const rows = data?.map((x) => {
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
-                {Object.keys(data[0])
-                .filter(key => key !== 'id')
-                .map((column) => (
-                  <th key={column} scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                    {column}
-                  </th>
-                ))}
+                {columns}
               </tr>
             </thead>
             <tbody className="bg-white">
