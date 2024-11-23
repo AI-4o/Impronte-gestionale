@@ -9,7 +9,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   
   const id = params.id;
   const pratica = await fetchPraticaById(id);
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('pratica');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('pratiche');
   const dependenciesData = await Promise.all(
     entities
       // filter the entities that are dependencies of the record model
@@ -29,7 +29,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         },
       ]}
     />
-    <UpdateRecordForm recordModelName="pratica" dependenciesData={dependenciesData} recordModel={pratica} />    
+    <UpdateRecordForm recordModelName="pratica" recordModel={pratica} />    
   </main>
   </>
 }

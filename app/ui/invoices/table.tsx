@@ -1,6 +1,5 @@
 import { UpdateInvoice, DeleteEntity } from '@/app/ui/invoices/buttons';
 import InvoiceStatus from '@/app/ui/invoices/status';
-import { formatCurrency } from '@/app/lib/utils';
 
 export interface TableInterface<T> {
   dataName: string;

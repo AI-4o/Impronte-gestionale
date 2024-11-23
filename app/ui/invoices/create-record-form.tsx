@@ -19,20 +19,20 @@ export default function CreateRecordForm<T>({
 }: CreateRecordFormInterface<T>) {
 
     const createActions = {
-        destinazione: createDestinazione,
-        cliente: createCliente,
-        fornitore: createFornitore,
-        preventivo: createPreventivo,
-        servizio_a_terra: createServizioATerra,
-        volo: createVolo,
-        banca: createBanca,
-        pagamento_servizio_a_terra: createPagamentoServizioATerra,
-        pagamento_volo: createPagamentoVolo,
-        partecipante: createPartecipante,
-        incasso_partecipante: createIncassoPartecipante,
-        assicurazione: createAssicurazione,
-        preventivo_mostrare_cliente: createPreventivoMostrareCliente,
-        pratica: createPratica
+        destinazioni: createDestinazione,
+        clienti: createCliente,
+        fornitori: createFornitore,
+        preventivi: createPreventivo,
+        servizi_a_terra: createServizioATerra,
+        voli: createVolo,
+        banche: createBanca,
+        pagamenti_servizii_a_terra: createPagamentoServizioATerra,
+        pagamenti_voli: createPagamentoVolo,
+        partecipanti: createPartecipante,
+        incassi_partecipanti: createIncassoPartecipante,
+        assicurazioni: createAssicurazione,
+        preventivi_mostrare_clienti: createPreventivoMostrareCliente,
+        pratiche: createPratica
     }
     // array of the keys of the record model
     const recordModelKeys = entitiesKeysDictionary[recordModelName] as EntityKey[];

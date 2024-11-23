@@ -6,7 +6,7 @@ import { entities, getDependenciesAndSampleRecord } from '@/app/lib/entities.uti
 
 export default async function CreatePreventivo() {
 
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivo');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivi');
   // fetch all dependencies entities
   const dependenciesData = await Promise.all(
     entities

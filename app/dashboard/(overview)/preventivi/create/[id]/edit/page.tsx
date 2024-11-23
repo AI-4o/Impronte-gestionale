@@ -9,7 +9,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   
   const id = params.id;
 
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivo');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivi');
   
   return <>
   <main>
@@ -23,7 +23,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         },
       ]}
     />
-    <UpdateRecordForm recordModelName="preventivo" dependenciesNames={dependenciesNames} entityId = {id} />    
+    <UpdateRecordForm recordModelName="preventivo" recordModel={preventivo} />    
   </main>
   </>
 }

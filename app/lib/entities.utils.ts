@@ -63,7 +63,7 @@ export type EntityKey = {
  * - EntityKey[] -> for each key of E, the EntityKey object associated with the key
  */
 export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
-  cliente: [
+  clienti: [
     {
       keyName: "nome",
       type: "text",
@@ -114,7 +114,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       ],
     },
   ],
-  preventivo: [
+  preventivi: [
     {
       keyName: "id_fornitore",
       type: "foreign_key",
@@ -179,13 +179,13 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       values: ["da fare", "in trattativa", "confermato", "inviato"],
     },
   ],
-  destinazione: [
+  destinazioni: [
     {
       keyName: "nome",
       type: "text",
     },
   ],
-  fornitore: [
+  fornitori: [
     {
       keyName: "nome",
       type: "text",
@@ -196,13 +196,13 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       values: ["EUR", "USD"],
     },
   ],
-  banca: [
+  banche: [
     {
       keyName: "nome",
       type: "text",
     },
   ],
-  servizio_a_terra: [
+  servizi_a_terra: [
     {
       keyName: "id_preventivo",
       type: "foreign_key",
@@ -252,7 +252,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "boolean",
     },
   ],
-  volo: [
+  voli: [
     {
       keyName: "id_preventivo",
       type: "foreign_key",
@@ -297,7 +297,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  assicurazione: [
+  assicurazioni: [
     {
       keyName: "assicurazione",
       type: "text",
@@ -321,7 +321,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  preventivo_mostrare_cliente: [
+  preventivi_mostrare_cliente: [
     {
       keyName: "descrizione",
       type: "text",
@@ -354,7 +354,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  partecipante: [
+  partecipanti: [
     {
       keyName: "nome",
       type: "text",
@@ -373,7 +373,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  incasso_partecipante: [
+  incassi_partecipanti: [
     {
       keyName: "id_banca",
       type: "foreign_key",
@@ -397,7 +397,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  pagamento_servizi_a_terra: [
+  pagamenti_servizi_a_terra: [
     {
       keyName: "id_banca",
       type: "foreign_key",
@@ -426,7 +426,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  pagamento_voli: [
+  pagamenti_voli: [
     {
       keyName: "id_banca",
       type: "foreign_key",
@@ -455,7 +455,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  pagamento_assicurazione: [
+  pagamenti_assicurazioni: [
     {
       keyName: "id_banca",
       type: "foreign_key",
@@ -484,7 +484,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  pratica: [
+  pratiche: [
     {
       keyName: "note",
       type: "text",
@@ -527,49 +527,49 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
  */
 export const entities: FetchableEntity<any>[] = [
   {
-    name: "destinazione",
+    name: "destinazioni",
     fetchCallback: fetchAllDestinazioni,
     sampleModel: sampleDestinazione,
   },
   {
-    name: "cliente",
+    name: "clienti",
     fetchCallback: fetchAllClienti,
     sampleModel: sampleCliente,
   },
-  { name: "banca", fetchCallback: fetchAllBanche, sampleModel: sampleBanca },
+  { name: "banche", fetchCallback: fetchAllBanche, sampleModel: sampleBanca },
   {
-    name: "fornitore",
+    name: "fornitori",
     fetchCallback: fetchAllFornitori,
     sampleModel: sampleFornitore,
   },
   {
-    name: "pratica",
+    name: "pratiche",
     fetchCallback: fetchAllPratiche,
     sampleModel: samplePratica,
   },
   {
-    name: "preventivo",
+    name: "preventivi",
     fetchCallback: fetchAllPreventivi,
     sampleModel: samplePreventivo,
   },
   {
-    name: "servizio_a_terra",
+    name: "servizi_a_terra",
     fetchCallback: fetchAllServiziATerra,
     sampleModel: sampleServizioATerra,
   },
-  { name: "volo", fetchCallback: fetchAllVoli, sampleModel: sampleVolo },
+  { name: "voli", fetchCallback: fetchAllVoli, sampleModel: sampleVolo },
   {
-    name: "assicurazione",
+    name: "assicurazioni",
     fetchCallback: fetchAllAssicurazioni,
     sampleModel: sampleAssicurazione,
   },
   {
-    name: "pagamento_assicurazione",
+    name: "pagamenti_assicurazioni",
     fetchCallback: fetchAllPagamentiAssicurazioni,
     sampleModel: samplePagamentoAssicurazione,
   },
   {
-    name: "preventivo_cliente",
+    name: "preventivi_mostrare_clienti",
     fetchCallback: fetchAllPreventiviClienti,
     sampleModel: samplePreventivoMostrareCliente,
   },
@@ -579,17 +579,17 @@ export const entities: FetchableEntity<any>[] = [
     sampleModel: samplePartecipante,
   },
   {
-    name: "incasso_partecipante",
+    name: "incassi_partecipanti",
     fetchCallback: fetchAllIncassiPartecipanti,
     sampleModel: sampleIncassoPartecipante,
   },
   {
-    name: "pagamento_servizi_a_terra",
+    name: "pagamenti_servizi_a_terra",
     fetchCallback: fetchAllPagamentiServiziATerra,
     sampleModel: samplePagamentoServizioATerra,
   },
   {
-    name: "pagamento_voli",
+    name: "pagamenti_voli",
     fetchCallback: fetchAllPagamentiVoli,
     sampleModel: samplePagamentoVolo,
   },

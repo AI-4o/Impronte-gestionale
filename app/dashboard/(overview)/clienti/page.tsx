@@ -35,7 +35,7 @@ export default async function Page(
   const currentPage = Number(searchParams?.page) || 1;
   const totalPages = await fetchClientiPages(query);
 
-  const { dependenciesNames } = getDependenciesAndSampleRecord('cliente'); //TODO: refactor this logic
+  const { dependenciesNames } = getDependenciesAndSampleRecord('clienti'); //TODO: refactor this logic
   const dependenciesData = await Promise.all(
     entities
       // filter the entities that are dependencies of the record model

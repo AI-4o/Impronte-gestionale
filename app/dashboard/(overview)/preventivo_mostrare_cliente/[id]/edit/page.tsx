@@ -9,7 +9,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   
   const id = params.id;
   const preventivoCliente = await fetchPreventivoMostrareClienteById(id);
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivo_cliente');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('preventivi_mostrare_clienti');
   const dependenciesData = await Promise.all(
     entities
       // filter the entities that are dependencies of the record model
@@ -21,15 +21,15 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   <main>
     <Breadcrumbs
       breadcrumbs={[
-        { label: 'Preventivi Clienti', href: '/dashboard/preventivi-clienti' },
+        { label: 'Preventivi Mostrare Clienti', href: '/dashboard/preventivi-mostrare-clienti' },
         {
-          label: 'Edit Preventivo Cliente',
-          href: `/dashboard/preventivi-clienti/${id}/edit`,
+          label: 'Edit Preventivo Mostrare Clienti',
+          href: `/dashboard/preventivi-mostrare-clienti/${id}/edit`,
           active: true,
         },
       ]}
     />
-    <UpdateRecordForm recordModelName="preventivo_cliente" dependenciesData={dependenciesData} recordModel={preventivoCliente} />    
+    <UpdateRecordForm recordModelName="preventivo_mostrare_cliente" recordModel={preventivoCliente} />    
   </main>
   </>
 }

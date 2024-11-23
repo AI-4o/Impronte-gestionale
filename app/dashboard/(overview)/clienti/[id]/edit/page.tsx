@@ -23,7 +23,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     />
 
     <UpdateRecordForm<Cliente> 
-    recordModelName="cliente" 
+    recordModelName="clienti" 
     recordModel={cliente} 
     //dependenciesData={dependenciesData} 
     />    

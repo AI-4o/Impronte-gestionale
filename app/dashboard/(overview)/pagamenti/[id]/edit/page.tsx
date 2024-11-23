@@ -1,4 +1,4 @@
-import { fetchClienteById, fetchCustomers, fetchInvoiceById } from "@/app/lib/data";
+import { fetchClienteById } from "@/app/lib/data";
 import { entities, getDependenciesAndSampleRecord } from "@/app/lib/entities.utils";
 import Breadcrumbs from "@/app/ui/invoices/breadcrumbs";
 import UpdateRecordForm from "@/app/ui/invoices/edit-record-form";
@@ -9,7 +9,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   
   const id = params.id;
   const cliente = await fetchClienteById(id);
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('cliente');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('pagamenti');
   const dependenciesData = await Promise.all(
     entities
       // filter the entities that are dependencies of the record model
@@ -21,15 +21,15 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   <main>
     <Breadcrumbs
       breadcrumbs={[
-        { label: 'Clienti', href: '/dashboard/clienti' },
+        { label: 'Pagamenti', href: '/dashboard/pagamenti' },
         {
-          label: 'Edit Cliente',
-          href: `/dashboard/clienti/${id}/edit`,
+          label: 'Edit Pagamento',
+          href: `/dashboard/pagamenti/${id}/edit`,
           active: true,
         },
       ]}
     />
-    <UpdateRecordForm recordModelName="cliente" dependenciesData={dependenciesData} recordModel={cliente} />    
+    <UpdateRecordForm recordModelName="cliente" recordModel={cliente} />    
   </main>
   </>
 }

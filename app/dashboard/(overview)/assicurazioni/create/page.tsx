@@ -6,7 +6,7 @@ import { entities, getDependenciesAndSampleRecord } from '@/app/lib/entities.uti
 
 export default async function CreateCliente() {
 
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('cliente');
+  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('clienti');
   // fetch all dependencies entities
   const dependenciesData = await Promise.all(
     entities
