@@ -29,7 +29,7 @@ export default async function CreateDestinazione() {
       />
       <Suspense key="create-destinazione" fallback={<LatestInvoicesSkeleton />}>
         <CreateRecordForm
-          recordModelName='destinazione'
+          recordModelName='destinazioni'
           dependenciesData={dependenciesData}
         />
       </Suspense>

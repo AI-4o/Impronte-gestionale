@@ -23,8 +23,8 @@ export default function InputTell({state, label, defaultValue}: {state?: any, la
             </p>
         </div>
         <div id="tel-error" aria-live="polite" aria-atomic="true">
-            {state.errors?.tel &&
-                state.errors.tel.map((error: string) => (
+            {state?.errors?.tel &&
+                state?.errors.tel.map((error: string) => (
                     <p className="mt-2 text-sm text-red-500" key={error}>
                         {error}
                     </p>

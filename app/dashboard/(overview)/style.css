@@ -1,0 +1,9 @@
+ul {
+  list-style-type: disc;
+  padding-inline-start: 20px;
+}
+.version-paragraph {
+  margin-top: 20px;
+  padding-bottom: 10px;
+  font-weight: bold;
+}

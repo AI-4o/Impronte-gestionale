@@ -29,7 +29,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         },
       ]}
     />
-    <UpdateRecordForm recordModelName="destinazione" recordModel={destinazione} />    
+    <UpdateRecordForm recordModelName="destinazioni" recordModel={destinazione} />    
   </main>
   </>
 }

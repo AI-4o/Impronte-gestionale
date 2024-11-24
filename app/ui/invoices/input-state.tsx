@@ -4,12 +4,12 @@ import { CheckIcon, ClockIcon } from "@heroicons/react/16/solid";
  * Input per impostare lo stato booleano di un'entità
  * @returns 
  */
-export default function InputState({stateName, defaultValue}:{stateName: string, defaultValue?: string}) {
-
+export default function InputState({stateName, defaultValue, states}:{stateName: string, defaultValue?: string, states?: string[]}) {
+    stateName = stateName == 'servizio_aggiuntivi' ? 'Servizio Aggiuntivo' : stateName;
     return (
         <fieldset>
-        <legend className="mb-2 block text-sm font-medium">
-            Set the {stateName}
+        <legend className="mb-3 mt-5 block text-xs font-medium text-gray-900">
+            {stateName}
         </legend>
         <div className="rounded-md border border-gray-200 bg-white px-[14px] py-3">
             <div className="flex gap-4">
@@ -26,7 +26,7 @@ export default function InputState({stateName, defaultValue}:{stateName: string,
                         htmlFor="pending"
                         className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600"
                     >
-                        In Attesa <ClockIcon className="h-4 w-4" />
+                        {states?.[0] ?? 'No'}
                     </label>
                 </div>
                 <div className="flex items-center">
@@ -41,7 +41,7 @@ export default function InputState({stateName, defaultValue}:{stateName: string,
                         htmlFor="paid"
                         className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white"
                     >
-                        Confermato <CheckIcon className="h-4 w-4" />
+                        {states?.[1] ?? 'Sì'}
                     </label>
                 </div>
             </div>

@@ -1,0 +1,8 @@
+.link-div {
+    display: flex; 
+    margin-block: 20px;
+    gap: 10px;
+}
+.link-div:hover {
+    color: green;
+}

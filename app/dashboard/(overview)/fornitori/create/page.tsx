@@ -29,7 +29,7 @@ export default async function CreateFornitore() {
       />
       <Suspense key="create-fornitore" fallback={<LatestInvoicesSkeleton />}>
         <CreateRecordForm
-          recordModelName='fornitore'
+          recordModelName='fornitori'
           dependenciesData={dependenciesData}
         />
       </Suspense>

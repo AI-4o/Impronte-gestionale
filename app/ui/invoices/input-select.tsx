@@ -28,7 +28,7 @@ export default function InputSelect({ label, options, state, defaultValue }: { l
             </div>
             <div id={`${label}-error`} aria-live="polite" aria-atomic="true">
                 {state?.errors?.[label] &&
-                    state.errors[label].map((error: string) => (
+                    state?.errors[label].map((error: string) => (
                         <p className="mt-2 text-sm text-red-500" key={error}>
                             {error}
                         </p>

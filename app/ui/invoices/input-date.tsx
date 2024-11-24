@@ -15,7 +15,7 @@ export default function InputDate({label, name, state, defaultValue}: {label: st
         defaultValue = formatDate(defaultValue);
     }
     return (
-    <div>
+    <div className="flex flex-col min-w-64">
         <label
             className="mb-3 mt-5 block text-xs font-medium text-gray-900"
             htmlFor="date"
@@ -36,8 +36,8 @@ export default function InputDate({label, name, state, defaultValue}: {label: st
             />}
         </div>
         <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
-                {   state.errors?.[name] &&
-                    state.errors[name].map((error: string) => (
+                {   state?.errors?.[name] &&
+                    state?.errors[name].map((error: string) => (
                     <p className="mt-2 text-sm text-red-500" key={error}>
                     {error}
                     </p>

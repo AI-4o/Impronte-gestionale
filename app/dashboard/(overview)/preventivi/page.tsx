@@ -1,7 +1,7 @@
 
 
-import { fetchPreventiviPages, fetchFilteredPreventivi } from "@/app/lib/data";
-import { Preventivo } from "@/app/lib/definitions";
+import { fetchVoliPages, fetchFilteredVoli, fetchFilteredFornitori, fetchFilteredServiziATerra, fetchServiziATerraPages, fetchPreventiviPages, fetchFilteredPreventivi } from "@/app/lib/data";
+import { Fornitore, Preventivo, ServizioATerra, Volo } from "@/app/lib/definitions";
 import { lusitana } from "@/app/ui/fonts";
 import { CreateRecord } from "@/app/ui/invoices/buttons";
 import Pagination from "@/app/ui/invoices/pagination";
@@ -12,7 +12,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-    title: 'Preventivi',
+    title: 'Servizi a Terra',
   };
 
 export default async function Preventivi(
@@ -35,7 +35,7 @@ export default async function Preventivi(
       </div>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder="Search preventivi..." />
-        <CreateRecord recordName="preventivo" />
+        <CreateRecord recordName="preventivi" />
       </div>
        <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
         <Table<Preventivo> dataName="preventivi" fetchFunction={() => fetchFilteredPreventivi(query, currentPage)} />

@@ -19,7 +19,7 @@ export default async function CreatePreventivo() {
     <main>
       <Breadcrumbs
         breadcrumbs={[
-          { label: 'Preventivi', href: '/dashboard/preventivi' },
+          { label: 'Clienti', href: '/dashboard/clienti' },
           {
             label: 'Aggiungi Preventivo',
             href: '/dashboard/preventivi/create',
@@ -27,9 +27,9 @@ export default async function CreatePreventivo() {
           },
         ]}
       />
-      <Suspense key="create-preventivo" fallback={<LatestInvoicesSkeleton />}>
+      <Suspense key="create-cliente" fallback={<LatestInvoicesSkeleton />}>
         <CreateRecordForm
-          recordModelName='preventivo'
+          recordModelName='preventivi'
           dependenciesData={dependenciesData}
         />
       </Suspense>

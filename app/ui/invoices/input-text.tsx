@@ -17,8 +17,8 @@ export default function InputText({ label, name, state, defaultValue }: { label:
                 defaultValue={defaultValue ?? ''}
             />
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
-                {state.errors?.[name] &&
-                    state.errors[name].map((error: string) => (
+                {state?.errors?.[name] &&
+                    state?.errors[name].map((error: string) => (
                         <p className="mt-2 text-sm text-red-500" key={error}>
                             {error}
                         </p>
