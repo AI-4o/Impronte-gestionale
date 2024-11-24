@@ -4,8 +4,8 @@ import React from 'react';
 
 type ModalProps = {
   header?: React.ReactNode;
-  footer?: React.ReactNode;
   body?: React.ReactNode;
+  footer?: React.ReactNode;
   buttons?: React.ReactNode;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void; // Add this prop

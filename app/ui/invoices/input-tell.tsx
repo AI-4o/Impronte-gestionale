@@ -1,4 +1,14 @@
-export default function InputTell({state, label, defaultValue}: {state?: any, label: string, defaultValue?: string}) {
+export default function InputTell({
+    state, 
+    label, 
+    defaultValue, 
+    handleInputChange
+}: {
+    state?: any, 
+    label: string, 
+    defaultValue?: string, 
+    handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
 
     return (
     <div>
@@ -17,6 +27,7 @@ export default function InputTell({state, label, defaultValue}: {state?: any, la
                 placeholder="Enter the phone number"
                 pattern="^\+[1-9]\d{1,14}$"
                 defaultValue={defaultValue ?? ''}
+                onChange={handleInputChange}
             />
             <p className="mt-2 text-sm text-red-600 hidden peer-invalid:block">
                 Please enter a valid international phone number.

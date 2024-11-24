@@ -56,7 +56,7 @@ const FormSchema = z.object({
 });
 
 // ### DELETE GENERAL ENTITY ###
-export const deleteEntity = async (id: string, entityTableName: string) => {
+export const deleteEntityById = async (id: string, entityTableName: string) => {
   console.log("action deleteEntity", { id, entityTableName });
 
   try {
@@ -68,7 +68,7 @@ export const deleteEntity = async (id: string, entityTableName: string) => {
         // Delete preventivi associated with the cliente
         const preventiviClienti = await sql`SELECT id FROM preventivi WHERE id_cliente = ${id}`;
         for (const prev of preventiviClienti.rows) {
-          await deleteEntity(prev.id, 'preventivi');
+          await deleteEntityById(prev.id, 'preventivi');
         }
         break;
 
@@ -476,7 +476,6 @@ export async function createPagamentoServizioATerra(prevState: State<PagamentoSe
   const parsedData = schemas.PagamentoServiziATerraSchema.safeParse({
     id_banca: formData.get("id_banca"),
     id_servizio_a_terra: formData.get("id_servizio_a_terra"),
-    id_fornitore: formData.get("id_fornitore"),
     data_scadenza: formData.get("data_scadenza"),
     data_incasso: formData.get("data_incasso"),
     importo: formData.get("importo"),
@@ -493,8 +492,8 @@ export async function createPagamentoServizioATerra(prevState: State<PagamentoSe
 
   try {
     await sql`
-    INSERT INTO pagamento_servizi_a_terra (id_banca, id_servizio_a_terra, id_fornitore, data_scadenza, data_incasso, importo)
-    VALUES (${parsedData.data.id_banca}, ${parsedData.data.id_servizio_a_terra}, ${parsedData.data.id_fornitore}, ${parsedData.data.data_scadenza}, ${parsedData.data.data_incasso}, ${parsedData.data.importo})
+    INSERT INTO pagamento_servizi_a_terra (id_banca, id_servizio_a_terra, data_scadenza, data_incasso, importo)
+    VALUES (${parsedData.data.id_banca}, ${parsedData.data.id_servizio_a_terra}, ${parsedData.data.data_scadenza}, ${parsedData.data.data_incasso}, ${parsedData.data.importo})
   `;
   } catch (error) {
     return {
@@ -510,7 +509,6 @@ export async function createPagamentoVolo(prevState: State<PagamentoVolo>, formD
   const parsedData = schemas.PagamentoVoliSchema.safeParse({
     id_banca: formData.get("id_banca"),
     id_volo: formData.get("id_volo"),
-    id_fornitore: formData.get("id_fornitore"),
     data_scadenza: formData.get("data_scadenza"),
     data_incasso: formData.get("data_incasso"),
     importo: formData.get("importo"),
@@ -527,8 +525,8 @@ export async function createPagamentoVolo(prevState: State<PagamentoVolo>, formD
 
   try {
     await sql`
-    INSERT INTO pagamento_voli (id_banca, id_volo, id_fornitore, data_scadenza, data_incasso, importo)
-    VALUES (${parsedData.data.id_banca}, ${parsedData.data.id_volo}, ${parsedData.data.id_fornitore}, ${parsedData.data.data_scadenza}, ${parsedData.data.data_incasso}, ${parsedData.data.importo})
+    INSERT INTO pagamento_voli (id_banca, id_volo, data_scadenza, data_incasso, importo)
+    VALUES (${parsedData.data.id_banca}, ${parsedData.data.id_volo}, ${parsedData.data.data_scadenza}, ${parsedData.data.data_incasso}, ${parsedData.data.importo})
   `;
   } catch (error) {
     return {
@@ -542,7 +540,6 @@ export async function createPagamentoVolo(prevState: State<PagamentoVolo>, formD
 export async function createPagamentoAssicurazione(prevState: State<PagamentoAssicurazione>, formData: FormData) {
   const parsedData = schemas.PagamentoAssicurazioneSchema.safeParse({
     id_banca: formData.get("id_banca"),
-    id_fornitore: formData.get("id_fornitore"),
     id_assicurazione: formData.get("id_assicurazione"),
     data_scadenza: formData.get("data_scadenza"),
     data_incasso: formData.get("data_incasso"),
@@ -560,8 +557,8 @@ export async function createPagamentoAssicurazione(prevState: State<PagamentoAss
 
   try {
     await sql`
-    INSERT INTO pagamento_assicurazione (id_banca, id_fornitore, id_assicurazione, data_scadenza, data_incasso, importo)
-    VALUES (${parsedData.data.id_banca}, ${parsedData.data.id_fornitore}, ${parsedData.data.id_assicurazione}, ${parsedData.data.data_scadenza}, ${parsedData.data.data_incasso}, ${parsedData.data.importo})
+    INSERT INTO pagamento_assicurazione (id_banca, id_assicurazione, data_scadenza, data_incasso, importo)
+    VALUES (${parsedData.data.id_banca}, ${parsedData.data.id_assicurazione}, ${parsedData.data.data_scadenza}, ${parsedData.data.data_incasso}, ${parsedData.data.importo})
   `;
   } catch (error) {
     return {
@@ -1255,7 +1252,6 @@ export async function updatePagamentoServizioATerra(
 ) {
   const parsedData = schemas.PagamentoServiziATerraSchema.safeParse({
     id_servizio_a_terra: formData.get("id_servizio_a_terra"),
-    id_fornitore: formData.get("id_fornitore"),
     id_banca: formData.get("id_banca"),
     data_scadenza: formData.get("data_scadenza"),
     data_incasso: formData.get("data_incasso"),
@@ -1275,7 +1271,6 @@ export async function updatePagamentoServizioATerra(
     await sql`
     UPDATE pagamenti_servizi_a_terra
     SET id_servizio_a_terra = ${parsedData.data.id_servizio_a_terra},
-        id_fornitore = ${parsedData.data.id_fornitore},
         id_banca = ${parsedData.data.id_banca},
         data_scadenza = ${parsedData.data.data_scadenza},
         data_incasso = ${parsedData.data.data_incasso},
@@ -1298,7 +1293,6 @@ export async function updatePagamentoVolo(
 ) {
   const parsedData = schemas.PagamentoVoliSchema.safeParse({
     id_volo: formData.get("id_volo"),
-    id_fornitore: formData.get("id_fornitore"),
     id_banca: formData.get("id_banca"),
     data_scadenza: formData.get("data_scadenza"),
     data_incasso: formData.get("data_incasso"),
@@ -1318,7 +1312,6 @@ export async function updatePagamentoVolo(
     await sql`
     UPDATE pagamenti_voli
     SET id_volo = ${parsedData.data.id_volo},
-        id_fornitore = ${parsedData.data.id_fornitore},
         id_banca = ${parsedData.data.id_banca},
         data_scadenza = ${parsedData.data.data_scadenza},
         data_incasso = ${parsedData.data.data_incasso},
@@ -1335,6 +1328,48 @@ export async function updatePagamentoVolo(
   revalidatePath("/dashboard/pagamenti-voli");
   redirect("/dashboard/pagamenti-voli");
 }
+export async function updatePagamentoAssicurazione(
+  prevState: State<PagamentoAssicurazione>,
+  formData: FormData
+) {
+  const parsedData = schemas.PagamentoAssicurazioneSchema.safeParse({
+    id_assicurazione: formData.get("id_assicurazione"),
+    id_banca: formData.get("id_banca"),
+    data_scadenza: formData.get("data_scadenza"),
+    data_incasso: formData.get("data_incasso"),
+    importo: formData.get("importo"),
+  });
+
+  if (!parsedData.success) {
+    return {
+      ...prevState,
+      values: parsedData.data,
+      errors: parsedData.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Update Pagamento Assicurazione.",
+    };
+  }
+
+  try {
+    await sql`
+    UPDATE pagamenti_assicurazioni
+    SET id_assicurazione = ${parsedData.data.id_assicurazione},
+        id_banca = ${parsedData.data.id_banca},
+        data_scadenza = ${parsedData.data.data_scadenza},
+        data_incasso = ${parsedData.data.data_incasso},
+        importo = ${parsedData.data.importo}
+    WHERE id = ${prevState.values?.id}
+  `;
+  } catch (error) {
+    return {
+      ...prevState,
+      values: parsedData.data,
+      dbError: "Database Error: Failed to Update Pagamento Assicurazione.",
+    };
+  }
+  revalidatePath("/dashboard/pagamenti-assicurazioni");
+  redirect("/dashboard/pagamenti-assicurazioni");
+}
+
 export async function updatePratica(
   prevState: State<Pratica>,
   formData: FormData

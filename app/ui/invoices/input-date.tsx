@@ -1,6 +1,18 @@
 import { useState } from "react";
 
-export default function InputDate({label, name, state, defaultValue}: {label: string, name: string, state?: any, defaultValue?: string }) {
+export default function InputDate({
+    label, 
+    name, 
+    state, 
+    defaultValue, 
+    handleInputChange
+}: {
+    label: string, 
+    name: string, 
+    state?: any, 
+    defaultValue?: string, 
+    handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void 
+}) {
     function formatDate(defaultValue: string): string {
         const date = new Date(defaultValue);
         const year = date.getFullYear();
@@ -33,6 +45,7 @@ export default function InputDate({label, name, state, defaultValue}: {label: st
                 name={name}
                 placeholder="Enter the date"
                 defaultValue={defaultValue ?? ''}
+                onChange={handleInputChange}
             />}
         </div>
         <div id={`${name}-error`} aria-live="polite" aria-atomic="true">

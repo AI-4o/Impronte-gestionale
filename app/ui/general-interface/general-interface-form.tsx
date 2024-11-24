@@ -23,6 +23,8 @@ import {
 import EntityInputGroup from '../invoices/entity-input-group';
 import clsx from 'clsx';
 import Modal from '../invoices/modal';
+import { Cliente, Preventivo, Transazione } from '@/app/lib/definitions';
+import InputText from '../invoices/input-text';
 
 export default function GeneralInterfaceForm() {
     const updateActions = {
@@ -53,41 +55,54 @@ export default function GeneralInterfaceForm() {
     // cliente
     const clienteKeys = entitiesKeysDictionary['clienti'] as EntityKey[];
     const [showClienteInputs, setShowClienteInputs] = useState(true);
+    const [clienteRecordModel, setClienteRecordModel] = useState<Cliente>(undefined); // TODO: per ora null, poi aggiornare
+    useEffect(() => { // DEBUG
+        console.log(clienteRecordModel);
+    }, [clienteRecordModel]);
+    
     // preventivo
     const preventivoKeys = entitiesKeysDictionary['preventivi'] as EntityKey[];
     const [showPreventivoInputs, setShowPreventivoInputs] = useState(true);
 
     // servizi a terra
-    const { 
-        renderedInputGroup: serviziATerraRenderedInputs, 
-        updateRenderedInputGroup: updateServiziATerraInputs 
+    const {
+        renderedInputGroup: serviziATerraRenderedInputs,
+        updateRenderedInputGroup: updateServiziATerraInputs
     } = useDynamicallyRenderedInputGroup('servizi_a_terra');
 
     // voli
-    const { 
-        renderedInputGroup: voliRenderedInputs, 
-        updateRenderedInputGroup: updateVoliInputs 
+    const {
+        renderedInputGroup: voliRenderedInputs,
+        updateRenderedInputGroup: updateVoliInputs
     } = useDynamicallyRenderedInputGroup('voli');
 
     // assicurazioni
-    const { 
-        renderedInputGroup: assicurazioniRenderedInputs, 
-        updateRenderedInputGroup: updateAssicurazioniInputs 
+    const {
+        renderedInputGroup: assicurazioniRenderedInputs,
+        updateRenderedInputGroup: updateAssicurazioniInputs
     } = useDynamicallyRenderedInputGroup('assicurazioni');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
- 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(e.target.value);
+    }
     return (
         <>
-            <Button onClick={() => {setIsModalOpen(true)}}>open</Button>
-            <Modal 
-                setIsOpen={setIsModalOpen} 
+            <Button onClick={() => { setIsModalOpen(true) }}>open</Button>
+            <Modal
+                setIsOpen={setIsModalOpen}
                 isOpen={isModalOpen}
                 footer={<Button onClick={() => setIsModalOpen(false)}>close</Button>}
             />
-
+            <InputText
+                label={'test'}
+                name={'test'}
+                defaultValue={''}
+                handleInputChange={handleInputChange}
+            />
             <form >
                 <div className="rounded-md bg-gray-50 p-4 md:p-6">
+                    {/* cliente */}
                     <div className="flex flex-row gap-2 flex-wrap my-6">
                         <p className='entity-input-group-label'>Cliente</p>
                         <button onClick={() => setShowClienteInputs(!showClienteInputs)} className="arrow-icon">
@@ -97,9 +112,15 @@ export default function GeneralInterfaceForm() {
                             'transition-all duration-300',
                             showClienteInputs ? 'flex flex-row gap-2 flex-wrap' : 'hidden'
                         )}>
-                            <EntityInputGroup entityKeys={clienteKeys} inline={true} />
+                            <EntityInputGroup 
+                                entityKeys={clienteKeys} 
+                                inline={true} 
+                                recordModel={clienteRecordModel}
+                                setRecordModel={setClienteRecordModel}
+                            />
                         </div>
                     </div>
+                    {/* preventivo cliente */}
                     <div className="flex flex-row gap-2 flex-wrap my-6">
                         <p className='entity-input-group-label'>Preventivo Cliente</p>
                         <button onClick={() => setShowPreventivoInputs(!showPreventivoInputs)} className="arrow-icon">
@@ -117,7 +138,9 @@ export default function GeneralInterfaceForm() {
                         <div className="flex flex-row gap-2 flex-wrap"  >
                             <p className='entity-input-group-label'>Servizi a Terra</p>
                             <Button onClick={() => updateServiziATerraInputs(true)}>+</Button>
-                            {serviziATerraRenderedInputs.length > 0 && <Button onClick={() => updateServiziATerraInputs(false)}>-</Button>}
+                            {serviziATerraRenderedInputs.length > 0 &&
+                                <Button onClick={() => updateServiziATerraInputs(false)}>-</Button>
+                            }
                         </div>
                         {serviziATerraRenderedInputs}
                     </div>
@@ -158,16 +181,31 @@ export default function GeneralInterfaceForm() {
 }
 
 
-// Define the custom hook outside of your component
+/** 
+ * Custom hook to create an input group associated to an entity.
+ * It adds or removes the following:
+ * 1. an EntityInputGroup
+ * 2.  
+ * 
+ *  */
 function useDynamicallyRenderedInputGroup(entityName: string) {
-    const entityKeys = entitiesKeysDictionary[entityName] as EntityKey[];
+    /** 
+     * creates the input group for the entity with entityDefaultValues, 
+     * and allows management of payments 
+     * starting from the data of 'paymentsDefaultValues' */
+    const renderInputGroup = (index: number, entityDefaultValues?: any, paymentsDefaultValues?: Transazione[]): JSX.Element => {
 
-    const renderInputGroup = (index: number, defaultValues?: any): JSX.Element => (
+        
+        return (
         <div className="flex gap-2 flex-wrap input-group-container" key={index}>
             <p>{entityName.replace(/_/g, ' ')} {index + 1}</p>
-            <EntityInputGroup entityKeys={entityKeys} recordModel={defaultValues} inline={true} />
+            <EntityInputGroup
+                entityKeys={entitiesKeysDictionary[entityName] as EntityKey[]}
+                recordModel={entityDefaultValues}
+                inline={true}
+            />
         </div>
-    );
+    )};
 
     const [renderedInputGroup, setRenderedInputGroup] = useState([renderInputGroup(0)]);
 

@@ -1,10 +1,20 @@
-import { CheckIcon, ClockIcon } from "@heroicons/react/16/solid";
-
 /**
  * Input per impostare lo stato booleano di un'entità
  * @returns 
  */
-export default function InputState({stateName, defaultValue, states}:{stateName: string, defaultValue?: string, states?: string[]}) {
+export default function InputState(
+    {
+        stateName, 
+        defaultValue, 
+        states, 
+        handleInputChange
+    }:
+    {
+        stateName: string, 
+        defaultValue?: string, 
+        states?: string[], 
+        handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+    }) {
     stateName = stateName == 'servizio_aggiuntivi' ? 'Servizio Aggiuntivo' : stateName;
     return (
         <fieldset>
@@ -21,6 +31,7 @@ export default function InputState({stateName, defaultValue, states}:{stateName:
                         value="in-attesa"
                         className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                         defaultChecked={defaultValue === 'in-attesa'}
+                        onChange={handleInputChange}
                     />
                     <label
                         htmlFor="pending"

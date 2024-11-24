@@ -1,4 +1,18 @@
-export default function InputText({ label, name, state, defaultValue }: { label: string, name: string, state?: any, defaultValue?: string }) {
+export default function InputText(
+    { 
+        label, 
+        name, 
+        state, 
+        defaultValue, 
+        handleInputChange 
+    }: 
+    { 
+        label: string, 
+        name: string, 
+        state?: any, 
+        defaultValue?: string, 
+        handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void 
+    }) {
 
     return (
         <div>
@@ -15,6 +29,7 @@ export default function InputText({ label, name, state, defaultValue }: { label:
                 className="block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
                 placeholder={`Enter text for ${label}`}
                 defaultValue={defaultValue ?? ''}
+                onChange={handleInputChange}
             />
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {state?.errors?.[name] &&

@@ -1,5 +1,17 @@
 
-export default function InputSelect({ label, options, state, defaultValue }: { label: string, options: string[], state: any, defaultValue?: string }) {
+export default function InputSelect({
+    label, 
+    options, 
+    state, 
+    defaultValue, 
+    handleInputChange 
+}: { 
+    label: string, 
+    options: string[], 
+    state: any, 
+    defaultValue?: string, 
+    handleInputChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void 
+}) {
 
     return (
         <>
@@ -15,6 +27,7 @@ export default function InputSelect({ label, options, state, defaultValue }: { l
                     name={label}
                     className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     defaultValue={defaultValue ?? ''}
+                    onChange={handleInputChange}
                 >
                     <option value="" disabled className="text-gray-500">
                         Select {label}

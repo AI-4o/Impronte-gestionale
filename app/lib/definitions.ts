@@ -56,12 +56,10 @@ export interface Cliente extends Entity {
   data_di_nascita?: Date;
 }
 export interface Fornitore extends Entity {
-  id: string;
   nome: string;
   valuta?: string;
 }
 export interface Preventivo extends Entity{
-  id: string;
   id_cliente: string;
   email: string;
   numero_di_telefono?: string;
@@ -79,7 +77,6 @@ export interface Preventivo extends Entity{
   confermato?: boolean;
 }
 export interface ServizioATerra extends Entity{
-  id: string;
   id_preventivo: string;
   id_fornitore: string;
   id_destinazione: string;
@@ -93,7 +90,6 @@ export interface ServizioATerra extends Entity{
   servizio_aggiuntivi?: boolean;
 }
 export interface Volo extends Entity{
-  id: string;
   id_preventivo: string;
   id_fornitore: string;
   compagnia_aerea?: string;
@@ -106,7 +102,6 @@ export interface Volo extends Entity{
   ricarico?: number;
 }
 export interface Assicurazione extends Entity{
-  id: string;
   id_preventivo: string;
   id_fornitore: string;
   assicurazione?: string;
@@ -114,7 +109,6 @@ export interface Assicurazione extends Entity{
   ricarico?: number;
 }
 export interface PreventivoMostrareCliente extends Entity{
-  id: string;
   id_preventivo: string;
   id_destinazione: string;
   descrizione?: string;
@@ -124,49 +118,30 @@ export interface PreventivoMostrareCliente extends Entity{
   totale?: number;
 }
 export interface Partecipante extends Entity{
-  id: string;
   id_preventivo: string;
   nome?: string;
   cognome?: string;
   tot_quota?: number;
 }
-export interface IncassoPartecipante extends Entity{
-  id: string;
+export interface Transazione extends Entity{
+  id_banca?: string;
+  importo?: number;
+  data_scadenza?: Date;
+  data_incasso?: Date;
+}
+export interface IncassoPartecipante extends Transazione{
   id_partecipante: string;
-  id_banca?: string;
-  importo?: number;
-  data_scadenza?: Date;
-  data_incasso?: Date;
 }
-export interface PagamentoServizioATerra extends Entity{
-  id: string;
-  id_fornitore: string;
+export interface PagamentoServizioATerra extends Transazione{
   id_servizio_a_terra: string;
-  id_banca?: string;
-  importo?: number;
-  data_scadenza?: Date;
-  data_incasso?: Date;
 }
-export interface PagamentoVolo extends Entity{
-  id: string;
-  id_fornitore: string;
+export interface PagamentoVolo extends Transazione{
   id_volo: string;
-  id_banca?: string;
-  importo?: number;
-  data_scadenza?: Date;
-  data_incasso?: Date;
 }
-export interface PagamentoAssicurazione extends Entity{
-  id: string;
-  id_fornitore: string;
+export interface PagamentoAssicurazione extends Transazione{
   id_assicurazione: string;
-  id_banca?: string;
-  importo?: number;
-  data_scadenza?: Date;
-  data_incasso?: Date;
 }
 export interface Pratica extends Entity{
-  id: string;
   id_preventivo: string;
   id_cliente: string;
   data_conferma?: Date;

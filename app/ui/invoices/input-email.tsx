@@ -1,6 +1,16 @@
 import { AtSymbolIcon } from "@heroicons/react/16/solid";
 
-export default function InputEmail({state, label, defaultValue}: {state?: any, label: string, defaultValue?: string}) {
+export default function InputEmail({
+  state, 
+  label, 
+  defaultValue, 
+  handleInputChange
+}: {
+  state?: any, 
+  label: string, 
+  defaultValue?: string, 
+  handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
 
     return (
         <div>
@@ -19,6 +29,7 @@ export default function InputEmail({state, label, defaultValue}: {state?: any, l
                 placeholder="Enter the email address"
                 defaultValue={defaultValue ?? ''}
                 required
+                onChange={handleInputChange}
               />
               <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>

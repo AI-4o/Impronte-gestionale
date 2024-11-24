@@ -131,10 +131,10 @@ const createTableAssicurazioni = async () => {
       );
     `;
 }
-const createTablePreventivoMostrareCliente = async () => {
+const createTablePreventiviMostrareClienti = async () => {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
-      CREATE TABLE IF NOT EXISTS preventivo_mostrare_cliente (
+      CREATE TABLE IF NOT EXISTS preventivi_mostrare_clienti (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
          id_destinazione UUID NOT NULL REFERENCES destinazioni(id),
@@ -176,7 +176,6 @@ const createTablePagamentiServiziATerra = async () => {
   await client.sql`
       CREATE TABLE IF NOT EXISTS pagamenti_servizi_a_terra (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          id_servizio_a_terra UUID NOT NULL REFERENCES servizi_a_terra(id),
          id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
@@ -190,7 +189,6 @@ const createTablePagamentiVoli = async () => {
   await client.sql`
       CREATE TABLE IF NOT EXISTS pagamenti_voli (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          id_volo UUID NOT NULL REFERENCES voli(id),
          id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
@@ -204,7 +202,6 @@ const createTablePagamentiAssicurazioni = async () => {
   await client.sql`
       CREATE TABLE IF NOT EXISTS pagamenti_assicurazioni (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          id_assicurazione UUID NOT NULL REFERENCES assicurazioni(id),
          id_banca UUID NOT NULL REFERENCES banche(id),
          importo FLOAT,
@@ -358,18 +355,19 @@ const seedAssicurazioni = async (preventivi: Preventivo[]) => {
     `;
   }
 };
-const seedPreventivoCliente = async (preventivi: Preventivo[]) => {
+const seedPreventiviClienti = async (preventivi: Preventivo[]) => {
   const { rows: destinazioni } = await client.sql`SELECT id FROM destinazioni LIMIT 5`;
 
   for (const prev of preventivi) {
     await client.sql`
-      INSERT INTO preventivo_mostrare_cliente (id_preventivo, id_destinazione, descrizione,
+      INSERT INTO preventivi_mostrare_clienti (id_preventivo, id_destinazione, descrizione,
                                              tipo, costo_individuale, importo_vendita, totale)
       VALUES (${prev.id}, ${destinazioni[0].id}, 'Pacchetto completo',
               'destinazione', 1000.00, 1200.00, ${(prev.adulti + prev.bambini) * 1200.00});
     `;
   }
 };
+/** Delete tables */
 const deleteTables = async () => {
   await client.sql`DROP TABLE IF EXISTS pratiche CASCADE`;
   await client.sql`DROP TABLE IF EXISTS pagamenti_assicurazioni CASCADE`;
@@ -387,12 +385,8 @@ const deleteTables = async () => {
   await client.sql`DROP TABLE IF EXISTS fornitori CASCADE`;
   await client.sql`DROP TABLE IF EXISTS destinazioni CASCADE`;
 };
-
-const seed = async () => {
-  // Purge DB
-  await deleteTables();
-
-  // Create tables
+/** Create tables */
+const createTables = async () => {
   await createTableDestinazioni();
   await createTableBanche();
   await createTableClienti();
@@ -401,30 +395,32 @@ const seed = async () => {
   await createTableServiziATerra();
   await createTableVoli();
   await createTableAssicurazioni();
-  await createTablePreventivoMostrareCliente();
+  await createTablePreventiviMostrareClienti();
   await createTablePartecipanti();
   await createTableIncassiPartecipanti();
   await createTablePagamentiServiziATerra();
   await createTablePagamentiVoli();
   await createTablePagamentiAssicurazioni();
   await createTablePratiche();
-
-  // Seed initial data
-  await seedDestinazioni();
-  await seedFornitori();
-  await seedClienti(); // test data
-  await seedBanche();
-  const preventivi = await seedPreventivi();
-  await seedServiziATerra(preventivi);
-  await seedVoli(preventivi);
-  await seedAssicurazioni(preventivi);
-  await seedPreventivoCliente(preventivi);
 }
-
+/** Seed initial data */
+const seedDb = async () => {
+    await seedDestinazioni();
+    await seedFornitori();
+    await seedClienti(); // test data
+    await seedBanche();
+    const preventivi = await seedPreventivi();
+    await seedServiziATerra(preventivi);
+    await seedVoli(preventivi);
+    await seedAssicurazioni(preventivi);
+    await seedPreventiviClienti(preventivi);
+}
 export async function GET() {
   try {
     await client.sql`BEGIN`;
-    await seed();
+    //await deleteTables();
+    //await createTables();
+    await seedDb();
     await client.sql`COMMIT`;
 
     return Response.json({ message: "Database seeded successfully" });

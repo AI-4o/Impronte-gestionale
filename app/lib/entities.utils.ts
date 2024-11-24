@@ -321,7 +321,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
   ],
-  preventivi_mostrare_cliente: [
+  preventivi_mostrare_clienti: [
     {
       keyName: "descrizione",
       type: "text",
