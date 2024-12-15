@@ -25,6 +25,8 @@ import {
   Volo,
 } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
+import { Data } from "@/app/dashboard/(overview)/general-interface-create/page";
+import { fetchFilteredClienti, fetchPreventiviByCliente } from "../data";
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
   [K in keyof T]: string[];
@@ -43,17 +45,18 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
   try {
     // Handle dependent deletions based on the entityTableName
     switch (entityTableName) {
-      case 'clienti':
+      case "clienti":
         // Delete related pratiche
         await sql`DELETE FROM pratiche WHERE id_cliente = ${id}`;
         // Delete preventivi associated with the cliente
-        const preventiviClienti = await sql`SELECT id FROM preventivi WHERE id_cliente = ${id}`;
+        const preventiviClienti =
+          await sql`SELECT id FROM preventivi WHERE id_cliente = ${id}`;
         for (const prev of preventiviClienti.rows) {
-          await deleteEntityById(prev.id, 'preventivi');
+          await deleteEntityById(prev.id, "preventivi");
         }
         break;
 
-      case 'fornitori':
+      case "fornitori":
         // Delete related pagamenti_assicurazioni
         await sql`DELETE FROM pagamenti_assicurazioni WHERE id_fornitore = ${id}`;
         // Delete related pagamenti_voli
@@ -68,7 +71,7 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
         await sql`DELETE FROM servizi_a_terra WHERE id_fornitore = ${id}`;
         break;
 
-      case 'preventivi':
+      case "preventivi":
         // Delete related incassi_partecipanti
         await sql`
           DELETE FROM incassi_partecipanti
@@ -111,14 +114,14 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
         await sql`DELETE FROM pratiche WHERE id_preventivo = ${id}`;
         break;
 
-      case 'destinazioni':
+      case "destinazioni":
         // Delete related preventivo_mostrare_cliente
         await sql`DELETE FROM preventivo_mostrare_cliente WHERE id_destinazione = ${id}`;
         // Delete related servizi_a_terra
         await sql`DELETE FROM servizi_a_terra WHERE id_destinazione = ${id}`;
         break;
 
-      case 'banche':
+      case "banche":
         // Delete related incassi_partecipanti
         await sql`DELETE FROM incassi_partecipanti WHERE id_banca = ${id}`;
         // Delete related pagamenti_assicurazioni
@@ -129,22 +132,22 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
         await sql`DELETE FROM pagamenti_servizi_a_terra WHERE id_banca = ${id}`;
         break;
 
-      case 'assicurazioni':
+      case "assicurazioni":
         // Delete related pagamenti_assicurazioni
         await sql`DELETE FROM pagamenti_assicurazioni WHERE id_assicurazione = ${id}`;
         break;
 
-      case 'voli':
+      case "voli":
         // Delete related pagamenti_voli
         await sql`DELETE FROM pagamenti_voli WHERE id_volo = ${id}`;
         break;
 
-      case 'servizi_a_terra':
+      case "servizi_a_terra":
         // Delete related pagamenti_servizi_a_terra
         await sql`DELETE FROM pagamenti_servizi_a_terra WHERE id_servizio_a_terra = ${id}`;
         break;
 
-      case 'partecipanti':
+      case "partecipanti":
         // Delete related incassi_partecipanti
         await sql`DELETE FROM incassi_partecipanti WHERE id_partecipante = ${id}`;
         break;
@@ -157,18 +160,19 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
     // Finally, delete the entity from the specified table
     const queryText = `DELETE FROM ${entityTableName} WHERE id = $1`;
     await sql.query(queryText, [id]);
-
   } catch (error) {
-    console.error('Delete error:', error);
-    return { message: `Database Error: Failed to delete from table ${entityTableName}.` };
+    console.error("Delete error:", error);
+    return {
+      message: `Database Error: Failed to delete from table ${entityTableName}.`,
+    };
   }
 
   revalidatePath(`/dashboard/${entityTableName}`);
 };
 
-// ### CREATE ENTITY ###
+// ### CREATE ENTITY FROM FORM###
 
-export const createCliente = async (
+export const createClienteFromForm = async (
   prevState: State<Cliente>,
   formData: FormData
 ) => {
@@ -265,7 +269,7 @@ export async function createDestinazione(
   revalidatePath("/dashboard/destinazioni");
   redirect("/dashboard/destinazioni");
 }
-export async function createPreventivo(
+export async function createPreventivoFromForm(
   prevState: State<Preventivo>,
   formData: FormData
 ) {
@@ -453,7 +457,10 @@ export async function createVolo(prevState: State<Volo>, formData: FormData) {
   revalidatePath("/dashboard/voli");
   redirect("/dashboard/voli");
 }
-export async function createPagamentoServizioATerra(prevState: State<PagamentoServizioATerra>, formData: FormData) {
+export async function createPagamentoServizioATerra(
+  prevState: State<PagamentoServizioATerra>,
+  formData: FormData
+) {
   const parsedData = schemas.PagamentoServiziATerraSchema.safeParse({
     id_banca: formData.get("id_banca"),
     id_servizio_a_terra: formData.get("id_servizio_a_terra"),
@@ -486,7 +493,10 @@ export async function createPagamentoServizioATerra(prevState: State<PagamentoSe
   revalidatePath("/dashboard/pagamenti_servizi_a_terra");
   redirect("/dashboard/pagamenti_servizi_a_terra");
 }
-export async function createPagamentoVolo(prevState: State<PagamentoVolo>, formData: FormData) {
+export async function createPagamentoVolo(
+  prevState: State<PagamentoVolo>,
+  formData: FormData
+) {
   const parsedData = schemas.PagamentoVoliSchema.safeParse({
     id_banca: formData.get("id_banca"),
     id_volo: formData.get("id_volo"),
@@ -511,14 +521,17 @@ export async function createPagamentoVolo(prevState: State<PagamentoVolo>, formD
   `;
   } catch (error) {
     return {
-      ...prevState, 
+      ...prevState,
       dbError: "Database Error: Failed to Create Pagamento Volo.",
     };
   }
   revalidatePath("/dashboard/pagamenti_voli");
   redirect("/dashboard/pagamenti_voli");
 }
-export async function createPagamentoAssicurazione(prevState: State<PagamentoAssicurazione>, formData: FormData) {
+export async function createPagamentoAssicurazione(
+  prevState: State<PagamentoAssicurazione>,
+  formData: FormData
+) {
   const parsedData = schemas.PagamentoAssicurazioneSchema.safeParse({
     id_banca: formData.get("id_banca"),
     id_assicurazione: formData.get("id_assicurazione"),
@@ -551,7 +564,10 @@ export async function createPagamentoAssicurazione(prevState: State<PagamentoAss
   revalidatePath("/dashboard/pagamenti_assicurazione");
   redirect("/dashboard/pagamenti_assicurazione");
 }
-export async function createPratica(prevState: State<Pratica>, formData: FormData) {
+export async function createPratica(
+  prevState: State<Pratica>,
+  formData: FormData
+) {
   const parsedData = schemas.PraticaSchema.safeParse({
     id_cliente: formData.get("id_cliente"),
     id_preventivo: formData.get("id_preventivo"),
@@ -587,7 +603,10 @@ export async function createPratica(prevState: State<Pratica>, formData: FormDat
   revalidatePath("/dashboard/pratiche");
   redirect("/dashboard/pratiche");
 }
-export async function createPartecipante(prevState: State<Partecipante>, formData: FormData) {
+export async function createPartecipante(
+  prevState: State<Partecipante>,
+  formData: FormData
+) {
   const parsedData = schemas.PartecipanteSchema.safeParse({
     id_preventivo: formData.get("id_preventivo"),
     nome: formData.get("nome"),
@@ -619,7 +638,10 @@ export async function createPartecipante(prevState: State<Partecipante>, formDat
   revalidatePath("/dashboard/partecipanti");
   redirect("/dashboard/partecipanti");
 }
-export async function createIncassoPartecipante(prevState: State<IncassoPartecipante>, formData: FormData) {
+export async function createIncassoPartecipante(
+  prevState: State<IncassoPartecipante>,
+  formData: FormData
+) {
   const parsedData = schemas.IncassoPartecipanteSchema.safeParse({
     id_partecipante: formData.get("id_partecipante"),
     id_banca: formData.get("id_banca"),
@@ -652,7 +674,10 @@ export async function createIncassoPartecipante(prevState: State<IncassoPartecip
   revalidatePath("/dashboard/incassi_partecipanti");
   redirect("/dashboard/incassi_partecipanti");
 }
-export async function createAssicurazione(prevState: State<Assicurazione>, formData: FormData) {
+export async function createAssicurazione(
+  prevState: State<Assicurazione>,
+  formData: FormData
+) {
   const parsedData = schemas.AssicurazioneSchema.safeParse({
     id_preventivo: formData.get("id_preventivo"),
     id_fornitore: formData.get("id_fornitore"),
@@ -724,45 +749,190 @@ export async function createPreventivoMostrareCliente(
   redirect("/dashboard/preventivi-mostrare-cliente");
 }
 
-// ### UPDATE ENTITY ###
-export const updateCliente = async (
-  prevState: State<Cliente>,
-  formData: FormData
-) => {
-  // console.log("prevState: ", prevState);
-  console.log("action updateCliente", {
-    id: prevState.values?.id,
-    nome: formData.get("nome"),
-    cognome: formData.get("cognome"),
-    note: formData.get("note"),
-    tipo: formData.get("tipo"),
-    data_di_nascita: formData.get("data_di_nascita"),
-    tel: formData.get("tel"),
-    email: formData.get("email"),
-    citta: formData.get("citta"),
-    collegato: formData.get("collegato"),
-    provenienza: formData.get("provenienza"),
-  });
+// CREATE ENTITY
 
+export const createCliente = async (c: Cliente) => {
   const parsedData = schemas.ClienteSchema.safeParse({
-    nome: formData.get("nome"),
-    cognome: formData.get("cognome"),
-    note: formData.get("note"),
-    tipo: formData.get("tipo"),
-    data_di_nascita: formData.get("data_di_nascita"),
-    tel: formData.get("tel"),
-    email: formData.get("email"),
-    citta: formData.get("citta"),
-    collegato: formData.get("collegato"),
-    provenienza: formData.get("provenienza"),
+    nome:
+      c.nome ??
+      (() => {
+        throw new Error("Nome must not be null");
+      })(),
+    cognome:
+      c.cognome ??
+      (() => {
+        throw new Error("Cognome must not be null");
+      })(),
+    note: c.note,
+    tipo: c.tipo,
+    data_di_nascita:
+      c.data_di_nascita ??
+      (() => {
+        throw new Error("Data di nascita must not be null");
+      })(),
+    tel: c.tel,
+    email:
+      c.email ??
+      (() => {
+        throw new Error("Email must not be null");
+      })(),
+    citta: c.citta,
+    collegato: c.collegato,
+    provenienza: c.provenienza,
   });
   if (!parsedData.success) {
     console.log("parsedData.error", parsedData.error);
     return {
-      ...prevState,
       values: parsedData.data,
       errors: parsedData.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Invoice.",
+      message: "Missing Fields. Failed to Create Cliente.",
+    };
+  }
+  try {
+    await sql`
+    INSERT INTO clienti (nome, cognome, note, tipo, data_di_nascita, tel, email, citta, collegato, provenienza)
+    VALUES (
+    ${parsedData.data.nome}, 
+    ${parsedData.data.cognome}, 
+    ${parsedData.data.note}, 
+    ${parsedData.data.tipo}, 
+    ${parsedData.data.data_di_nascita}, 
+    ${parsedData.data.tel}, 
+    ${parsedData.data.email}, 
+    ${parsedData.data.citta},
+    ${parsedData.data.collegato},
+    ${parsedData.data.provenienza})
+    ON CONFLICT (nome, cognome) DO NOTHING;
+  `;
+    return true;
+  } catch (error) {
+    console.log("db error: ", error);
+    return {
+      values: parsedData.data,
+      dbError: "Database Error: Failed to Create Cliente.",
+    };
+  }
+};
+export const createPreventivo = async (
+  p: Preventivo,
+  c: Cliente,
+  idCliente: string,
+  idFornitore: string
+) => {
+  const parsedData = schemas.PreventivoSchema.safeParse({
+    id_fornitore: idFornitore,
+    id_cliente: idCliente,
+    email:
+      p.email ??
+      (() => {
+        throw new Error("Email must not be null");
+      })(), // TODO: email di chi?
+    numero_di_telefono: c.tel,
+    note: p.note,
+    riferimento: p.riferimento,
+    operatore: p.operatore,
+    feedback: p.feedback,
+    adulti: p.adulti,
+    bambini: p.bambini,
+    data_partenza: p.data_partenza,
+    data: p.data,
+    numero_preventivo: p.numero_preventivo,
+    confermato: p.confermato,
+    stato: p.stato,
+  });
+  if (!parsedData.success) {
+    console.log("parsedData.error", parsedData.error);
+    return {
+      values: parsedData.data,
+      errors: parsedData.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Create Preventivo.",
+    };
+  }
+  try {
+    await sql`
+    INSERT INTO preventivi (
+    id_fornitore, 
+    id_cliente, 
+    email, 
+    numero_di_telefono, 
+    note, 
+    riferimento, 
+    operatore, 
+    feedback, 
+    adulti, 
+    bambini, 
+    data_partenza, 
+    data, 
+    numero_preventivo, 
+    confermato, f
+    stato)
+    VALUES (
+    ${parsedData.data.id_fornitore}, 
+    ${parsedData.data.id_cliente}, 
+    ${parsedData.data.email}, 
+    ${parsedData.data.numero_di_telefono}, 
+    ${parsedData.data.note}, 
+    ${parsedData.data.riferimento}, 
+    ${parsedData.data.operatore}, 
+    ${parsedData.data.feedback}, 
+    ${parsedData.data.adulti}, 
+    ${parsedData.data.bambini}, 
+    ${parsedData.data.data_partenza}, 
+    ${parsedData.data.data}, 
+    ${parsedData.data.numero_preventivo}, 
+    ${parsedData.data.confermato}, 
+    ${parsedData.data.stato}
+    )
+  `;
+    return true;
+  } catch (error) {
+    console.log("db error: ", error);
+    return {
+      values: parsedData.data,
+      dbError: "Database Error: Failed to Create Preventivo.",
+    };
+  }
+};
+
+
+
+// ### UPDATE ENTITY ###
+export const updateCliente = async (c: Cliente, id: string) => {
+  const parsedData = schemas.ClienteSchema.safeParse({
+    id: id,
+    nome:
+      c.nome ??
+      (() => {
+        throw new Error("Nome must not be null");
+      })(),
+    cognome:
+      c.cognome ??
+      (() => {
+        throw new Error("Cognome must not be null");
+      })(),
+    note: c.note,
+    tipo: c.tipo,
+    data_di_nascita:
+      c.data_di_nascita ??
+      (() => {
+        throw new Error("Data di nascita must not be null");
+      })(),
+    tel: c.tel,
+    email:
+      c.email ??
+      (() => {
+        throw new Error("Email must not be null");
+      })(),
+    citta: c.citta,
+    collegato: c.collegato,
+    provenienza: c.provenienza,
+  });
+  if (!parsedData.success) {
+    console.log("parsedData.error", parsedData.error);
+    return {
+      values: parsedData.data,
+      errors: parsedData.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Create Cliente.",
     };
   }
   try {
@@ -778,10 +948,10 @@ export const updateCliente = async (
     citta = ${parsedData.data.citta}, 
     collegato = ${parsedData.data.collegato}, 
     provenienza = ${parsedData.data.provenienza}
-    WHERE id = ${prevState.values?.id}
+    WHERE id = ${id}
     `;
-    console.log('SUCCESS UPDATING CLIENTE');
-    
+    console.log("SUCCESS UPDATING CLIENTE");
+    return true;
   } catch (error) {
     console.log("db error: ", error);
     return {
@@ -790,9 +960,123 @@ export const updateCliente = async (
       dbError: "Database Error: Failed to Create Invoice.",
     };
   }
-  revalidatePath("/dashboard/clienti");
-  redirect("/dashboard/clienti");
 };
+export const updatePreventivo = async (p: Preventivo, id: string) => {
+  const parsedData = schemas.PreventivoSchema.safeParse({
+    id:
+      id ??
+      (() => {
+        throw new Error("ID must not be null");
+      })(),
+    id_fornitore: p.id_fornitore,
+    id_cliente: p.id_cliente,
+    email:
+      p.email ??
+      (() => {
+        throw new Error("Email must not be null");
+      })(),
+    numero_di_telefono: p.numero_di_telefono,
+    note: p.note,
+    riferimento: p.riferimento,
+    operatore: p.operatore,
+    feedback: p.feedback,
+    adulti: p.adulti,
+    bambini: p.bambini,
+    data_partenza: p.data_partenza,
+    data: p.data,
+    numero_preventivo: p.numero_preventivo,
+    confermato: p.confermato,
+    stato: p.stato,
+  });
+  if (!parsedData.success) {
+    console.log("parsedData.error", parsedData.error);
+    return {
+      values: parsedData.data,
+      errors: parsedData.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Update Preventivo.",
+    };
+  }
+  try {
+    await sql`
+    UPDATE preventivi SET 
+    id_fornitore = ${parsedData.data.id_fornitore}, 
+    id_cliente = ${parsedData.data.id_cliente}, 
+    email = ${parsedData.data.email}, 
+    numero_di_telefono = ${parsedData.data.numero_di_telefono}, 
+    note = ${parsedData.data.note}, 
+    riferimento = ${parsedData.data.riferimento}, 
+    operatore = ${parsedData.data.operatore}, 
+    feedback = ${parsedData.data.feedback}, 
+    adulti = ${parsedData.data.adulti}, 
+    bambini = ${parsedData.data.bambini}, 
+    data_partenza = ${parsedData.data.data_partenza}, 
+    data = ${parsedData.data.data}, 
+    numero_preventivo = ${parsedData.data.numero_preventivo}, 
+    confermato = ${parsedData.data.confermato}, 
+    stato = ${parsedData.data.stato}
+    WHERE id = ${id}
+  `;
+    console.log("SUCCESS UPDATING PREVENTIVO");
+    return true;
+  } catch (error) {
+    console.log("db error: ", error);
+    return {
+      values: parsedData.data,
+      dbError: "Database Error: Failed to Update Preventivo.",
+    };
+  }
+};
+
+/**
+ * Do the following:
+ *
+ * 1. check if the Cliente already exists -> if not, create cliente, if yes get cliente
+ * 2. create preventivoCliente
+ * 3. create each servizioATerra
+ * 4. create each volo
+ * 5. create each assicurazione
+ *
+ * @returns
+ *
+ */
+export async function submitCreatePreventivoGI(data: Data) {
+  console.log("THE RECEIVED DATA IS: ", data);
+
+  const clientiByName = await fetchFilteredClienti(data.cliente.nome, 1);
+  const clientiByEmail = await fetchFilteredClienti(data.cliente.email, 1);
+  const clientiByCognome = await fetchFilteredClienti(data.cliente.cognome, 1);
+  try {
+    if (clientiByEmail.length > 0) {
+      // il cliente esiste già
+      const cliente = clientiByEmail[0];
+      console.log("cliente: ", cliente);
+      createPreventivo(data.preventivo, cliente, cliente.id, (Math.random()*1000).toString());
+      
+    } else {
+      // il cliente è nuovo
+      const cliente = data.cliente;
+
+      // create cliente
+      await createCliente(cliente);
+    }
+  } catch (error) {
+    console.log("error: ", error);
+  }
+}
+
+export const isClienteNew = async (c: Cliente) => {
+  const clientiByEmail = await fetchFilteredClienti(c.email, 1);
+
+  if (clientiByEmail.length == 0) {
+    // cliente is new
+    return true;
+  } else {
+    // cliente is not new
+    // return cliente and all the preventivi associated with him
+    return false;
+  }
+};
+
 export async function updateDestinazione(
   prevState: State<Destinazione>,
   formData: FormData
@@ -828,7 +1112,7 @@ export async function updateDestinazione(
   revalidatePath("/dashboard/destinazioni");
   redirect("/dashboard/destinazioni");
 }
-export async function updatePreventivo(
+export async function updatePreventivoFromForm(
   prevState: State<Preventivo>,
   formData: FormData
 ) {
@@ -890,7 +1174,7 @@ export async function updatePreventivo(
   redirect("/dashboard/preventivi");
 }
 export async function updateFornitore(
-  prevState: State<Fornitore> ,
+  prevState: State<Fornitore>,
   formData: FormData
 ) {
   const parsedData = schemas.FornitoreSchema.safeParse({
@@ -924,10 +1208,7 @@ export async function updateFornitore(
   revalidatePath("/dashboard/fornitori");
   redirect("/dashboard/fornitori");
 }
-export async function updateBanca(
-  prevState: State<Banca> ,
-  formData: FormData
-) {
+export async function updateBanca(prevState: State<Banca>, formData: FormData) {
   const parsedData = schemas.BancaSchema.safeParse({
     nome: formData.get("nome"),
   });
@@ -958,7 +1239,7 @@ export async function updateBanca(
   redirect("/dashboard/banche");
 }
 export async function updateServizioATerra(
-  prevState: State<ServizioATerra> ,
+  prevState: State<ServizioATerra>,
   formData: FormData
 ) {
   const parsedData = schemas.ServizioATerraSchema.safeParse({
@@ -1010,10 +1291,7 @@ export async function updateServizioATerra(
   revalidatePath("/dashboard/servizi-a-terra");
   redirect("/dashboard/servizi-a-terra");
 }
-export async function updateVolo(
-  prevState: State<Volo> ,
-  formData: FormData
-) {
+export async function updateVolo(prevState: State<Volo>, formData: FormData) {
   const parsedData = schemas.VoloSchema.safeParse({
     id_preventivo: formData.get("id_preventivo"),
     id_fornitore: formData.get("id_fornitore"),
@@ -1062,7 +1340,7 @@ export async function updateVolo(
   redirect("/dashboard/voli");
 }
 export async function updateAssicurazione(
-  prevState: State<Assicurazione> ,
+  prevState: State<Assicurazione>,
   formData: FormData
 ) {
   const parsedData = schemas.AssicurazioneSchema.safeParse({
@@ -1103,7 +1381,7 @@ export async function updateAssicurazione(
   redirect("/dashboard/assicurazioni");
 }
 export async function updatePreventivoMostrareCliente(
-  prevState: State<PreventivoMostrareCliente> ,
+  prevState: State<PreventivoMostrareCliente>,
   formData: FormData
 ) {
   const parsedData = schemas.PreventivoMostrareClienteSchema.safeParse({
@@ -1148,7 +1426,7 @@ export async function updatePreventivoMostrareCliente(
   redirect("/dashboard/preventivi-mostrare-cliente");
 }
 export async function updatePartecipante(
-  prevState: State<Partecipante> ,
+  prevState: State<Partecipante>,
   formData: FormData
 ) {
   const parsedData = schemas.PartecipanteSchema.safeParse({
@@ -1187,7 +1465,7 @@ export async function updatePartecipante(
   redirect("/dashboard/partecipanti");
 }
 export async function updateIncassoPartecipante(
-  prevState: State<IncassoPartecipante> ,
+  prevState: State<IncassoPartecipante>,
   formData: FormData
 ) {
   const parsedData = schemas.IncassoPartecipanteSchema.safeParse({
@@ -1228,7 +1506,7 @@ export async function updateIncassoPartecipante(
   redirect("/dashboard/incassi-partecipanti");
 }
 export async function updatePagamentoServizioATerra(
-  prevState: State<PagamentoServizioATerra> ,
+  prevState: State<PagamentoServizioATerra>,
   formData: FormData
 ) {
   const parsedData = schemas.PagamentoServiziATerraSchema.safeParse({
@@ -1399,8 +1677,6 @@ export async function updatePratica(
   revalidatePath("/dashboard/pratiche");
   redirect("/dashboard/pratiche");
 }
-
-
 
 export async function deleteInvoice(id: string, entityName: string) {
   try {

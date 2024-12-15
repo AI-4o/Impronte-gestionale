@@ -1,5 +1,4 @@
 'use client';
-import { lusitana } from "@/app/ui/fonts";
 import InputTell from "@/app/ui/inputs/input-tell";
 import InputText from "@/app/ui/inputs/input-text";
 import InputSelect from "@/app/ui/inputs/input-select";
@@ -9,54 +8,81 @@ import InputDate from "@/app/ui/inputs/input-date";
 import { useEffect, useState } from "react";
 import fornitoriData from '@/app/seed/fornitori.json';
 import destinazioniData from '@/app/seed/destinazioni.json';
+import { ClienteInputGroup, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup, Data } from "./general-interface.defs";
+import { formatDate } from "@/app/lib/utils";
 
+const demoData: Data = {
+    cliente: new ClienteInputGroup(
+        'Alfredo',
+        'Ingraldo',
+        'Ma quanto è figo',
+        'Viareggio',
+        'Mario Rossi',
+        'PRIVATO',
+        new Date('1995-04-09'),
+        '+393333333333',
+        'alfredo.ingraldo.u@gmail.com',
+        'Passaparola'
+    ),
+    preventivo: new PreventivoInputGroup(
+        666,
+        'alfredo.ingraldo.u@gmail.com',
+        'riferimento esempio',
+        'operatore esempio',
+        'feedback esempio',
+        'note esempio',
+        '+393333333333',
+        2,
+        0,
+        new Date('2021-12-03'),
+        new Date('2022-03-22'),
+        'da fare'
+    ),
+    serviziATerra: [new ServizioATerraInputGroup(
+        1,
+        'ALASKA',
+        'AAA JALALA',
+        'descrizione esempio',
+        new Date('2022-03-22'),
+        1,
+        'USD',
+        100,
+        1,
+        100
+    )],
+    serviziAggiuntivi: [new ServizioATerraInputGroup(
+        1,
+        'BALI',
+        'AAA JALALA',
+        'descrizione esempio servizio aggiuntivo',
+        new Date('2025-01-01'),
+        1,
+        'USD',
+        100,
+        1,
+        100
+    )],
+    voli: [new VoloInputGroup(
+        1,
+        'AAA JALALA',
+        'compagnia esempio',
+        'descrizione esempio',
+        new Date('2025-01-01'),
+        new Date('2025-01-01'),
+        1,
+        'USD',
+        100
+    )],
+    assicurazioni: [new AssicurazioneInputGroup(
+        1,
+        'AAA JALALA',
+        'assicurazione esempio',
+        666,
+        2
+    )],
+}
 
-// servizi a terra interface for storing input group values
-class ServizioATerraInputGroup {
-    constructor(
-        public groupId: number,
-        public destinazione?: string,
-        public fornitore?: string,
-        public descrizione?: string,
-        public data?: Date,
-        public numero_notti?: number,
-        public valuta?: string,
-        public totale?: number,
-        public cambio?: number,
-        public ricarico?: number,
-        public servizio_aggiuntivi?: boolean,
-        public tot?: number,
-    ) { }
-}
-// voli interface for storing input group values
-class VoloInputGroup {
-    constructor(
-        public groupId: number,
-        public fornitore?: string,
-        public compagnia?: string,
-        public descrizione?: string,
-        public data_partenza?: Date,
-        public data_arrivo?: Date,
-        public totale?: number,
-        public valuta?: string,
-        public cambio?: number,
-        public ricarico?: number,
-        public tot?: number,
-    ) { }
-}
-// assicurazioni interface for storing input group values
-class AssicurazioneInputGroup {
-    constructor(
-        public groupId: number,
-        public fornitore?: string,
-        public assicurazione?: string,
-        public netto?: number,
-        public ricarico?: number,
-        public tot?: number
-    ) { }
-}
-
-export default function GeneralInterfaceCreatePage() {
+export default function CreaPreventivoGeneralInterface() {
     // Extract the 'fornitori' and 'destinazioni' arrays from json
     // define the options for the input-selects
     const fornitoriValues = fornitoriData.fornitori;
@@ -76,17 +102,47 @@ export default function GeneralInterfaceCreatePage() {
         'inviato'
     ]
 
+    // gestione cliente
+    const [cliente, setCliente] = useState<ClienteInputGroup>(demoData.cliente ?? new ClienteInputGroup());
+    const onVCCliente = (e: any, name: string) => {
+        console.log('change in a value of a cliente <event, id, name>: ', e, name);
+        setCliente((prevState) => {
+            if (name === 'data_di_nascita') {
+                prevState.data_di_nascita = new Date(e.target.value);
+            } else {
+                prevState[name] = e.target.value;
+            }
+            return prevState;
+        });
+    }
+
+    // gestione preventivo
+    const [preventivo, setpreventivo] = useState<PreventivoInputGroup>(demoData.preventivo ?? new PreventivoInputGroup());
+    const onVCpreventivo = (e: any, name: string) => {
+        console.log('change in a value of a preventivo <event, id, name>: ', e, name);
+        setpreventivo((prevState) => {
+            if (name === 'data_partenza') {
+                prevState.data_partenza = new Date(e.target.value);
+            } else if (name === 'data') {
+                prevState.data = new Date(e.target.value);
+            } else {
+                prevState[name] = e.target.value;
+            }
+            return prevState;
+        });
+    }
+
+
     // percentuale ricarico
     const [percentualeRicarico, setPercentualeRicarico] = useState<number>(1);
 
     // gestione aggiunta/rimozione servizi a terra
     const [serviziATerra, setServiziATerra] = useState<ServizioATerraInputGroup[]>([
-        new ServizioATerraInputGroup(1)
+        demoData.serviziATerra[0], new ServizioATerraInputGroup(2)
     ]);
     const aggiungiServizioATerra = () => {
         const newId = Math.max(...serviziATerra.map(s => s.groupId)) + 5
         setServiziATerra([...serviziATerra, new ServizioATerraInputGroup(newId)]);
-
     }
     const rimuoviServizioATerra = (groupId: number) => {
         setServiziATerra(serviziATerra.filter(servizio => servizio.groupId !== groupId));
@@ -95,7 +151,11 @@ export default function GeneralInterfaceCreatePage() {
         console.log('change in a value of a servizioATerra <event, id, name>: ', e, id, name);
         setServiziATerra(serviziATerra.map(servizio => {
             if (servizio.groupId === id) {
-                servizio[name] = e.target.value;
+                if (name === 'data') {
+                    servizio.data = new Date(e.target.value);
+                } else {
+                    servizio[name] = e.target.value;
+                }
                 if (!!percentualeRicarico && !!servizio.cambio && !!servizio.totale) {
                     servizio.ricarico = getRicarico(servizio.totale, servizio.cambio, percentualeRicarico);
                     servizio.tot = getTot(servizio.totale, servizio.cambio, servizio.ricarico);
@@ -105,10 +165,9 @@ export default function GeneralInterfaceCreatePage() {
         }));
     }
 
-
     // gestione aggiunta/rimozione servizi aggiuntivi
     const [serviziAggiuntivi, setServiziAggiuntivi] = useState<ServizioATerraInputGroup[]>([
-        new ServizioATerraInputGroup(1)
+        demoData.serviziAggiuntivi[0] ?? new ServizioATerraInputGroup(1)
     ]);
     const aggiungiServizioAggiuntivo = () => {
         const newId = Math.max(...serviziAggiuntivi.map(s => s.groupId)) + 5
@@ -122,11 +181,15 @@ export default function GeneralInterfaceCreatePage() {
         console.log('change in a value of a servizioAggiuntivo <event, id, name>: ', e, id, name);
         setServiziAggiuntivi(serviziAggiuntivi.map(servizio => {
             if (servizio.groupId === id) {
-                servizio[name] = e.target.value;
-            }
-            if (!!percentualeRicarico && !!servizio.cambio && !!servizio.totale) {
-                servizio.ricarico = getRicarico(servizio.totale, servizio.cambio, percentualeRicarico);
-                servizio.tot = getTot(servizio.totale, servizio.cambio, servizio.ricarico);
+                if (name === 'data') {
+                    servizio.data = new Date(e.target.value);
+                } else {
+                    servizio[name] = e.target.value;
+                }
+                if (!!percentualeRicarico && !!servizio.cambio && !!servizio.totale) {
+                    servizio.ricarico = getRicarico(servizio.totale, servizio.cambio, percentualeRicarico);
+                    servizio.tot = getTot(servizio.totale, servizio.cambio, servizio.ricarico);
+                }
             }
             return servizio;
         }));
@@ -135,7 +198,7 @@ export default function GeneralInterfaceCreatePage() {
 
     // gestione aggiunta/rimozione voli
     const [voli, setVoli] = useState<VoloInputGroup[]>([
-        new VoloInputGroup(1)
+        demoData.voli[0] ?? new VoloInputGroup(1)
     ]);
     const aggiungiVolo = () => {
         const newId = Math.max(...voli.map(s => s.groupId)) + 5
@@ -149,11 +212,17 @@ export default function GeneralInterfaceCreatePage() {
         console.log('change in a value of a volo <event, id, name>: ', e, id, name);
         setVoli(voli.map(volo => {
             if (volo.groupId === id) {
-                volo[name] = e.target.value;
-            }
-            if (!!percentualeRicarico && !!volo.cambio && !!volo.totale) {
-                volo.ricarico = getRicarico(volo.totale, volo.cambio, percentualeRicarico);
-                volo.tot = getTot(volo.totale, volo.cambio, volo.ricarico);
+                if (name === 'data_partenza') {
+                    volo.data_partenza = new Date(e.target.value);
+                } else if (name === 'data_arrivo') {
+                    volo.data_arrivo = new Date(e.target.value);
+                } else {
+                    volo[name] = e.target.value;
+                }
+                if (!!percentualeRicarico && !!volo.cambio && !!volo.totale) {
+                    volo.ricarico = getRicarico(volo.totale, volo.cambio, percentualeRicarico);
+                    volo.tot = getTot(volo.totale, volo.cambio, volo.ricarico);
+                }
             }
             return volo;
         }));
@@ -161,7 +230,7 @@ export default function GeneralInterfaceCreatePage() {
 
     // gestione aggiunta/rimozione assicurazioni
     const [assicurazioni, setAssicurazioni] = useState<AssicurazioneInputGroup[]>([
-        new AssicurazioneInputGroup(1)
+        demoData.assicurazioni[0] ?? new AssicurazioneInputGroup(1)
     ]);
     const aggiungiAssicurazione = () => {
         const newId = Math.max(...assicurazioni.map(s => s.groupId)) + 5
@@ -184,7 +253,26 @@ export default function GeneralInterfaceCreatePage() {
         }));
     }
 
+    const submit = () => {
+        const data: Data = {
+            cliente: cliente,
+            preventivo: preventivo,
+            serviziATerra: serviziATerra,
+            serviziAggiuntivi: serviziAggiuntivi,
+            voli: voli,
+            assicurazioni: assicurazioni,
+        }
+        console.log('THE DATA IS: ', data);
+        // submitCreatePreventivoGI(data);
+    }
+
     // logging changes in the states
+    useEffect(() => {
+        console.log('the cliente state is: ', cliente);
+    }, [cliente]);
+    useEffect(() => {
+        console.log('the preventivo state is: ', preventivo);
+    }, [preventivo]);
     useEffect(() => {
         console.log('the serviziATerra state is: ', serviziATerra);
     }, [serviziATerra]);
@@ -204,32 +292,32 @@ export default function GeneralInterfaceCreatePage() {
             {/* Cliente */}
             <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
             <div className="flex flex-row">
-                <InputText label="Nome" name="nome" />
-                <InputText label="Cognome" name="cognome" />
-                <InputText label="Note" name="note" />
-                <InputText label="Città" name="citta" />
-                <InputText label="Collegato" name="collegato" />
-                <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} />
-                <InputDate label="Data di nascita" name="data_di_nascita" />
-                <InputTell label="Telefono" name="telefono" />
-                <InputEmail label="Email" name="email" />
-                <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} />
+                <InputEmail label="Email" name="email" onChange={(e) => onVCCliente(e, 'email')} value={cliente?.email} />
+                <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
+                <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
+                <InputText label="Note" name="note" onChange={(e) => onVCCliente(e, 'note')} value={cliente?.note} />
+                <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
+                <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
+                <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
+                <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={formatDate(cliente?.data_di_nascita)} />
+                <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
+                <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
             </div>
             {/* Preventivo Cliente */}
-            <h3 className="text-xl md:text-2xl pt-4 pb-1">Preventivo Cliente</h3>
-            <InputNumber label="N. Preventivo" name="numero_preventivo" />
+            <h3 className="text-xl md:text-2xl pt-4 pb-1">Preventivo</h3>
+            <InputNumber label="N. Preventivo" name="numero_preventivo" onChange={(e) => onVCpreventivo(e, 'numero_preventivo')} value={preventivo?.numero_preventivo?.toString()} />
             <div className="flex flex-row">
-                <InputEmail label="Email" name="email" />
-                <InputText label="Riferimento" name="riferimento" />
-                <InputText label="Operatore" name="operatore" />
-                <InputText label="Feedback" name="feedback" />
-                <InputText label="Note" name="note" />
-                <InputTell label="Telefono" name="numero_di_telefono" />
-                <InputNumber label="Adulti" name="adulti" />
-                <InputNumber label="Bambini" name="bambini" />
-                <InputDate label="Data di partenza" name="data_partenza" />
-                <InputDate label="Data" name="data" />
-                <InputSelect label="Stato" name="tipo_preventivo" options={statoPreventivoOptions} />  {/* TODO: quando sì rendere bordo verde */}
+                <InputEmail label="Email" name="email" onChange={(e) => onVCpreventivo(e, 'email')} value={preventivo?.email} />
+                <InputText label="Riferimento" name="riferimento" onChange={(e) => onVCpreventivo(e, 'riferimento')} value={preventivo?.riferimento} />
+                <InputText label="Operatore" name="operatore" onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
+                <InputText label="Feedback" name="feedback" onChange={(e) => onVCpreventivo(e, 'feedback')} value={preventivo?.feedback} />
+                <InputText label="Note" name="note" onChange={(e) => onVCpreventivo(e, 'note')} value={preventivo?.note} />
+                <InputTell label="Telefono" name="numero_di_telefono" onChange={(e) => onVCpreventivo(e, 'numero_di_telefono')} value={preventivo?.numero_di_telefono} />
+                <InputNumber label="Adulti" name="adulti" onChange={(e) => onVCpreventivo(e, 'adulti')} value={preventivo?.adulti?.toString()} />
+                <InputNumber label="Bambini" name="bambini" onChange={(e) => onVCpreventivo(e, 'bambini')} value={preventivo?.bambini?.toString()} />
+                <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={formatDate(preventivo?.data_partenza)} />
+                <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
+                <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
             </div>
 
             {/* Percentuale Ricarico */}
@@ -260,7 +348,7 @@ export default function GeneralInterfaceCreatePage() {
                                     <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
                                     <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
                                     <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                    <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={servizio?.data?.toString()} label="Data" name="data" />
+                                    <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
                                     <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
                                     <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
                                     <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
@@ -289,9 +377,6 @@ export default function GeneralInterfaceCreatePage() {
                     <p>somma tot euro: {serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
                 </div>
             </div>
-
-
-
             {/* Servizi Aggiuntivi */}
             <div id="servizi-aggiuntivi">
                 <div className="flex flex-row items-center justify-start">
@@ -315,7 +400,7 @@ export default function GeneralInterfaceCreatePage() {
                                     <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
                                     <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
                                     <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                    <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={servizio?.data?.toString()} label="Data" name="data" />
+                                    <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
                                     <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
                                     <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
                                     <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
@@ -368,8 +453,8 @@ export default function GeneralInterfaceCreatePage() {
                                     <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
                                     <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label="Compagnia" name="compagnia" />
                                     <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label="Descrizione" name="descrizione" />
-                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={volo?.data_partenza?.toString()} label="Partenza" name="data_partenza" />
-                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={volo?.data_arrivo?.toString()} label="Arrivo" name="data_arrivo" />
+                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={formatDate(volo?.data_partenza)} label="Partenza" name="data_partenza" />
+                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
                                     <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
                                     <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
                                     <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString()} label="Cambio" name="cambio" />
@@ -447,7 +532,6 @@ export default function GeneralInterfaceCreatePage() {
                     <p>somma tot euro: {assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)}</p>
                 </div>
             </div>
-
             {/* Totale */}
             <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
                 <p>somma di tutti i tot euro: {
@@ -457,6 +541,15 @@ export default function GeneralInterfaceCreatePage() {
                     assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)
                 }</p>
             </div>
+            <div className="flex flex-row items-center justify-center pt-4 pl-5">
+                <button
+                    className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                    type="button"
+                    onClick={submit}
+                >
+                    Crea preventivo
+                </button>
+            </div >
         </>
     );
 }
