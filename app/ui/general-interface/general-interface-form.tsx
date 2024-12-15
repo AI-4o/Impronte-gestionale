@@ -22,9 +22,7 @@ import {
 } from '@/app/lib/actions/actions';
 import EntityInputGroup from '../invoices/entity-input-group';
 import clsx from 'clsx';
-import Modal from '../invoices/modal';
-import { Cliente, Preventivo, Transazione } from '@/app/lib/definitions';
-import InputText from '../invoices/input-text';
+import { Cliente } from '@/app/lib/definitions';
 
 export default function GeneralInterfaceForm() {
     const updateActions = {
@@ -81,25 +79,8 @@ export default function GeneralInterfaceForm() {
         renderedInputGroup: assicurazioniRenderedInputs,
         updateRenderedInputGroup: updateAssicurazioniInputs
     } = useDynamicallyRenderedInputGroup('assicurazioni');
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(e.target.value);
-    }
     return (
         <>
-            <Button onClick={() => { setIsModalOpen(true) }}>open</Button>
-            <Modal
-                setIsOpen={setIsModalOpen}
-                isOpen={isModalOpen}
-                footer={<Button onClick={() => setIsModalOpen(false)}>close</Button>}
-            />
-            <InputText
-                label={'test'}
-                name={'test'}
-                defaultValue={''}
-                handleInputChange={handleInputChange}
-            />
             <form >
                 <div className="rounded-md bg-gray-50 p-4 md:p-6">
                     {/* cliente */}
@@ -193,7 +174,7 @@ function useDynamicallyRenderedInputGroup(entityName: string) {
      * creates the input group for the entity with entityDefaultValues, 
      * and allows management of payments 
      * starting from the data of 'paymentsDefaultValues' */
-    const renderInputGroup = (index: number, entityDefaultValues?: any, paymentsDefaultValues?: Transazione[]): JSX.Element => {
+    const renderInputGroup = (index: number, entityDefaultValues?: any): JSX.Element => {
 
         
         return (

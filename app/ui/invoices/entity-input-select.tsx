@@ -16,7 +16,7 @@ export default function EntityInputSelect({ data, defaultValue }: { data: TEntit
                     id={`dependency-${data.entityName}-input-select`}
                     name={`dependency-${data.entityName}-input-select`}
                     className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                    defaultValue={defaultValue ?? ''}
+                    value={defaultValue ?? ''}
                 >
                     <option value="" disabled>
                         Select a {data.entityName}

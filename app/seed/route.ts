@@ -227,7 +227,7 @@ const createTablePratiche = async () => {
     `;
 }
 const seedDestinazioni = async () => {
-  for (const nome of destinazioni.destiznazioni) {
+  for (const nome of destinazioni.destinazioni) {
     await client.sql`
       INSERT INTO destinazioni (nome)
       VALUES (${nome})

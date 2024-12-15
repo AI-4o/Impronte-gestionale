@@ -35,7 +35,7 @@ confermato (booleano -> preventivo/confermato)
 - nota: quando confermato vale 'confermato' la casella assume bordo verde
 
 -  possibilità di aggiungere un nuovo preventivo a mano, partendo da un preventivo già esistente
--  all'inserimento di un preventivo fare controlli per eventualmente aggiungere righe a tabelle opportune collegate a preventivo    
+-  all'inserimento di un preventivo fare controlli per eventualmente aggiungere righe a tabelle opportune collegate a preventivo
 
 
 
@@ -56,6 +56,10 @@ ricarico (float)
 servizio aggiuntivi (booleano)
 
 
+mostrare 
+ricarico = totale/cambio * percentuale_ricarico
+tot_euro = totale/cambio + ricarico
+
 ## voli -> interessa calcolo di 'tot euro' = (totale /cambio) + ricarico
 id
 id_preventivo
@@ -64,7 +68,7 @@ compagnia aerea
 descrizione
 data partenza 
 data arrivo
-3totale (float)
+totale (float)
 valuta (float)
 cambio 
 ricarico (float)
@@ -209,3 +213,24 @@ totale pratica
 # todo
 • fare in modo che nella tabella clienti possano essercxi clienti con nome e cognome uguali, ma ogni riga deve avere email diversa
 • quando si cancella un'entità, mandare un'avviso 'sei sicuro di voler cancellare....' che indica anche le entità collegate
+
+
+
+
+
+# todo nuovi
+general interface → 
+-ogni input group occupa una sola riga (e.g. ogni servizio a terra occupa una riga)
+- btn + e - → fare in modo che si possa cancellare la riga che si sceglie, non l’ultima
+
+-servizi a terra → manca fornitore e destinazione nei form di g.i.
+- idem per il fornitore per voli e assicurazioni 
+- per modificare g.i. si ricerca con nome o cognome cliente  → compaiono tutti i preventivi del cliente con:
+data di partenza
+riferimento
+- fare vedere tot_euro somma sui servizi a terra e tot_euro somma sui servizi aggiuntivi
+- inserire input numerico per un campo chiamato percentuale_ricarico, se viene usata per calcolare tot_euro e ricarico (ricarico viene calcolato automaticamente e mostrato)
+
+fare in modo che mentre si aggiornano gli input vengano mostrati:
+- per ogni sezione calcolare totale (servizi a terra, voli assicurazioni, servizi supplementari) campo  *tot_euro*
+- totale generale che somma tutti i totali 

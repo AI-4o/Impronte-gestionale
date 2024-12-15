@@ -7,15 +7,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const links = [
     { name: 'Changelog', href: '/dashboard' },
     { name: 'Tabelle', href: '/dashboard/tabelle' },
-    { name: 'General Interface', href: '/dashboard/general-interface' },
+    { name: 'Crea Preventivo', href: '/dashboard/general-interface-create' },
   ];
   return (
     <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
-      <div className="w-full flex-none md:w-64">
-        <SideNav links={links} />
-      </div>
+      <SideNav links={links} />
       <Suspense fallback={<Loading />}>
-        <div className="flex-grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+        <div className="flex-grow  md:overflow-y-auto p-3 w-full">{children}</div>
       </Suspense>
     </div>
   );

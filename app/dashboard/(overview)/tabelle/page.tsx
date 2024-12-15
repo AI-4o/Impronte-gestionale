@@ -1,6 +1,6 @@
 import { UserGroupIcon } from "@heroicons/react/24/outline";
-import { GlobeEuropeAfricaIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
-import { CurrencyEuroIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { GlobeEuropeAfricaIcon } from "@heroicons/react/24/outline";
+import { DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import './style.css';
 import { lusitana } from "@/app/ui/fonts";
@@ -13,11 +13,7 @@ const linksTabelle = [
     { name: 'Preventivi', href: '/dashboard/preventivi', icon: DocumentDuplicateIcon },
     { name: 'Preventivi clienti', href: '/dashboard/preventivo_mostrare_cliente', icon: DocumentDuplicateIcon },
     { name: 'Servizi a terra', href: '/dashboard/servizi-a-terra', icon: DocumentDuplicateIcon },
-    { name: 'Voli', href: '/dashboard/voli', icon: PaperAirplaneIcon },
-    { name: 'Assicurazioni', href: '/dashboard/assicurazioni', icon: DocumentDuplicateIcon },
-    { name: 'Partecipanti', href: '/dashboard/partecipanti', icon: DocumentDuplicateIcon },
     { name: 'Pratiche', href: '/dashboard/pratiche', icon: DocumentDuplicateIcon },
-    { name: 'Pagamenti', href: '/dashboard/pagamenti', icon: CurrencyEuroIcon },
     { name: 'Riepilogo', href: '/dashboard/riepilogo', icon: DocumentDuplicateIcon },
 ]
     return (

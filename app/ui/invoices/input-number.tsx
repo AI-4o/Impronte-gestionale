@@ -32,7 +32,7 @@ export default function InputNumber(
                         placeholder={`Enter number`}
                         className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
                         aria-describedby={`${id}-error`}
-                        defaultValue={defaultValue ?? ''}
+                        value={defaultValue ?? ''}
                         onChange={handleInputChange}
                     />
                 </div>

@@ -36,25 +36,6 @@ export type State<A> = {
   dbError?: string;
 };
 
-export type InvoiceState = State<{
-  customerId: string;
-  amount: string;
-  status: string;
-}>;
-
-const FormSchema = z.object({
-  id: z.string(),
-  customerId: z.string(),
-  customerName: z
-    .string()
-    .min(4, { message: "customer name should be at least 4 characters long" }),
-  amount: z.coerce
-    .number({ message: "invalid format" })
-    .gt(0, "amount must be greater than zero!"),
-  status: z.enum(["pending", "paid"]),
-  date: z.string(),
-});
-
 // ### DELETE GENERAL ENTITY ###
 export const deleteEntityById = async (id: string, entityTableName: string) => {
   console.log("action deleteEntity", { id, entityTableName });

@@ -27,7 +27,7 @@ export default function InputEmail({
                 type="email"
                 name={label}
                 placeholder="Enter the email address"
-                defaultValue={defaultValue ?? ''}
+                value={defaultValue ?? ''}
                 required
                 onChange={handleInputChange}
               />

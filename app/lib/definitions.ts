@@ -28,7 +28,6 @@ export interface TEntityList<T> {
 export interface FetchableEntity<T> {
   name: string;
   fetchCallback: () => Promise<TEntityList<T>>;
-  sampleModel: T;
 }
 export interface Destinazione extends Entity {
   id: string;

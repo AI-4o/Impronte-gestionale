@@ -6,12 +6,22 @@ import { Button } from "../button";
 import Modal from "./modal";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-export default function EntityInputGroupWithPayments(
-    entityName: string,
-    entityDefaultValues: any,
-    paymentValues: Transazione[],
-    setPaymentValues: (value: SetStateAction<Transazione[]>) => void
-) {
+const EntityInputGroupWithPayments = (
+    { 
+        entityName, 
+        entityDefaultValues, 
+        setEntityValues,
+        paymentsValues, 
+        setPaymentsValues
+    }:
+    { 
+        entityName: string,
+        entityDefaultValues: any,
+        setEntityValues?: Dispatch<SetStateAction<any>>,
+        paymentsValues?: Transazione[],
+        setPaymentsValues?: Dispatch<SetStateAction<Transazione[]>>
+    }
+) => {
 
     // set pagamentiEntityName
     let pagamentiEntityName = 'pagamenti_' + entityName;
@@ -24,14 +34,14 @@ export default function EntityInputGroupWithPayments(
 
     const openModal = (index: number) => {
         // whether the moadl is for adding a new payment, or for updating an existing payment
-        const isAddPaymentModal = index == paymentValues.length;
+        const isAddPaymentModal = index == paymentsValues?.length;
 
         if (!isAddPaymentModal) {
             // ### set modal header ###
             setModalHeader(<p>Update Payment {index + 1}</p>);
             // ### set modal body ###
             // create a single payment value state, and update the payment values array when the single payment value changes
-            const [paymentValue, setPaymentValue] = useSinglePaymentValue(paymentValues, setPaymentValues, index);
+            const [paymentValue, setPaymentValue] = useSinglePaymentValue(paymentsValues, setPaymentsValues, index);
             // create a copy of the single payment value state that is binded to the modal body inputs
             const [paymentValueCopy, setPaymentValueCopy] = useState(paymentValue);
             const modalBodyInputs = (
@@ -64,13 +74,13 @@ export default function EntityInputGroupWithPayments(
             // ### set modal buttons ###
             setModalButtons(<Button 
                 onClick={() => {
-                    setPaymentValues(prevState => [...prevState, newPayment as Transazione]);
+                    setPaymentsValues(prevState => [...prevState, newPayment as Transazione]);
                     setIsModalOpen(false);                    
                 }}>Add Payment</Button>);
             setIsModalOpen(true);
         }
     }
-    const renderPaymentsInputs = paymentValues.map((pV, i) => (
+    const renderPaymentsInputs = paymentsValues?.map((pV, i) => (
         <div key={i} className="display: hidden">
             <EntityInputGroup
                 entityKeys={entitiesKeysDictionary[pagamentiEntityName] as EntityKey[]}
@@ -79,16 +89,17 @@ export default function EntityInputGroupWithPayments(
         </div>
     ));
 
-    const renderUpdatePaymentsButtons = paymentValues.map((pV, i) => (
+    const renderUpdatePaymentsButtons = paymentsValues?.map((pV, i) => (
         <Button onClick={() => openModal(i)}>Update Payment {i + 1}</Button>
     ));
-    const renderAddPaymentButton = <Button onClick={() => openModal(paymentValues.length)}>Add Payment</Button>;
+    const renderAddPaymentButton = <Button onClick={() => openModal(paymentsValues?.length ?? 0)}>Add Payment</Button>;
 
 
     return <>
         <EntityInputGroup
             entityKeys={entitiesKeysDictionary[entityName] as EntityKey[]}
             recordModel={entityDefaultValues}
+            setRecordModel={setEntityValues}
             inline={true}
         />
         <Modal header={modalHeader} body={modalBody} buttons={modalButtons} isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
@@ -105,7 +116,7 @@ const useSinglePaymentValue = (
     setPaymentValues: Dispatch<SetStateAction<Transazione[]>>,
     i: number
 ): [Transazione, Dispatch<SetStateAction<Transazione>>] => {
-    const [paymentValue, setPaymentValue] = useState(paymentValues[i]);
+    const [paymentValue, setPaymentValue] = useState(paymentValues?.[i]);
     useEffect(() => {
         setPaymentValues(prevState => {
             return prevState.map((pV, _i) => i == _i ? paymentValue : pV);
@@ -119,3 +130,4 @@ const useAddPaymentValue = () => {
     const [paymentValue, setPaymentValue] = useState({});
     return [paymentValue, setPaymentValue];
 }
+export default EntityInputGroupWithPayments;

@@ -1,35 +1,37 @@
+'use client'
+import { useState } from "react";
+import { InputInterface } from "./input-interface";
+
 export default function InputTell({
     state, 
     label, 
     name,
-    defaultValue, 
-    handleInputChange
-}: {
-    state?: any, 
-    name: string,
-    label: string, 
-    defaultValue?: string, 
-    handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-}) {
-
+    value, 
+    onChange
+}: InputInterface) {
+    const [inputValue, setInputValue] = useState(value ?? '');
+    const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(e.target.value);
+        if(onChange) onChange(e);
+    }
     return (
     <div>
         <label
             className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-            htmlFor="tel"
+            htmlFor={label}
         >
             {label}
         </label>
         <div className="relative">
             <input
-                className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-3 text-sm outline-2 placeholder:text-gray-500"
+                className="peer block w-full rounded-md border border-gray-200 py-[9px] text-sm outline-2 placeholder:text-gray-500"
                 id={label}
                 type="text"
                 name={name}
-                placeholder="Enter the phone number"
+                placeholder="phone"
                 pattern="^\+[1-9]\d{1,14}$"
-                value={defaultValue ?? ''}
-                onChange={handleInputChange}
+                value={inputValue}
+                onChange={e => _onChange(e)}
             />
             <p className="mt-2 text-sm text-red-600 hidden peer-invalid:block">
                 Please enter a valid international phone number.

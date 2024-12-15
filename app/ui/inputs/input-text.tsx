@@ -1,24 +1,26 @@
+'use client'
+import { useState } from "react";
+import { InputInterface } from "./input-interface";
+
 export default function InputText(
     { 
         label, 
         name, 
         state, 
-        defaultValue, 
-        handleInputChange 
-    }: 
-    { 
-        label: string, 
-        name: string, 
-        state?: any, 
-        defaultValue?: string, 
-        handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void 
-    }) {
-
+        value, 
+        onChange 
+    }: InputInterface) {
+        
+        const [inputValue, setInputValue] = useState(value ?? '');
+        const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            setInputValue(e.target.value);
+            if(onChange) onChange(e);
+        }
     return (
         <div>
             <label
                 className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-                htmlFor="date"
+                htmlFor={label}
             >
                 {label}
             </label>
@@ -27,9 +29,9 @@ export default function InputText(
                 name={name}
                 type="text"
                 className="block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
-                placeholder={`Enter text for ${label}`}
-                value={defaultValue ?? ''}
-                onChange={handleInputChange}
+                placeholder={`text`}
+                value={inputValue}
+                onChange={e => _onChange(e)}
             />
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {state?.errors?.[name] &&

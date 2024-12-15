@@ -17,23 +17,6 @@ import {
   fetchAllPagamentiVoli,
 } from "./data";
 import { FetchableEntity } from "./definitions";
-import {
-  sampleAssicurazione,
-  sampleBanca,
-  sampleCliente,
-  sampleDestinazione,
-  sampleFornitore,
-  sampleIncassoPartecipante,
-  samplePagamentoAssicurazione,
-  samplePagamentoServizioATerra,
-  samplePagamentoVolo,
-  samplePartecipante,
-  samplePratica,
-  samplePreventivo,
-  samplePreventivoMostrareCliente,
-  sampleServizioATerra,
-  sampleVolo,
-} from "./entities.samples";
 
 /**
  * Type resuming all the infos on a key of an entity, it is an object with fields:
@@ -528,70 +511,58 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
 export const entities: FetchableEntity<any>[] = [
   {
     name: "destinazioni",
-    fetchCallback: fetchAllDestinazioni,
-    sampleModel: sampleDestinazione,
+    fetchCallback: fetchAllDestinazioni
   },
   {
     name: "clienti",
-    fetchCallback: fetchAllClienti,
-    sampleModel: sampleCliente,
+    fetchCallback: fetchAllClienti
   },
-  { name: "banche", fetchCallback: fetchAllBanche, sampleModel: sampleBanca },
+  { name: "banche", fetchCallback: fetchAllBanche,
+  },
   {
     name: "fornitori",
-    fetchCallback: fetchAllFornitori,
-    sampleModel: sampleFornitore,
+    fetchCallback: fetchAllFornitori
   },
   {
     name: "pratiche",
-    fetchCallback: fetchAllPratiche,
-    sampleModel: samplePratica,
+    fetchCallback: fetchAllPratiche
   },
   {
     name: "preventivi",
-    fetchCallback: fetchAllPreventivi,
-    sampleModel: samplePreventivo,
+    fetchCallback: fetchAllPreventivi
   },
   {
     name: "servizi_a_terra",
-    fetchCallback: fetchAllServiziATerra,
-    sampleModel: sampleServizioATerra,
+    fetchCallback: fetchAllServiziATerra
   },
-  { name: "voli", fetchCallback: fetchAllVoli, sampleModel: sampleVolo },
+  { name: "voli", fetchCallback: fetchAllVoli},
   {
     name: "assicurazioni",
-    fetchCallback: fetchAllAssicurazioni,
-    sampleModel: sampleAssicurazione,
+    fetchCallback: fetchAllAssicurazioni
   },
   {
     name: "pagamenti_assicurazioni",
-    fetchCallback: fetchAllPagamentiAssicurazioni,
-    sampleModel: samplePagamentoAssicurazione,
+    fetchCallback: fetchAllPagamentiAssicurazioni
   },
   {
     name: "preventivi_mostrare_clienti",
-    fetchCallback: fetchAllPreventiviClienti,
-    sampleModel: samplePreventivoMostrareCliente,
+    fetchCallback: fetchAllPreventiviClienti
   },
   {
     name: "partecipanti",
-    fetchCallback: fetchAllPartecipanti,
-    sampleModel: samplePartecipante,
+    fetchCallback: fetchAllPartecipanti
   },
   {
     name: "incassi_partecipanti",
-    fetchCallback: fetchAllIncassiPartecipanti,
-    sampleModel: sampleIncassoPartecipante,
+    fetchCallback: fetchAllIncassiPartecipanti
   },
   {
     name: "pagamenti_servizi_a_terra",
-    fetchCallback: fetchAllPagamentiServiziATerra,
-    sampleModel: samplePagamentoServizioATerra,
+    fetchCallback: fetchAllPagamentiServiziATerra
   },
   {
     name: "pagamenti_voli",
-    fetchCallback: fetchAllPagamentiVoli,
-    sampleModel: samplePagamentoVolo,
+    fetchCallback: fetchAllPagamentiVoli
   },
 ];
 /**
@@ -603,7 +574,7 @@ export const entities: FetchableEntity<any>[] = [
  */
 export const getDependenciesAndSampleRecord = (
   entityName: string
-): {dependenciesNames: string[], sampleRecord: any} => {
+): {dependenciesNames: string[]} => {
   // check if the entityName is valid
   if(!entitiesKeysDictionary[entityName]) throw new Error("Entity not found");
   // get the array of dependencies entities names
@@ -613,12 +584,8 @@ export const getDependenciesAndSampleRecord = (
   // push to dependenciesNames the entityNames of the dependencies of the given entityName
   entityKeys.forEach((entityKey) => {
     if (entityKey.type == "foreign_key") dependenciesNames.push(entityKey.entityName);
-  });
-  const entity = entities.find((e) => e.name == entityName);
-  // console.log('lkjhgfds', dependenciesNames);
-  
+  });  
   return {
-    dependenciesNames: dependenciesNames,
-    sampleRecord: entity?.sampleModel,
+    dependenciesNames: dependenciesNames
   };
 };

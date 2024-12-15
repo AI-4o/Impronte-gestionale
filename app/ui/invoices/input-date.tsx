@@ -38,15 +38,15 @@ export default function InputDate({
             <button onClick={() => setIsDateRequired(!isDateRequired)}>
                 {isDateRequired ? 'Hide' : 'Show'}
             </button>
-            {isDateRequired && <input
+         <input
                 className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-3 text-sm outline-2 placeholder:text-gray-500"
                 id="date"
                 type="date"
                 name={name}
                 placeholder="Enter the date"
-                defaultValue={defaultValue ?? ''}
+                value={defaultValue ?? ''}
                 onChange={handleInputChange}
-            />}
+            />
         </div>
         <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {   state?.errors?.[name] &&

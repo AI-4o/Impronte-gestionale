@@ -9,7 +9,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   
   const id = params.id;
   const pratica = await fetchPraticaById(id);
-  const { dependenciesNames, sampleRecord } = getDependenciesAndSampleRecord('pratiche');
+  const { dependenciesNames } = getDependenciesAndSampleRecord('pratiche');
   const dependenciesData = await Promise.all(
     entities
       // filter the entities that are dependencies of the record model
