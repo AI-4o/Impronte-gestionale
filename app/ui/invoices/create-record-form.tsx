@@ -7,7 +7,7 @@ import EntityInputGroup from './entity-input-group';
 import { TEntityList } from '@/app/lib/definitions';
 import { useActionState } from 'react';
 import { ExclamationCircleIcon } from '@heroicons/react/16/solid';
-import { createAssicurazione, createBanca, createCliente, createDestinazione, createFornitore, createIncassoPartecipante, createPagamentoServizioATerra, createPagamentoVolo, createPartecipante, createPratica, createPreventivo, createPreventivoMostrareCliente, createServizioATerra, createVolo } from '@/app/lib/actions/actions';
+import { createAssicurazione, createBanca, createClienteFromForm, createDestinazione, createFornitore, createIncassoPartecipante, createPagamentoServizioATerra, createPagamentoVolo, createPartecipante, createPratica, createPreventivo, createPreventivoMostrareCliente, createServizioATerra, createVolo } from '@/app/lib/actions/actions';
 
 export interface CreateRecordFormInterface<T> {
     recordModelName: (typeof entities[number]['name']);
@@ -20,7 +20,7 @@ export default function CreateRecordForm<T>({
 
     const createActions = {
         destinazioni: createDestinazione,
-        clienti: createCliente,
+        clienti: createClienteFromForm,
         fornitori: createFornitore,
         preventivi: createPreventivo,
         servizi_a_terra: createServizioATerra,

@@ -50,3 +50,18 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     totalPages,
   ];
 };
+/**
+ * convert date object to format YYYY-MM-DD
+ * @param date 
+ */
+export const formatDate = (date: Date): string => {
+console.log(date);
+
+if(date && date?.getFullYear()) {
+const year = date.getFullYear();
+const month = String(date.getMonth() + 1).padStart(2, '0'); // Mesi da 0 a 11
+const day = String(date.getDate()).padStart(2, '0');
+return  `${year}-${month}-${day}`;
+}
+return '';
+}

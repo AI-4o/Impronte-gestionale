@@ -977,3 +977,17 @@ export const fetchAssicurazioneById = async (id: string): Promise<Assicurazione 
     throw new Error('Failed to fetch assicurazione by id.');
   }
 };
+
+// #### FETCH BY DEPENDENCY FUNCTIONS ####
+export const fetchPreventiviByCliente = async (idCliente: string): Promise<Preventivo[] | null> => {
+  try {
+    const preventivo = await sql<Preventivo>`
+      SELECT * FROM preventivi
+      WHERE id_cliente = ${idCliente}
+    `;
+    return preventivo.rows || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch preventivo by cliente.');
+  }
+};
