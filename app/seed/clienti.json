@@ -1,6 +1,18 @@
 {
     "clienti": [
         {
+            "nome": "Alfredo",
+            "cognome": "Ingraldo",
+            "tel": "+3933333333",
+            "email": "alfredo.ingraldo.u@gmail.com",
+            "tipo": "PRIVATO",
+            "provenienza": "Passaparola",
+            "collegato": "Mario Rossi",
+            "citta": "Milano",
+            "note": "Ma quanto è figo ;)",
+            "data_di_nascita": "1995-04-09"
+        },
+        {
             "nome": "Mario",
             "cognome": "Rossi",
             "tel": "+393331234567",

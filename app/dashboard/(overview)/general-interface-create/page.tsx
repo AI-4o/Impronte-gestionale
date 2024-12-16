@@ -17,14 +17,7 @@ const demoData: Data = {
     cliente: new ClienteInputGroup(
         'Alfredo',
         'Ingraldo',
-        'Ma quanto è figo',
-        'Viareggio',
-        'Mario Rossi',
-        'PRIVATO',
-        new Date('1995-04-09'),
-        '+393333333333',
-        'alfredo.ingraldo.u@gmail.com',
-        'Passaparola'
+        'Ma quanto è figo'
     ),
     preventivo: new PreventivoInputGroup(
         '666',
@@ -117,7 +110,20 @@ export default function CreaPreventivoGeneralInterface() {
     const [clientiTrovati, setClientiTrovati] = useState<ClienteInputGroup[]>([]);
     const [showClientiTrovati, setShowClientiTrovati] = useState<boolean>(false);
 
+    // geastione aggiorna cliente
+    const [showFormAggiornaCliente, setShowFormAggiornaCliente] = useState<boolean>(false);
+    const [clienteDaAggiornare, setClienteDaAggiornare] = useState<ClienteInputGroup>({});
 
+    const onVCClienteDaAggiornare = (e: any, name: string) => {
+        console.log('change in a value of a clienteDaAggiornare <event, id, name>: ', e, name);
+        setClienteDaAggiornare((prevState) => {
+            if (name === 'data_di_nascita') {
+                return { ...prevState, data_di_nascita: new Date(e.target.value) };
+            } else {
+                return { ...prevState, [name]: e.target.value };
+            }
+        });
+    }
     // gestione lista preventivi di un cliente
     const [preventiviClienteList, setPreventiviClienteList] = useState<PreventivoInputGroup[]>([]);
     const [showPreventiviClienteList, setShowPreventiviClienteList] = useState<boolean>(false);
@@ -411,9 +417,9 @@ export default function CreaPreventivoGeneralInterface() {
                 <div className="flex flex-col pt-4">
                     <p>Lista clienti corrrispondenti:</p>
                     {clientiTrovati.length > 0 && clientiTrovati.map((c, i) => (
-                        <div key={c.id} className="flex flex-row gap-2 pt-4 justify-between">
-                            <div > {i + 1}. {c.nome}, {c.cognome}, {c.email}</div>
-                            <div className="flex flex-row gap-2">
+                        <div key={c.id} className="flex flex-col gap-2">
+                            <div className="flex flex-row gap-2 pt-4 justify-between">
+                                <p> {i + 1}. {c.nome}, {c.cognome}, {c.email}</p>
                                 <button
                                     className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
                                     onClick={() => { onClickMostraListaPreventivi(c) }}
@@ -428,11 +434,33 @@ export default function CreaPreventivoGeneralInterface() {
                                 </button>
                                 <button
                                     className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
-                                    onClick={() => { updateCliente(cliente, c.id); }}
+                                    onClick={() => { setClienteDaAggiornare(c); setShowFormAggiornaCliente(!showFormAggiornaCliente); }}
                                 >
-                                    Aggiorna cliente
+                                    {showFormAggiornaCliente ? 'Annulla' : 'Aggiorna cliente'}
                                 </button>
                             </div>
+                            {showFormAggiornaCliente &&
+                                <div>
+                                    <div className="flex flex-row">
+                                        <InputEmail label="Email" name="email" onChange={(e) => onVCClienteDaAggiornare(e, 'email')} value={clienteDaAggiornare?.email} />
+                                        <InputText label="Nome" name="nome" onChange={(e) => onVCClienteDaAggiornare(e, 'nome')} value={clienteDaAggiornare?.nome} />
+                                        <InputText label="Cognome" name="cognome" onChange={(e) => onVCClienteDaAggiornare(e, 'cognome')} value={clienteDaAggiornare?.cognome} />
+                                        <InputText label="Note" name="note" onChange={(e) => onVCClienteDaAggiornare(e, 'note')} value={clienteDaAggiornare?.note} />
+                                        <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
+                                        <InputText label="Collegato" name="collegato" onChange={(e) => onVCClienteDaAggiornare(e, 'collegato')} value={clienteDaAggiornare?.collegato} />
+                                        <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
+                                        <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={formatDate(clienteDaAggiornare?.data_di_nascita)} />
+                                        <InputTell label="Telefono" name="tel" onChange={(e) => onVCClienteDaAggiornare(e, 'tel')} value={clienteDaAggiornare?.tel} />
+                                        <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCClienteDaAggiornare(e, 'provenienza')} value={clienteDaAggiornare?.provenienza} />
+                                    </div>
+                                    <button
+                                        className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                        onClick={() => { setShowFormAggiornaCliente(false); updateCliente(clienteDaAggiornare, clienteDaAggiornare.id); fetchClienteIsNew();}}
+                                    >
+                                        Aggiorna
+                                    </button>
+                                </div>
+                            }
                         </div>
                     ))}
                     {clientiTrovati.length === 0 &&
