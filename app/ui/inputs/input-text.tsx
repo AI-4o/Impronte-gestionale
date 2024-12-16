@@ -10,12 +10,7 @@ export default function InputText(
         value, 
         onChange 
     }: InputInterface) {
-        
-        const [inputValue, setInputValue] = useState(value ?? '');
-        const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            setInputValue(e.target.value);
-            if(onChange) onChange(e);
-        }
+
     return (
         <div>
             <label
@@ -30,8 +25,8 @@ export default function InputText(
                 type="text"
                 className="block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
                 placeholder={`text`}
-                value={inputValue}
-                onChange={e => _onChange(e)}
+                value={value ?? ''}
+                onChange={onChange}
             />
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {state?.errors?.[name] &&

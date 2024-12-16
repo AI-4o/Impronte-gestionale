@@ -9,11 +9,7 @@ export default function InputDate({
     value, 
     onChange
 }: InputInterface) {   
-    const [inputValue, setInputValue] = useState(value ?? '');
-    const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
-        if(onChange) onChange(e);
-    }
+
     return (
     <div className="flex flex-col min-w-64 date">
         <label
@@ -29,8 +25,8 @@ export default function InputDate({
                 type="date"
                 name={name}
                 placeholder="Enter the date"
-                value={inputValue}
-                onChange={e => _onChange(e)}
+                value={value ?? ''}
+                onChange={onChange}
             />
         </div>
         <div id={`${name}-error`} aria-live="polite" aria-atomic="true">

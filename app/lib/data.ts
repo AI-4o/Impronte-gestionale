@@ -18,6 +18,7 @@ import {
   TEntityList
 } from './definitions';
 import { formatCurrency } from './utils';
+import { ClienteInputGroup, PreventivoInputGroup } from '../dashboard/(overview)/general-interface-create/general-interface.defs';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -26,6 +27,7 @@ export const fetchFilteredClienti = async (
   query: string,
   currentPage: number,
 ) => {
+  console.log("fetchFilteredClienti", query, currentPage);
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
     const clienti = await sql<Cliente>`
@@ -979,13 +981,13 @@ export const fetchAssicurazioneById = async (id: string): Promise<Assicurazione 
 };
 
 // #### FETCH BY DEPENDENCY FUNCTIONS ####
-export const fetchPreventiviByCliente = async (idCliente: string): Promise<Preventivo[] | null> => {
+export const fetchPreventiviByCliente = async (idCliente: string): Promise<PreventivoInputGroup[] | null> => {
   try {
     const preventivo = await sql<Preventivo>`
       SELECT * FROM preventivi
       WHERE id_cliente = ${idCliente}
     `;
-    return preventivo.rows || null;
+    return preventivo.rows.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.email, p.riferimento, p.operatore, p.feedback, p.note, p.numero_di_telefono, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch preventivo by cliente.');

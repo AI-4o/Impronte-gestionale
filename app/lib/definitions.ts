@@ -37,23 +37,18 @@ export interface Banca extends Entity {
   nome: string;
 }
 export interface Cliente extends Entity {
-  nome: string;
-  cognome: string;
+  nome?: string;
+  cognome?: string;
   tel?: string;
   email?: string;
-  tipo?: 'PRIVATO' | 'AGENZIA VIAGGI' | 'AZIENDA';
-  provenienza?:
-    | 'Passaparola'
-    | 'Sito IWS'
-    | 'Sito INO'
-    | 'Telefono'
-    | 'Email Diretta'
-    | 'Sito ISE';
+  tipo?: string;
+  provenienza?:string;
   collegato?: string;
   citta?: string;
   note?: string;
   data_di_nascita?: Date;
 }
+
 export interface Fornitore extends Entity {
   nome: string;
   valuta?: string;
@@ -68,9 +63,10 @@ export interface Preventivo extends Entity{
   bambini?: number;
   riferimento?: string;
   data_partenza?: Date;
+  brand?: string;
   operatore?: string;
   feedback?: string;
-  stato?: 'da fare' | 'in trattativa' | 'confermato' | 'inviato';
+  stato?: string;
   data?: Date;
   numero_preventivo?: string;
   confermato?: boolean;
@@ -111,7 +107,7 @@ export interface PreventivoMostrareCliente extends Entity{
   id_preventivo: string;
   id_destinazione: string;
   descrizione?: string;
-  tipo?: 'destinazione' | 'volo' | 'assicurazione';
+  tipo?: string;
   costo_individuale?: number;
   importo_vendita?: number;
   totale?: number;

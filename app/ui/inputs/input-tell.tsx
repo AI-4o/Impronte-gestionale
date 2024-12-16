@@ -9,11 +9,7 @@ export default function InputTell({
     value, 
     onChange
 }: InputInterface) {
-    const [inputValue, setInputValue] = useState(value ?? '');
-    const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
-        if(onChange) onChange(e);
-    }
+
     return (
     <div>
         <label
@@ -30,8 +26,8 @@ export default function InputTell({
                 name={name}
                 placeholder="phone"
                 pattern="^\+[1-9]\d{1,14}$"
-                value={inputValue}
-                onChange={e => _onChange(e)}
+                value={value ?? ''}
+                onChange={onChange}
             />
             <p className="mt-2 text-sm text-red-600 hidden peer-invalid:block">
                 Please enter a valid international phone number.

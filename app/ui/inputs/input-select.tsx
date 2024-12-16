@@ -11,11 +11,6 @@ export default function InputSelect({
     onChange
 }: InputInterface & { options: string[] }) {
     
-    const [selectedOption, setSelectedOption] = useState(value ?? '');
-    const _onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedOption(e.target.value);
-        if(onChange) onChange(e);
-    }
     return (
         <div className="select">
             <label
@@ -29,8 +24,8 @@ export default function InputSelect({
                     id={label}
                     name={name}
                     className="select peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 text-sm  placeholder:text-gray-500"
-                    value={selectedOption}
-                    onChange={e => _onChange(e)}
+                    value={value ?? ''}
+                    onChange={onChange}
                 >
                     <option value="" disabled className="text-gray-500">
                         

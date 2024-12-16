@@ -25,8 +25,10 @@ import {
   Volo,
 } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
-import { Data } from "@/app/dashboard/(overview)/general-interface-create/page";
-import { fetchFilteredClienti, fetchPreventiviByCliente } from "../data";
+import { fetchFilteredClienti, fetchFilteredPreventivi, fetchPreventiviByCliente } from "../data";
+import { ClienteInputGroup, Data, PreventivoInputGroup } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
+import { formatDate } from "../utils";
+
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
   [K in keyof T]: string[];
@@ -751,7 +753,7 @@ export async function createPreventivoMostrareCliente(
 
 // CREATE ENTITY
 
-export const createCliente = async (c: Cliente) => {
+export const createCliente = async (c: ClienteInputGroup) => {
   const parsedData = schemas.ClienteSchema.safeParse({
     nome:
       c.nome ??
@@ -766,7 +768,7 @@ export const createCliente = async (c: Cliente) => {
     note: c.note,
     tipo: c.tipo,
     data_di_nascita:
-      c.data_di_nascita ??
+      formatDate(c.data_di_nascita) ??
       (() => {
         throw new Error("Data di nascita must not be null");
       })(),
@@ -804,6 +806,7 @@ export const createCliente = async (c: Cliente) => {
     ${parsedData.data.provenienza})
     ON CONFLICT (nome, cognome) DO NOTHING;
   `;
+    console.log("CLIENTE CREATED");
     return true;
   } catch (error) {
     console.log("db error: ", error);
@@ -814,8 +817,8 @@ export const createCliente = async (c: Cliente) => {
   }
 };
 export const createPreventivo = async (
-  p: Preventivo,
-  c: Cliente,
+  p: PreventivoInputGroup,
+  c: ClienteInputGroup,
   idCliente: string,
   idFornitore: string
 ) => {
@@ -834,10 +837,10 @@ export const createPreventivo = async (
     feedback: p.feedback,
     adulti: p.adulti,
     bambini: p.bambini,
-    data_partenza: p.data_partenza,
-    data: p.data,
+    data_partenza: formatDate(p.data_partenza),
+    data: formatDate(p.data),
     numero_preventivo: p.numero_preventivo,
-    confermato: p.confermato,
+    confermato: p.stato,
     stato: p.stato,
   });
   if (!parsedData.success) {
@@ -894,10 +897,11 @@ export const createPreventivo = async (
   }
 };
 
-
-
 // ### UPDATE ENTITY ###
-export const updateCliente = async (c: Cliente, id: string) => {
+export const updateCliente = async (
+  c: ClienteInputGroup,
+  id: string
+) => {
   const parsedData = schemas.ClienteSchema.safeParse({
     id: id,
     nome:
@@ -913,7 +917,7 @@ export const updateCliente = async (c: Cliente, id: string) => {
     note: c.note,
     tipo: c.tipo,
     data_di_nascita:
-      c.data_di_nascita ??
+      formatDate(c.data_di_nascita) ??
       (() => {
         throw new Error("Data di nascita must not be null");
       })(),
@@ -955,21 +959,20 @@ export const updateCliente = async (c: Cliente, id: string) => {
   } catch (error) {
     console.log("db error: ", error);
     return {
-      ...prevState,
       values: parsedData.data,
       dbError: "Database Error: Failed to Create Invoice.",
     };
   }
 };
-export const updatePreventivo = async (p: Preventivo, id: string) => {
+export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCliente: string) => {
   const parsedData = schemas.PreventivoSchema.safeParse({
     id:
       id ??
       (() => {
         throw new Error("ID must not be null");
       })(),
-    id_fornitore: p.id_fornitore,
-    id_cliente: p.id_cliente,
+
+    id_cliente: idCliente,
     email:
       p.email ??
       (() => {
@@ -982,10 +985,10 @@ export const updatePreventivo = async (p: Preventivo, id: string) => {
     feedback: p.feedback,
     adulti: p.adulti,
     bambini: p.bambini,
-    data_partenza: p.data_partenza,
-    data: p.data,
+    data_partenza: formatDate(p.data_partenza),
+    data: formatDate(p.data),
     numero_preventivo: p.numero_preventivo,
-    confermato: p.confermato,
+    confermato: p.stato,
     stato: p.stato,
   });
   if (!parsedData.success) {
@@ -1042,16 +1045,18 @@ export const updatePreventivo = async (p: Preventivo, id: string) => {
 export async function submitCreatePreventivoGI(data: Data) {
   console.log("THE RECEIVED DATA IS: ", data);
 
-  const clientiByName = await fetchFilteredClienti(data.cliente.nome, 1);
   const clientiByEmail = await fetchFilteredClienti(data.cliente.email, 1);
-  const clientiByCognome = await fetchFilteredClienti(data.cliente.cognome, 1);
   try {
     if (clientiByEmail.length > 0) {
       // il cliente esiste già
       const cliente = clientiByEmail[0];
       console.log("cliente: ", cliente);
-      createPreventivo(data.preventivo, cliente, cliente.id, (Math.random()*1000).toString());
-      
+      createPreventivo(
+        data.preventivo,
+        cliente,
+        cliente.id,
+        (Math.random() * 1000).toString()
+      );
     } else {
       // il cliente è nuovo
       const cliente = data.cliente;
@@ -1064,18 +1069,107 @@ export async function submitCreatePreventivoGI(data: Data) {
   }
 }
 
-export const isClienteNew = async (c: Cliente) => {
+export const searchClienti = async (
+  c: ClienteInputGroup
+): Promise<ClienteInputGroup[]> => {
+  const clientiByNome = await fetchFilteredClienti(c.nome, 1);
+  const clientiByCognome = await fetchFilteredClienti(c.cognome, 1);
   const clientiByEmail = await fetchFilteredClienti(c.email, 1);
+  const clientiByTel = await fetchFilteredClienti(c.tel, 1);
+  const clientiByCitta = await fetchFilteredClienti(c.citta, 1);
+  const clientiByCollegato = await fetchFilteredClienti(c.collegato, 1);
+  const clientiByProvenienza = await fetchFilteredClienti(c.provenienza, 1);
+  const clientiByTipo = await fetchFilteredClienti(c.tipo, 1);
+  const allClienti = [
+    ...clientiByNome,
+    ...clientiByCognome,
+    ...clientiByEmail,
+    ...clientiByTel,
+    ...clientiByCitta,
+    ...clientiByCollegato,
+    ...clientiByProvenienza,
+    ...clientiByTipo,
+  ];
 
-  if (clientiByEmail.length == 0) {
-    // cliente is new
-    return true;
-  } else {
-    // cliente is not new
-    // return cliente and all the preventivi associated with him
-    return false;
+  /*console.log(
+    "clientiByNome: ",
+    clientiByNome,
+    "clientiByCognome: ",
+    clientiByCognome,
+    "clientiByEmail: ",
+    clientiByEmail,
+    "clientiByTel: ",
+    clientiByTel,
+    "clientiByCitta: ",
+    clientiByCitta,
+    "clientiByCollegato: ",
+    clientiByCollegato,
+    "clientiByProvenienza: ",
+    clientiByProvenienza,
+    "clientiByTipo: ",
+    clientiByTipo
+  );
+*/
+  // Get sets of IDs from each list
+  const allIds = new Set(allClienti.map((cliente) => cliente.id));
+  const idsByNome = c.nome
+    ? new Set(clientiByNome.map((cliente) => cliente.id))
+    : allIds;
+  const idsByCognome = c.cognome
+    ? new Set(clientiByCognome.map((cliente) => cliente.id))
+    : allIds;
+  const idsByEmail = c.email
+    ? new Set(clientiByEmail.map((cliente) => cliente.id))
+    : allIds;
+  const idsByTel = c.tel
+    ? new Set(clientiByTel.map((cliente) => cliente.id))
+    : allIds;
+  const idsByCitta = c.citta
+    ? new Set(clientiByCitta.map((cliente) => cliente.id))
+    : allIds;
+  const idsByCollegato = c.collegato
+    ? new Set(clientiByCollegato.map((cliente) => cliente.id))
+    : allIds;
+  const idsByProvenienza = c.provenienza
+    ? new Set(clientiByProvenienza.map((cliente) => cliente.id))
+    : allIds;
+  const idsByTipo = c.tipo
+    ? new Set(clientiByTipo.map((cliente) => cliente.id))
+    : allIds;
+
+  // Compute the intersection of the IDs
+  const intersectedIds = [...idsByNome].filter(
+    (id) =>
+      idsByCognome.has(id) &&
+      idsByEmail.has(id) &&
+      idsByTel.has(id) &&
+      idsByCitta.has(id) &&
+      idsByCollegato.has(id) &&
+      idsByProvenienza.has(id) &&
+      idsByTipo.has(id)
+  );
+
+  //console.log("intersectedIds: ", intersectedIds);
+
+  // Retrieve the clients corresponding to the intersected IDs
+  const clientiMap = new Map<string, Cliente>();
+  for (const cliente of allClienti) {
+    if (intersectedIds.includes(cliente.id)) {
+      clientiMap.set(cliente.id, cliente);
+    }
   }
+
+  const intersectedClienti = Array.from(clientiMap.values()).map( c => new ClienteInputGroup(c.nome, c.cognome, c.note, c.citta, c.collegato, c.tipo, c.data_di_nascita, c.tel, c.email, c.provenienza, c.id));
+  //console.log("intersectedClienti: ", intersectedClienti);
+  return intersectedClienti;
 };
+
+export const searchPreventivi = async (clienteId: string): Promise<PreventivoInputGroup[]> => {
+  const preventiviByCliente = await fetchPreventiviByCliente(clienteId);
+  const preventivi = preventiviByCliente.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.email, p.riferimento, p.operatore, p.feedback, p.note, p.numero_di_telefono, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
+  return preventivi;
+} 
+
 
 export async function updateDestinazione(
   prevState: State<Destinazione>,

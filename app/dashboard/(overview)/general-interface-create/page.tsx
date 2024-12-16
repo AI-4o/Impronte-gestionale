@@ -10,6 +10,8 @@ import fornitoriData from '@/app/seed/fornitori.json';
 import destinazioniData from '@/app/seed/destinazioni.json';
 import { ClienteInputGroup, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup, Data } from "./general-interface.defs";
 import { formatDate } from "@/app/lib/utils";
+import { createCliente, updateCliente } from "@/app/lib/actions/actions";
+
 
 const demoData: Data = {
     cliente: new ClienteInputGroup(
@@ -25,7 +27,8 @@ const demoData: Data = {
         'Passaparola'
     ),
     preventivo: new PreventivoInputGroup(
-        666,
+        '666',
+        'IWS',
         'alfredo.ingraldo.u@gmail.com',
         'riferimento esempio',
         'operatore esempio',
@@ -93,7 +96,8 @@ export default function CreaPreventivoGeneralInterface() {
         'Sito INO',
         'Telefono',
         'Email Diretta',
-        'Sito ISE'
+        'Sito ISE',
+        'Sito IMS'
     ]
     const statoPreventivoOptions = [
         'da fare',
@@ -101,38 +105,69 @@ export default function CreaPreventivoGeneralInterface() {
         'confermato',
         'inviato'
     ]
+    const brandPreventivoOptions = [
+        'IWS',
+        'INO',
+        'ISE',
+        'IMS',
+        'BORN'
+    ]
 
-    // gestione cliente
-    const [cliente, setCliente] = useState<ClienteInputGroup>(demoData.cliente ?? new ClienteInputGroup());
-    const onVCCliente = (e: any, name: string) => {
-        console.log('change in a value of a cliente <event, id, name>: ', e, name);
+    // gestione lista clienti corrispondenti a ricerca
+    const [clientiTrovati, setClientiTrovati] = useState<ClienteInputGroup[]>([]);
+    const [showClientiTrovati, setShowClientiTrovati] = useState<boolean>(false);
+
+
+    // gestione lista preventivi di un cliente
+    const [preventiviClienteList, setPreventiviClienteList] = useState<PreventivoInputGroup[]>([]);
+    const [showPreventiviClienteList, setShowPreventiviClienteList] = useState<boolean>(false);
+
+
+    // gestione show form per creare preventivo
+    const [showFormPreventivo, setShowFormPreventivo] = useState<boolean>(false);
+    const [showFormPreventivoAggiorna, setShowFormPreventivoAggiorna] = useState<boolean>(false);
+
+    /**
+     * mostra form preventivo per il cliente, e aggiorna i valori in input del cliente con quelli del cliente passato
+     * @param cliente 
+     */
+    const onClickShowFormNuovoPreventivo = (cliente: ClienteInputGroup) => {
+        setShowFormPreventivo(true);
+        setShowClientiTrovati(false);
         setCliente((prevState) => {
-            if (name === 'data_di_nascita') {
-                prevState.data_di_nascita = new Date(e.target.value);
-            } else {
-                prevState[name] = e.target.value;
-            }
-            return prevState;
+            return { ...prevState, ...cliente };
         });
     }
 
+    // gestione cliente
+    const [cliente, setCliente] = useState<ClienteInputGroup>(demoData.cliente ?? new ClienteInputGroup());
+    const onVCCliente = async (e: any, name: string) => {
+        console.log('change in a value of a cliente <event, id, name>: ', e, name);
+        setShowFormPreventivo(false);
+        setShowPreventiviClienteList(false);
+        setShowClientiTrovati(true);
+        setCliente((prevState) => {
+            if (name === 'data_di_nascita') {
+                return { ...prevState, data_di_nascita: new Date(e.target.value) };
+            } else {
+                return { ...prevState, [name]: e.target.value };
+            }
+        });
+    }
     // gestione preventivo
     const [preventivo, setpreventivo] = useState<PreventivoInputGroup>(demoData.preventivo ?? new PreventivoInputGroup());
     const onVCpreventivo = (e: any, name: string) => {
         console.log('change in a value of a preventivo <event, id, name>: ', e, name);
         setpreventivo((prevState) => {
             if (name === 'data_partenza') {
-                prevState.data_partenza = new Date(e.target.value);
+                return { ...prevState, data_partenza: new Date(e.target.value) };
             } else if (name === 'data') {
-                prevState.data = new Date(e.target.value);
+                return { ...prevState, data: new Date(e.target.value) };
             } else {
-                prevState[name] = e.target.value;
+                return { ...prevState, [name]: e.target.value };
             }
-            return prevState;
         });
     }
-
-
     // percentuale ricarico
     const [percentualeRicarico, setPercentualeRicarico] = useState<number>(1);
 
@@ -253,7 +288,7 @@ export default function CreaPreventivoGeneralInterface() {
         }));
     }
 
-    const submit = () => {
+    const submit = async () => {
         const data: Data = {
             cliente: cliente,
             preventivo: preventivo,
@@ -263,13 +298,80 @@ export default function CreaPreventivoGeneralInterface() {
             assicurazioni: assicurazioni,
         }
         console.log('THE DATA IS: ', data);
-        // submitCreatePreventivoGI(data);
+        const response = await fetch('/api/preventivi/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            throw new Error('Errore nella risposta del server al submit create preventivo');
+        }
+        else {
+            console.log('Preventivo creato con successo');
+        }
+    }
+    /** 
+    *verifica se cliente inserito esiste già, 
+    *se esiste, mostra la lista dei preventivi del cliente
+    *se non esiste, mostra il btn per creare un nuovo cliente
+    */
+    const fetchClienteIsNew = async () => {
+        // Esegui la chiamata all'API solo se 
+        // showFormPreventivo è false
+        if (showFormPreventivo) {
+            return;
+        }
+        try {
+            const response = await fetch('/api/clienti', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cliente),
+            });
+            if (!response.ok) {
+                throw new Error('Errore nella risposta del server');
+            }
+            const data: ClienteInputGroup[] = await response.json();
+            console.log('data: ', data);
+            if (data?.length > 0) { // si sono trovati clienti corrispondenti                 
+                setClientiTrovati(data);
+                setShowClientiTrovati(true);
+            }
+            // Puoi aggiornare lo stato o eseguire altre azioni basate sulla risposta
+        } catch (error) {
+            console.error('Errore durante la verifica del cliente:', error);
+        }
     }
 
-    // logging changes in the states
+    const onClickMostraListaPreventivi = async (c: ClienteInputGroup) => {
+        try {
+            const response = await fetch('/api/preventivi/preventivi-by-cliente', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(c.id),
+            });
+            if (!response.ok) {
+                throw new Error('Errore nella risposta del server');
+            }
+            const data: PreventivoInputGroup[] = await response.json();
+            console.log('data: ', data);
+            setPreventiviClienteList(data);
+            setShowPreventiviClienteList(true);
+        } catch (error) {
+            console.error('Errore durante la ricerca dei preventivi del cliente:', error);
+        }
+    }
+    // gestione lista preventivi di un client
     useEffect(() => {
+        fetchClienteIsNew();
         console.log('the cliente state is: ', cliente);
     }, [cliente]);
+
     useEffect(() => {
         console.log('the preventivo state is: ', preventivo);
     }, [preventivo]);
@@ -303,253 +405,324 @@ export default function CreaPreventivoGeneralInterface() {
                 <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
                 <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
             </div>
-            {/* Preventivo Cliente */}
-            <h3 className="text-xl md:text-2xl pt-4 pb-1">Preventivo</h3>
-            <InputNumber label="N. Preventivo" name="numero_preventivo" onChange={(e) => onVCpreventivo(e, 'numero_preventivo')} value={preventivo?.numero_preventivo?.toString()} />
-            <div className="flex flex-row">
-                <InputEmail label="Email" name="email" onChange={(e) => onVCpreventivo(e, 'email')} value={preventivo?.email} />
-                <InputText label="Riferimento" name="riferimento" onChange={(e) => onVCpreventivo(e, 'riferimento')} value={preventivo?.riferimento} />
-                <InputText label="Operatore" name="operatore" onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
-                <InputText label="Feedback" name="feedback" onChange={(e) => onVCpreventivo(e, 'feedback')} value={preventivo?.feedback} />
-                <InputText label="Note" name="note" onChange={(e) => onVCpreventivo(e, 'note')} value={preventivo?.note} />
-                <InputTell label="Telefono" name="numero_di_telefono" onChange={(e) => onVCpreventivo(e, 'numero_di_telefono')} value={preventivo?.numero_di_telefono} />
-                <InputNumber label="Adulti" name="adulti" onChange={(e) => onVCpreventivo(e, 'adulti')} value={preventivo?.adulti?.toString()} />
-                <InputNumber label="Bambini" name="bambini" onChange={(e) => onVCpreventivo(e, 'bambini')} value={preventivo?.bambini?.toString()} />
-                <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={formatDate(preventivo?.data_partenza)} />
-                <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
-                <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
-            </div>
 
-            {/* Percentuale Ricarico */}
-            <div className="flex flex-row">
-                <InputNumber label="Percentuale ricarico" name="percentuale_ricarico" value={percentualeRicarico.toString()} onChange={(e) => setPercentualeRicarico(Number(e.target.value))} />
-            </div>
-            {/* Servizi a terra */}
-            <div id="servizi-a-terra">
-                <div className="flex flex-row items-center justify-start">
-                    <div>
-                        <h3 className="text-xl md:text-2xl pt-4 pb-1" > Servizi a terra</h3 >
-                    </div>
-                    <div className="flex flex-row items-center justify-center pt-4 pl-5">
-                        <button
-                            className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                            onClick={aggiungiServizioATerra}
-                        >
-                            +
-                        </button>
-                    </div >
-                </div>
-                <div className="input-group-list">
-                    {
-                        serviziATerra.map((servizio, index) => (
-                            <div key={servizio.groupId}>
-                                <div className="flex flex-row">
-                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
-                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                    <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                    <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
-                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
-                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
-                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
-                                    <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                        <div className="pr-3">
-                                            <p>tot euro: {servizio?.tot?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div className="pr-3">
-                                            <p>ricarico: {servizio?.ricarico?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div>
-                                            <button
-                                                className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                                                onClick={() => rimuoviServizioATerra(servizio.groupId)}
-                                            >
-                                                -
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+            {/* lista clienti trovati */}
+            {showClientiTrovati &&
+                <div className="flex flex-col pt-4">
+                    <p>Lista clienti corrrispondenti:</p>
+                    {clientiTrovati.length > 0 && clientiTrovati.map((c, i) => (
+                        <div key={c.id} className="flex flex-row gap-2 pt-4 justify-between">
+                            <div > {i + 1}. {c.nome}, {c.cognome}, {c.email}</div>
+                            <div className="flex flex-row gap-2">
+                                <button
+                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                    onClick={() => { onClickMostraListaPreventivi(c) }}
+                                >
+                                    Mostra lista preventivi
+                                </button>
+                                <button
+                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                    onClick={() => { setShowClientiTrovati(false); onClickShowFormNuovoPreventivo(c) }}
+                                >
+                                    Nuovo preventivo
+                                </button>
+                                <button
+                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                    onClick={() => { updateCliente(cliente, c.id); }}
+                                >
+                                    Aggiorna cliente
+                                </button>
                             </div>
-                        ))
+                        </div>
+                    ))}
+                    {clientiTrovati.length === 0 &&
+                        <div>
+                            <div className="flex flex-col pt-4">
+                                <p>Nessun cliente corrispondente...</p>
+                            </div>
+                            <div className="flex flex-row gap-2 pt-4">
+                                <button
+                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                    onClick={async () => { await createCliente(cliente); fetchClienteIsNew(); }}
+                                >
+                                    Crea nuovo cliente
+                                </button>
+                            </div>
+                        </div>
                     }
                 </div>
-                <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                    <p>somma tot euro: {serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
-                </div>
-            </div>
-            {/* Servizi Aggiuntivi */}
-            <div id="servizi-aggiuntivi">
-                <div className="flex flex-row items-center justify-start">
-                    <div>
-                        <h3 className="text-xl md:text-2xl pt-4 pb-1" > Servizi aggiuntivi</h3 >
-                    </div>
-                    <div className="flex flex-row items-center justify-center pt-4 pl-5">
-                        <button
-                            className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                            onClick={aggiungiServizioAggiuntivo}
-                        >
-                            +
-                        </button>
-                    </div >
-                </div>
-                <div className="input-group-list">
-                    {
-                        serviziAggiuntivi.map((servizio, index) => (
-                            <div key={servizio.groupId}>
-                                <div className="flex flex-row">
-                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
-                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                    <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                    <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
-                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
-                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
-                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
-                                    <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                        <div className="pr-3">
-                                            <p>tot euro: {servizio?.tot?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div className="pr-3">
-                                            <p>ricarico: {servizio?.ricarico?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div>
-                                            <button
-                                                className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                                                onClick={() => rimuoviServizioAggiuntivo(servizio.groupId)}
-                                            >
-                                                -
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
+            }
+            {/* lista preventivi del cliente */}
+            {showPreventiviClienteList &&
+                <div className="flex flex-col pt-4">
+                    <p>Lista preventivi del cliente:</p>
+                    {preventiviClienteList.length > 0 && preventiviClienteList.map((p, i) => (
+                        <div key={p.id} className="flex flex-row gap-2 pt-4 justify-between">
+                            <div > {i + 1}. {formatDate(p.data_partenza)}, {p.riferimento},{p.operatore}</div>
+                        </div>
+                    ))}
+                    {preventiviClienteList.length === 0 &&
+                        <div className="flex flex-col pt-4">
+                            <p>Il cliente non ha preventivi...</p>
+                        </div>
                     }
                 </div>
-                <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                    <p>somma tot euro: {serviziAggiuntivi.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
-                </div>
-            </div>
-            {/* Voli */}
-            <div id="voli">
-                <div className="flex flex-row items-center justify-start">
-                    <div>
-                        <h3 className="text-xl md:text-2xl pt-4 pb-1" > Voli</h3 >
+            }
+            {/* CREA/AGGIORNA PREVENTIVO */}
+            {showFormPreventivo &&
+                <div>
+                    {/* Preventivo Cliente */}
+                    <h3 className="text-xl md:text-2xl pt-4 pb-1">Preventivo</h3>
+                    <p>I dati seguenti verranno usati per creare il preventivo</p>
+                    <div className="flex flex-row">
+                        <InputNumber label="N. Preventivo" name="numero_preventivo" onChange={(e) => onVCpreventivo(e, 'numero_preventivo')} value={preventivo?.numero_preventivo?.toString()} />
+                        <InputSelect label="Brand" name="brand" options={brandPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'brand')} value={preventivo?.brand} />
                     </div>
-                    <div className="flex flex-row items-center justify-center pt-4 pl-5">
-                        <button
-                            className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                            onClick={aggiungiVolo}
-                        >
-                            +
-                        </button>
-                    </div >
-                </div>
-                <div className="input-group-list">
-                    {
-                        voli.map((volo, index) => (
-                            <div key={volo.groupId}>
-                                <div className="flex flex-row">
-                                    <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label="Compagnia" name="compagnia" />
-                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label="Descrizione" name="descrizione" />
-                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={formatDate(volo?.data_partenza)} label="Partenza" name="data_partenza" />
-                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
-                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
-                                    <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString()} label="Cambio" name="cambio" />
-                                    <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                        <div className="pr-3">
-                                            <p>tot euro: {volo?.tot?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div className="pr-3">
-                                            <p>ricarico: {volo?.ricarico?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div>
-                                            <button
-                                                className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                                                onClick={() => rimuoviVolo(volo.groupId)}
-                                            >
-                                                -
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    }
-                </div>
-                <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                    <p>somma tot euro: {voli.reduce((acc, volo) => acc + (volo.tot ?? 0), 0)}</p>
-                </div>
-            </div>
+                    <div className="flex flex-row">
+                        <InputEmail label="Email" name="email" onChange={(e) => onVCpreventivo(e, 'email')} value={preventivo?.email} />
+                        <InputText label="Riferimento" name="riferimento" onChange={(e) => onVCpreventivo(e, 'riferimento')} value={preventivo?.riferimento} />
+                        <InputText label="Operatore" name="operatore" onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
+                        <InputText label="Feedback" name="feedback" onChange={(e) => onVCpreventivo(e, 'feedback')} value={preventivo?.feedback} />
+                        <InputText label="Note" name="note" onChange={(e) => onVCpreventivo(e, 'note')} value={preventivo?.note} />
+                        <InputTell label="Telefono" name="numero_di_telefono" onChange={(e) => onVCpreventivo(e, 'numero_di_telefono')} value={preventivo?.numero_di_telefono} />
+                        <InputNumber label="Adulti" name="adulti" onChange={(e) => onVCpreventivo(e, 'adulti')} value={preventivo?.adulti?.toString()} />
+                        <InputNumber label="Bambini" name="bambini" onChange={(e) => onVCpreventivo(e, 'bambini')} value={preventivo?.bambini?.toString()} />
+                        <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={formatDate(preventivo?.data_partenza)} />
+                        <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
+                        <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
+                    </div>
 
-            {/* Assicurazioni */}
-            <div id="assicurazioni">
-                <div className="flex flex-row items-center justify-start">
-                    <div>
-                        <h3 className="text-xl md:text-2xl pt-4 pb-1" > Assicurazioni</h3 >
+                    {/* Percentuale Ricarico */}
+                    <div className="flex flex-row">
+                        <InputNumber label="Percentuale ricarico" name="percentuale_ricarico" value={percentualeRicarico.toString()} onChange={(e) => setPercentualeRicarico(Number(e.target.value))} />
+                    </div>
+                    {/* Servizi a terra */}
+                    <div id="servizi-a-terra">
+                        <div className="flex flex-row items-center justify-start">
+                            <div>
+                                <h3 className="text-xl md:text-2xl pt-4 pb-1" > Servizi a terra</h3 >
+                            </div>
+                            <div className="flex flex-row items-center justify-center pt-4 pl-5">
+                                <button
+                                    className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                    onClick={aggiungiServizioATerra}
+                                >
+                                    +
+                                </button>
+                            </div >
+                        </div>
+                        <div className="input-group-list">
+                            {
+                                serviziATerra.map((servizio) => (
+                                    <div key={servizio.groupId}>
+                                        <div className="flex flex-row">
+                                            <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
+                                            <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                            <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
+                                            <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
+                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
+                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
+                                            <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
+                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
+                                            <div className="flex flex-row items-center justify-center pt-10 pl-5">
+                                                <div className="pr-3">
+                                                    <p>ricarico: {servizio?.ricarico?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div className="pr-3">
+                                                    <p>tot euro: {servizio?.tot?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div>
+                                                    <button
+                                                        className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                                        onClick={() => rimuoviServizioATerra(servizio.groupId)}
+                                                    >
+                                                        -
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
+                            <p>somma tot euro: {serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
+                        </div>
+                    </div>
+                    {/* Servizi Aggiuntivi */}
+                    <div id="servizi-aggiuntivi">
+                        <div className="flex flex-row items-center justify-start">
+                            <div>
+                                <h3 className="text-xl md:text-2xl pt-4 pb-1" > Servizi aggiuntivi</h3 >
+                            </div>
+                            <div className="flex flex-row items-center justify-center pt-4 pl-5">
+                                <button
+                                    className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                    onClick={aggiungiServizioAggiuntivo}
+                                >
+                                    +
+                                </button>
+                            </div >
+                        </div>
+                        <div className="input-group-list">
+                            {
+                                serviziAggiuntivi.map((servizio) => (
+                                    <div key={servizio.groupId}>
+                                        <div className="flex flex-row">
+                                            <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
+                                            <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                            <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
+                                            <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
+                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
+                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
+                                            <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
+                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
+                                            <div className="flex flex-row items-center justify-center pt-10 pl-5">
+                                                <div className="pr-3">
+                                                    <p>ricarico: {servizio?.ricarico?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div className="pr-3">
+                                                    <p>tot euro: {servizio?.tot?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div>
+                                                    <button
+                                                        className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                                        onClick={() => rimuoviServizioAggiuntivo(servizio.groupId)}
+                                                    >
+                                                        -
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
+                            <p>somma tot euro: {serviziAggiuntivi.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
+                        </div>
+                    </div>
+                    {/* Voli */}
+                    <div id="voli">
+                        <div className="flex flex-row items-center justify-start">
+                            <div>
+                                <h3 className="text-xl md:text-2xl pt-4 pb-1" > Voli</h3 >
+                            </div>
+                            <div className="flex flex-row items-center justify-center pt-4 pl-5">
+                                <button
+                                    className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                    onClick={aggiungiVolo}
+                                >
+                                    +
+                                </button>
+                            </div >
+                        </div>
+                        <div className="input-group-list">
+                            {
+                                voli.map((volo) => (
+                                    <div key={volo.groupId}>
+                                        <div className="flex flex-row">
+                                            <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                            <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label="Compagnia" name="compagnia" />
+                                            <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label="Descrizione" name="descrizione" />
+                                            <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={formatDate(volo?.data_partenza)} label="Partenza" name="data_partenza" />
+                                            <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
+                                            <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
+                                            <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
+                                            <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString()} label="Cambio" name="cambio" />
+                                            <div className="flex flex-row items-center justify-center pt-10 pl-5">
+                                                <div className="pr-3">
+                                                    <p>ricarico: {volo?.ricarico?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div className="pr-3">
+                                                    <p>tot euro: {volo?.tot?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div>
+                                                    <button
+                                                        className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                                        onClick={() => rimuoviVolo(volo.groupId)}
+                                                    >
+                                                        -
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
+                            <p>somma tot euro: {voli.reduce((acc, volo) => acc + (volo.tot ?? 0), 0)}</p>
+                        </div>
+                    </div>
+                    {/* Assicurazioni */}
+                    <div id="assicurazioni">
+                        <div className="flex flex-row items-center justify-start">
+                            <div>
+                                <h3 className="text-xl md:text-2xl pt-4 pb-1" > Assicurazioni</h3 >
+                            </div>
+                            <div className="flex flex-row items-center justify-center pt-4 pl-5">
+                                <button
+                                    className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                    onClick={aggiungiAssicurazione}
+                                >
+                                    +
+                                </button>
+                            </div >
+                        </div>
+                        <div className="input-group-list">
+                            {
+                                assicurazioni.map((assicurazione) => (
+                                    <div key={assicurazione.groupId}>
+                                        <div className="flex flex-row">
+                                            <InputSelect onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'fornitore')} value={assicurazione?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                            <InputText onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'assicurazione')} value={assicurazione?.assicurazione} label="Assicurazione" name="assicurazione" />
+                                            <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label="Netto" name="netto" />
+                                            <div className="flex flex-row items-center justify-center pt-10 pl-5">
+                                                <div className="pr-3">
+                                                    <p>ricarico: {assicurazione?.ricarico?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div className="pr-3">
+                                                    <p>tot euro: {assicurazione?.tot?.toString() ?? '0'}</p>
+                                                </div>
+                                                <div>
+                                                    <button
+                                                        className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
+                                                        onClick={() => rimuoviAssicurazione(assicurazione.groupId)}
+                                                    >
+                                                        -
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
+                            <p>somma tot euro: {assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)}</p>
+                        </div>
+                    </div>
+                    {/* Totale */}
+                    <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
+                        <p>somma di tutti i tot euro: {
+                            serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0) +
+                            serviziAggiuntivi.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0) +
+                            voli.reduce((acc, volo) => acc + (volo.tot ?? 0), 0) +
+                            assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)
+                        }</p>
                     </div>
                     <div className="flex flex-row items-center justify-center pt-4 pl-5">
                         <button
-                            className="bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                            onClick={aggiungiAssicurazione}
+                            className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                            type="button"
+                            onClick={submit}
                         >
-                            +
+                            Crea preventivo
                         </button>
                     </div >
-                </div>
-                <div className="input-group-list">
-                    {
-                        assicurazioni.map((assicurazione, index) => (
-                            <div key={assicurazione.groupId}>
-                                <div className="flex flex-row">
-                                    <InputSelect onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'fornitore')} value={assicurazione?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                    <InputText onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'assicurazione')} value={assicurazione?.assicurazione} label="Assicurazione" name="assicurazione" />
-                                    <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label="Netto" name="netto" />
-                                    <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                        <div className="pr-3">
-                                            <p>tot euro: {assicurazione?.tot?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div className="pr-3">
-                                            <p>ricarico: {assicurazione?.ricarico?.toString() ?? '0'}</p>
-                                        </div>
-                                        <div>
-                                            <button
-                                                className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
-                                                onClick={() => rimuoviAssicurazione(assicurazione.groupId)}
-                                            >
-                                                -
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    }
-                </div>
-                <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                    <p>somma tot euro: {assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)}</p>
-                </div>
-            </div>
-            {/* Totale */}
-            <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                <p>somma di tutti i tot euro: {
-                    serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0) +
-                    serviziAggiuntivi.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0) +
-                    voli.reduce((acc, volo) => acc + (volo.tot ?? 0), 0) +
-                    assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)
-                }</p>
-            </div>
-            <div className="flex flex-row items-center justify-center pt-4 pl-5">
-                <button
-                    className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
-                    type="button"
-                    onClick={submit}
-                >
-                    Crea preventivo
-                </button>
-            </div >
+                </div >
+            }
         </>
     );
 }
@@ -558,19 +731,11 @@ export default function CreaPreventivoGeneralInterface() {
 
 // helper functions to compute totale and ricarico
 const getTot = (totale: number, cambio: number, ricarico: number) => {
-    console.log('getTot');
-    console.log('totale: ', totale);
-    console.log('cambio: ', cambio);
-    console.log('ricarico: ', ricarico);
     const result = (totale / cambio) + ricarico;
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
 }
 const getRicarico = (totale: number, cambio: number, percentualeRicarico: number) => {
-    console.log('getRicarico');
-    console.log('totale: ', totale);
-    console.log('cambio: ', cambio);
-    console.log('percentualeRicarico: ', percentualeRicarico);
     const result = (totale / cambio) * percentualeRicarico;
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;

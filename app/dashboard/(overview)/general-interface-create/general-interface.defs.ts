@@ -11,12 +11,15 @@ export class ClienteInputGroup {
         public tel?: string,
         public email?: string,
         public provenienza?: string,
+        public id?: string,
     ) { }
 }
+
 // preventivo cliente interface
 export class PreventivoInputGroup {
     constructor(
-        public numero_preventivo?: number,
+        public numero_preventivo?: string,
+        public brand?: string,
         public email?: string,
         public riferimento?: string,
         public operatore?: string,
@@ -28,6 +31,7 @@ export class PreventivoInputGroup {
         public data_partenza?: Date,
         public data?: Date,
         public stato?: string,
+        public id?: string,
     ) { }
 }
 // servizi a terra interface for storing input group values
@@ -45,6 +49,7 @@ export class ServizioATerraInputGroup {
         public ricarico?: number,
         public servizio_aggiuntivi?: boolean,
         public tot?: number,
+        public id?: string,
     ) { }
 }
 // voli interface for storing input group values
@@ -61,6 +66,7 @@ export class VoloInputGroup {
         public cambio?: number,
         public ricarico?: number,
         public tot?: number,
+        public id?: string,
     ) { }
 }
 // assicurazioni interface for storing input group values
@@ -71,10 +77,10 @@ export class AssicurazioneInputGroup {
         public assicurazione?: string,
         public netto?: number,
         public ricarico?: number,
-        public tot?: number
+        public tot?: number,
+        public id?: string,
     ) { }
 }
-
 export interface Data {
     cliente: ClienteInputGroup;
     preventivo: PreventivoInputGroup;

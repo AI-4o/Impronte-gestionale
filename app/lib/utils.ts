@@ -55,8 +55,10 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
  * @param date 
  */
 export const formatDate = (date: Date): string => {
-console.log(date);
-
+console.log('format date, date: ', date, typeof date);
+if(typeof date === 'string') {
+  date = new Date(date);
+}
 if(date && date?.getFullYear()) {
 const year = date.getFullYear();
 const month = String(date.getMonth() + 1).padStart(2, '0'); // Mesi da 0 a 11
