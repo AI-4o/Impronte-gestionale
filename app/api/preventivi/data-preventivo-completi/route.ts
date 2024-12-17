@@ -113,9 +113,17 @@ export async function POST(request: NextRequest) {
     }
 
     for (let i = 0; i < voli.rowCount; i++) {
+      // se c'è il fornitore, ottienilo
+      let fornitore: any = "";
+      if (voli.rows[i].id_fornitore) {
+        const _fornitore = await getFornitoreById(voli.rows[i].id_fornitore);
+        if (_fornitore.rowCount > 0 && _fornitore.rows[0].nome) {
+          fornitore = _fornitore.rows[0].nome;
+        }
+      }
       const iG = new VoloInputGroup(
         i,
-        voli.rows[i].fornitore,
+        fornitore,
         voli.rows[i].compagnia,
         voli.rows[i].descrizione,
         voli.rows[i].data_partenza,
@@ -123,13 +131,12 @@ export async function POST(request: NextRequest) {
         voli.rows[i].totale,
         voli.rows[i].valuta,
         voli.rows[i].cambio,
+        voli.rows[i].id
       );
+      res.voli.push(iG);
     }
-
-    console.log("RESSSSS: ", res);
-
-    //console.log("Dato ricevuto nell'API route:", preventivoId);
-    //console.log("Dato restituito dall'API route: ", res);
+    console.log("Dato ricevuto nell'API route:", preventivoId);
+    console.log("Dato restituito dall'API route: ", res);
     return NextResponse.json(res);
   } catch (error) {
     console.error("Errore nell'API route:", error);

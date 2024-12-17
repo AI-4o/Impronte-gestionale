@@ -96,8 +96,7 @@ const initialData: Data = {
         1,
         'AAA JALALA',
         'assicurazione esempio',
-        666,
-        2
+        666
     )],
 }
 
@@ -621,7 +620,7 @@ export default function CreaPreventivoGeneralInterface() {
                             }
                         </div>
                         <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
+                            <p>somma tot euro: {serviziATerra.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0)}</p>
                         </div>
                     </div>
                     {/* Servizi Aggiuntivi */}
@@ -674,7 +673,7 @@ export default function CreaPreventivoGeneralInterface() {
                             }
                         </div>
                         <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {serviziAggiuntivi.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0)}</p>
+                            <p>somma tot euro: {serviziAggiuntivi.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0)}</p>
                         </div>
                     </div>
                     {/* Voli */}
@@ -727,7 +726,7 @@ export default function CreaPreventivoGeneralInterface() {
                             }
                         </div>
                         <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {voli.reduce((acc, volo) => acc + (volo.tot ?? 0), 0)}</p>
+                            <p>somma tot euro: {voli.reduce((acc, volo) => acc + getTot(volo.totale, volo.cambio ?? 1, getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico)), 0)}</p>
                         </div>
                     </div>
                     {/* Assicurazioni */}
@@ -775,7 +774,7 @@ export default function CreaPreventivoGeneralInterface() {
                             }
                         </div>
                         <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)}</p>
+                            <p>somma tot euro: {assicurazioni.reduce((acc, assicurazione) => acc + getTot(assicurazione.netto, 1, getRicarico(assicurazione.netto, 1, percentualeRicarico)), 0)}</p>
                         </div>
                     </div>
                     {/* Totale */}

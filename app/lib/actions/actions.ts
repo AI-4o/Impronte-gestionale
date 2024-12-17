@@ -6,25 +6,9 @@ import { revalidatePath } from "next/cache";
 import { signIn } from "../../../auth";
 import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
-import {
-  Assicurazione,
-  Banca,
-  Cliente,
-  Destinazione,
-  Fornitore,
-  IncassoPartecipante,
-  PagamentoAssicurazione,
-  PagamentoServizioATerra,
-  PagamentoVolo,
-  Partecipante,
-  Pratica,
-  Preventivo,
-  PreventivoMostrareCliente,
-  ServizioATerra,
-  Volo,
-} from "../definitions";
+import { Cliente } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
-import { fetchDestinazioneByName, fetchFilteredClienti, fetchFilteredPreventivi, fetchFornitoreByName, fetchPreventiviByCliente } from "../data";
+import { fetchDestinazioneByName, fetchFilteredClienti, fetchFornitoreByName, fetchPreventiviByCliente } from "../data";
 import { AssicurazioneInputGroup, ClienteInputGroup, Data, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
 import { formatDate } from "../utils";
 
