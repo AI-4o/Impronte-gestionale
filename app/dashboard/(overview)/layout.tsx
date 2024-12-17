@@ -6,7 +6,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // Map of links to display in the side navigation.
   const links = [
     { name: 'Changelog', href: '/dashboard' },
-    { name: 'Tabelle', href: '/dashboard/tabelle' },
     { name: 'Crea Preventivo', href: '/dashboard/general-interface-create' },
   ];
   return (
