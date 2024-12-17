@@ -439,15 +439,15 @@ export default function CreaPreventivoGeneralInterface() {
             <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
             <div className="flex flex-row">
                 <InputEmail label="Email" name="email" onChange={(e) => onVCCliente(e, 'email')} value={cliente?.email} />
+                <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
                 <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
                 <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
-                <InputText label="Note" name="note" onChange={(e) => onVCCliente(e, 'note')} value={cliente?.note} />
-                <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
-                <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
-                <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
                 <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={formatDate(cliente?.data_di_nascita)} />
-                <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
+                <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
+                <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
                 <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
+                <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
+                <InputText label="Note" name="note" onChange={(e) => onVCCliente(e, 'note')} value={cliente?.note} />
             </div>
 
             {/* lista clienti trovati */}
@@ -483,15 +483,15 @@ export default function CreaPreventivoGeneralInterface() {
                                 <div>
                                     <div className="flex flex-row">
                                         <InputEmail label="Email" name="email" onChange={(e) => onVCClienteDaAggiornare(e, 'email')} value={clienteDaAggiornare?.email} />
+                                        <InputTell label="Telefono" name="tel" onChange={(e) => onVCClienteDaAggiornare(e, 'tel')} value={clienteDaAggiornare?.tel} />
                                         <InputText label="Nome" name="nome" onChange={(e) => onVCClienteDaAggiornare(e, 'nome')} value={clienteDaAggiornare?.nome} />
                                         <InputText label="Cognome" name="cognome" onChange={(e) => onVCClienteDaAggiornare(e, 'cognome')} value={clienteDaAggiornare?.cognome} />
-                                        <InputText label="Note" name="note" onChange={(e) => onVCClienteDaAggiornare(e, 'note')} value={clienteDaAggiornare?.note} />
-                                        <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
-                                        <InputText label="Collegato" name="collegato" onChange={(e) => onVCClienteDaAggiornare(e, 'collegato')} value={clienteDaAggiornare?.collegato} />
-                                        <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
                                         <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={formatDate(clienteDaAggiornare?.data_di_nascita)} />
-                                        <InputTell label="Telefono" name="tel" onChange={(e) => onVCClienteDaAggiornare(e, 'tel')} value={clienteDaAggiornare?.tel} />
+                                        <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
+                                        <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
                                         <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCClienteDaAggiornare(e, 'provenienza')} value={clienteDaAggiornare?.provenienza} />
+                                        <InputText label="Collegato" name="collegato" onChange={(e) => onVCClienteDaAggiornare(e, 'collegato')} value={clienteDaAggiornare?.collegato} />
+                                        <InputText label="Note" name="note" onChange={(e) => onVCClienteDaAggiornare(e, 'note')} value={clienteDaAggiornare?.note} />
                                     </div>
                                     <button
                                         className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
@@ -551,19 +551,22 @@ export default function CreaPreventivoGeneralInterface() {
                     <div className="flex flex-row">
                         <InputNumber label="N. Preventivo" name="numero_preventivo" onChange={(e) => onVCpreventivo(e, 'numero_preventivo')} value={preventivo?.numero_preventivo?.toString()} />
                         <InputSelect label="Brand" name="brand" options={brandPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'brand')} value={preventivo?.brand} />
+                        <div className="flex flex-row items-end justify-center pb-2 px-2">
+                            {formatDateToString(preventivo?.data_partenza)} {preventivo?.brand} {preventivo?.numero_preventivo?.toString()}
+                        </div>
+                        <InputText label="Operatore" name="operatore" onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
+                        <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
+                        <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
                     </div>
                     <div className="flex flex-row">
                         <InputEmail label="Email" name="email" onChange={(e) => onVCpreventivo(e, 'email')} value={preventivo?.email} />
                         <InputText label="Riferimento" name="riferimento" onChange={(e) => onVCpreventivo(e, 'riferimento')} value={preventivo?.riferimento} />
-                        <InputText label="Operatore" name="operatore" onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
                         <InputText label="Feedback" name="feedback" onChange={(e) => onVCpreventivo(e, 'feedback')} value={preventivo?.feedback} />
                         <InputText label="Note" name="note" onChange={(e) => onVCpreventivo(e, 'note')} value={preventivo?.note} />
                         <InputTell label="Telefono" name="numero_di_telefono" onChange={(e) => onVCpreventivo(e, 'numero_di_telefono')} value={preventivo?.numero_di_telefono} />
                         <InputNumber label="Adulti" name="adulti" onChange={(e) => onVCpreventivo(e, 'adulti')} value={preventivo?.adulti?.toString()} />
                         <InputNumber label="Bambini" name="bambini" onChange={(e) => onVCpreventivo(e, 'bambini')} value={preventivo?.bambini?.toString()} />
                         <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={formatDate(preventivo?.data_partenza)} />
-                        <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
-                        <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
                     </div>
 
                     {/* Percentuale Ricarico */}
@@ -821,3 +824,11 @@ const getRicarico = (totale: number, cambio: number, percentualeRicarico: number
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
 }
+
+const formatDateToString = (date: Date): string => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    return `${month}${day}${year}`;
+}
+
