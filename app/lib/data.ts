@@ -450,7 +450,7 @@ export async function fetchServiziATerraPages(query: string) {
       valuta ILIKE ${`%${query}%`} OR
       cambio::text ILIKE ${`%${query}%`} OR
       ricarico::text ILIKE ${`%${query}%`} OR
-      servizio_aggiuntivi::text ILIKE ${`%${query}%`}
+      servizio_aggiuntivo::text ILIKE ${`%${query}%`}
   `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
@@ -991,5 +991,31 @@ export const fetchPreventiviByCliente = async (idCliente: string): Promise<Preve
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch preventivo by cliente.');
+  }
+};
+
+export const fetchDestinazioneByName = async (name: string): Promise<Destinazione | null> => {
+  try {
+    const destinazione = await sql<Destinazione>`
+      SELECT * FROM destinazioni
+      WHERE nome = ${name}
+    `;
+    return destinazione.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch destinazione by name.');
+  }
+};
+
+export const fetchFornitoreByName = async (name: string): Promise<Fornitore | null> => {
+  try {
+    const fornitore = await sql<Fornitore>`
+      SELECT * FROM fornitori
+      WHERE nome = ${name}
+    `;
+    return fornitore.rows[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch fornitore by name.');
   }
 };

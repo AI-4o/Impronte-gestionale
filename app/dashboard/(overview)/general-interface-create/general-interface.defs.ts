@@ -47,7 +47,7 @@ export class ServizioATerraInputGroup {
         public totale?: number,
         public cambio?: number,
         public ricarico?: number,
-        public servizio_aggiuntivi?: boolean,
+        public servizio_aggiuntivo?: boolean,
         public tot?: number,
         public id?: string,
     ) { }
@@ -82,10 +82,10 @@ export class AssicurazioneInputGroup {
     ) { }
 }
 export interface Data {
-    cliente: ClienteInputGroup;
-    preventivo: PreventivoInputGroup;
-    serviziATerra: ServizioATerraInputGroup[];
-    serviziAggiuntivi: ServizioATerraInputGroup[];
-    voli: VoloInputGroup[];
-    assicurazioni: AssicurazioneInputGroup[];
+    cliente?: ClienteInputGroup;
+    preventivo?: PreventivoInputGroup;
+    serviziATerra?: ServizioATerraInputGroup[];
+    serviziAggiuntivi?: ServizioATerraInputGroup[];
+    voli?: VoloInputGroup[];
+    assicurazioni?: AssicurazioneInputGroup[];
 }

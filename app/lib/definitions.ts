@@ -82,7 +82,7 @@ export interface ServizioATerra extends Entity{
   valuta?: string;
   cambio?: number;
   ricarico?: number;
-  servizio_aggiuntivi?: boolean;
+  servizio_aggiuntivo?: boolean;
 }
 export interface Volo extends Entity{
   id_preventivo: string;

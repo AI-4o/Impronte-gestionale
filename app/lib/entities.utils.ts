@@ -231,7 +231,7 @@ export const entitiesKeysDictionary: { [key: string]: EntityKey[] } = {
       type: "number",
     },
     {
-      keyName: "servizio_aggiuntivi",
+      keyName: "servizio_aggiuntivo",
       type: "boolean",
     },
   ],

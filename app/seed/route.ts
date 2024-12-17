@@ -75,8 +75,7 @@ const createTablePreventivi = async () => {
          feedback TEXT,
          stato VARCHAR(20) CHECK (stato IN ('da fare', 'in trattativa', 'confermato', 'inviato')),
          data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-         numero_preventivo VARCHAR(255),
-         confermato BOOLEAN
+         numero_preventivo VARCHAR(255)
       );
     `;
 }
@@ -95,7 +94,7 @@ const createTableServiziATerra = async () => {
          valuta VARCHAR(10),
          cambio FLOAT,
          ricarico FLOAT,
-         servizio_aggiuntivi BOOLEAN
+         servizio_aggiuntivo BOOLEAN
       );
     `;
 }

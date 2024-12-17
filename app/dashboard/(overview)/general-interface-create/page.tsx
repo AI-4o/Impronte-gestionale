@@ -13,7 +13,7 @@ import { formatDate } from "@/app/lib/utils";
 import { createCliente, updateCliente } from "@/app/lib/actions/actions";
 
 
-const demoData: Data = {
+const initialData: Data = {
     cliente: new ClienteInputGroup(
         'Alfredo',
         'Ingraldo',
@@ -34,18 +34,32 @@ const demoData: Data = {
         new Date('2022-03-22'),
         'da fare'
     ),
-    serviziATerra: [new ServizioATerraInputGroup(
-        1,
-        'ALASKA',
-        'AAA JALALA',
-        'descrizione esempio',
-        new Date('2022-03-22'),
-        1,
-        'USD',
-        100,
-        1,
-        100
-    )],
+    serviziATerra: [
+        new ServizioATerraInputGroup(
+            1,
+            'ALASKA',
+            'AAA JALALA',
+            'descrizione esempio',
+            new Date('2022-03-22'),
+            1,
+            'USD',
+            100,
+            1,
+            100
+        ),
+        new ServizioATerraInputGroup(
+            2,
+            'ALASKA',
+            'AAA JALALA',
+            'descrizione esempio',
+            new Date('2022-04-22'),
+            1,
+            'USD',
+            100,
+            1,
+            100
+        )
+    ],
     serviziAggiuntivi: [new ServizioATerraInputGroup(
         1,
         'BALI',
@@ -58,7 +72,8 @@ const demoData: Data = {
         1,
         100
     )],
-    voli: [new VoloInputGroup(
+    voli: [
+        new VoloInputGroup(
         1,
         'AAA JALALA',
         'compagnia esempio',
@@ -68,7 +83,19 @@ const demoData: Data = {
         1,
         'USD',
         100
-    )],
+    ),
+    new VoloInputGroup(
+        2,
+        'AAA JALALA',
+        'compagnia esempio',
+        'descrizione esempio',
+        new Date('2025-01-01'),
+        new Date('2025-01-01'),
+        1,
+        'USD',
+        100
+    )
+],
     assicurazioni: [new AssicurazioneInputGroup(
         1,
         'AAA JALALA',
@@ -131,7 +158,8 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione show form per creare preventivo
     const [showFormPreventivo, setShowFormPreventivo] = useState<boolean>(false);
-    const [showFormPreventivoAggiorna, setShowFormPreventivoAggiorna] = useState<boolean>(false);
+    const [preventivoDaAggiornare, setPreventivoDaAggiornare] = useState<Data|{}>({});
+
 
     /**
      * mostra form preventivo per il cliente, e aggiorna i valori in input del cliente con quelli del cliente passato
@@ -146,7 +174,7 @@ export default function CreaPreventivoGeneralInterface() {
     }
 
     // gestione cliente
-    const [cliente, setCliente] = useState<ClienteInputGroup>(demoData.cliente ?? new ClienteInputGroup());
+    const [cliente, setCliente] = useState<ClienteInputGroup>(initialData.cliente ?? new ClienteInputGroup());
     const onVCCliente = async (e: any, name: string) => {
         console.log('change in a value of a cliente <event, id, name>: ', e, name);
         setShowFormPreventivo(false);
@@ -161,7 +189,7 @@ export default function CreaPreventivoGeneralInterface() {
         });
     }
     // gestione preventivo
-    const [preventivo, setpreventivo] = useState<PreventivoInputGroup>(demoData.preventivo ?? new PreventivoInputGroup());
+    const [preventivo, setpreventivo] = useState<PreventivoInputGroup>(initialData.preventivo);
     const onVCpreventivo = (e: any, name: string) => {
         console.log('change in a value of a preventivo <event, id, name>: ', e, name);
         setpreventivo((prevState) => {
@@ -179,7 +207,7 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione aggiunta/rimozione servizi a terra
     const [serviziATerra, setServiziATerra] = useState<ServizioATerraInputGroup[]>([
-        demoData.serviziATerra[0], new ServizioATerraInputGroup(2)
+        ...initialData.serviziATerra
     ]);
     const aggiungiServizioATerra = () => {
         const newId = Math.max(...serviziATerra.map(s => s.groupId)) + 5
@@ -208,7 +236,7 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione aggiunta/rimozione servizi aggiuntivi
     const [serviziAggiuntivi, setServiziAggiuntivi] = useState<ServizioATerraInputGroup[]>([
-        demoData.serviziAggiuntivi[0] ?? new ServizioATerraInputGroup(1)
+        ...initialData.serviziAggiuntivi
     ]);
     const aggiungiServizioAggiuntivo = () => {
         const newId = Math.max(...serviziAggiuntivi.map(s => s.groupId)) + 5
@@ -239,7 +267,7 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione aggiunta/rimozione voli
     const [voli, setVoli] = useState<VoloInputGroup[]>([
-        demoData.voli[0] ?? new VoloInputGroup(1)
+        ...initialData.voli
     ]);
     const aggiungiVolo = () => {
         const newId = Math.max(...voli.map(s => s.groupId)) + 5
@@ -271,7 +299,7 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione aggiunta/rimozione assicurazioni
     const [assicurazioni, setAssicurazioni] = useState<AssicurazioneInputGroup[]>([
-        demoData.assicurazioni[0] ?? new AssicurazioneInputGroup(1)
+        ...initialData.assicurazioni
     ]);
     const aggiungiAssicurazione = () => {
         const newId = Math.max(...assicurazioni.map(s => s.groupId)) + 5
@@ -294,6 +322,13 @@ export default function CreaPreventivoGeneralInterface() {
         }));
     }
 
+
+    // gestione feedback del form
+    type Feedback = {
+        message: string;
+        type: 'success' | 'error';
+    }
+    const [feedback, setFeedback] = useState<Feedback>({ message: '', type: 'success' });
     const submit = async () => {
         const data: Data = {
             cliente: cliente,
@@ -311,11 +346,10 @@ export default function CreaPreventivoGeneralInterface() {
             },
             body: JSON.stringify(data),
         });
-        if (!response.ok) {
-            throw new Error('Errore nella risposta del server al submit create preventivo');
-        }
-        else {
-            console.log('Preventivo creato con successo');
+        if(response.ok) { // preventivo creato con successo
+            setFeedback({ message: 'Preventivo creato con successo!', type: 'success' }); 
+        } else {
+            setFeedback({ message: 'Errore nella risposta del server al submit create preventivo', type: 'error' });
         }
     }
     /** 
@@ -342,10 +376,8 @@ export default function CreaPreventivoGeneralInterface() {
             }
             const data: ClienteInputGroup[] = await response.json();
             console.log('data: ', data);
-            if (data?.length > 0) { // si sono trovati clienti corrispondenti                 
-                setClientiTrovati(data);
-                setShowClientiTrovati(true);
-            }
+            setClientiTrovati(data);
+            setShowClientiTrovati(true);
             // Puoi aggiornare lo stato o eseguire altre azioni basate sulla risposta
         } catch (error) {
             console.error('Errore durante la verifica del cliente:', error);
@@ -367,11 +399,27 @@ export default function CreaPreventivoGeneralInterface() {
             const data: PreventivoInputGroup[] = await response.json();
             console.log('data: ', data);
             setPreventiviClienteList(data);
-            setShowPreventiviClienteList(true);
         } catch (error) {
             console.error('Errore durante la ricerca dei preventivi del cliente:', error);
         }
     }
+
+    const fetchDataPreventivoDaAggiornare = async (p: PreventivoInputGroup) => {
+        const response = await fetch('/api/preventivi/data-preventivo-completi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(p.id),
+        });
+        if (!response.ok) {
+            throw new Error('Errore nella risposta del server');
+        }
+        const data: Data = await response.json();
+        console.log('data: ', data);
+        setPreventivoDaAggiornare(data);
+    }
+    
     // gestione lista preventivi di un client
     useEffect(() => {
         fetchClienteIsNew();
@@ -394,6 +442,11 @@ export default function CreaPreventivoGeneralInterface() {
         console.log('the assicurazioni state is: ', assicurazioni);
     }, [assicurazioni]);
 
+
+    useEffect(() => {
+        if(showFormPreventivo) {setShowPreventiviClienteList(false); setShowClientiTrovati(false);}
+        if(showPreventiviClienteList || showClientiTrovati) setShowFormPreventivo(false); 
+    }, [showFormPreventivo, showPreventiviClienteList, showClientiTrovati]);
     return (
         <>
             <h1 className={`mb-4 text-xl md:text-2xl`}>CREA PREVENTIVO</h1>
@@ -418,26 +471,28 @@ export default function CreaPreventivoGeneralInterface() {
                     <p>Lista clienti corrrispondenti:</p>
                     {clientiTrovati.length > 0 && clientiTrovati.map((c, i) => (
                         <div key={c.id} className="flex flex-col gap-2">
-                            <div className="flex flex-row gap-2 pt-4 justify-between">
+                            <div className="flex flex-row gap-1 pt-4 justify-between">
                                 <p> {i + 1}. {c.nome}, {c.cognome}, {c.email}</p>
-                                <button
-                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
-                                    onClick={() => { onClickMostraListaPreventivi(c) }}
-                                >
-                                    Mostra lista preventivi
-                                </button>
-                                <button
-                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
-                                    onClick={() => { setShowClientiTrovati(false); onClickShowFormNuovoPreventivo(c) }}
-                                >
-                                    Nuovo preventivo
-                                </button>
-                                <button
-                                    className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
-                                    onClick={() => { setClienteDaAggiornare(c); setShowFormAggiornaCliente(!showFormAggiornaCliente); }}
-                                >
-                                    {showFormAggiornaCliente ? 'Annulla' : 'Aggiorna cliente'}
-                                </button>
+                                <div className="flex flex-row justify-end gap-2">
+                                    <button
+                                        className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                        onClick={() => { onClickMostraListaPreventivi(c); setShowPreventiviClienteList(!showPreventiviClienteList); }}
+                                    >
+                                        {showPreventiviClienteList ? 'Nascondi lista preventivi' : 'Mostra lista preventivi'}
+                                    </button>
+                                    <button
+                                        className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                        onClick={() => { setShowClientiTrovati(false); onClickShowFormNuovoPreventivo(c) }}
+                                    >
+                                        Nuovo preventivo
+                                    </button>
+                                    <button
+                                        className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                        onClick={() => { setClienteDaAggiornare(c); setShowFormAggiornaCliente(!showFormAggiornaCliente); }}
+                                    >
+                                        {showFormAggiornaCliente ? 'Annulla' : 'Aggiorna cliente'}
+                                    </button>
+                                </div>
                             </div>
                             {showFormAggiornaCliente &&
                                 <div>
@@ -455,7 +510,7 @@ export default function CreaPreventivoGeneralInterface() {
                                     </div>
                                     <button
                                         className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
-                                        onClick={() => { setShowFormAggiornaCliente(false); updateCliente(clienteDaAggiornare, clienteDaAggiornare.id); fetchClienteIsNew();}}
+                                        onClick={() => { setShowFormAggiornaCliente(false); updateCliente(clienteDaAggiornare, clienteDaAggiornare.id); fetchClienteIsNew(); }}
                                     >
                                         Aggiorna
                                     </button>
@@ -487,6 +542,12 @@ export default function CreaPreventivoGeneralInterface() {
                     {preventiviClienteList.length > 0 && preventiviClienteList.map((p, i) => (
                         <div key={p.id} className="flex flex-row gap-2 pt-4 justify-between">
                             <div > {i + 1}. {formatDate(p.data_partenza)}, {p.riferimento},{p.operatore}</div>
+                            <button
+                                className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
+                                onClick={() => { setShowFormPreventivo(true); setPreventivoDaAggiornare(p); }}
+                            >
+                                Aggiorna
+                            </button>
                         </div>
                     ))}
                     {preventiviClienteList.length === 0 &&
@@ -749,6 +810,12 @@ export default function CreaPreventivoGeneralInterface() {
                             Crea preventivo
                         </button>
                     </div >
+
+                    {feedback.message &&
+                        <div className={`flex flex-row items-center justify-center pt-4 pl-5 ${feedback.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                            <p>{feedback.message}</p>
+                        </div>
+                    }
                 </div >
             }
         </>

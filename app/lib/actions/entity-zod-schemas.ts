@@ -26,7 +26,6 @@ export const DestinazioneSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),
 });
 export const PreventivoSchema = z.object({
-  id_fornitore: z.string(),
   id_cliente: z.string(),
   email: z.string().email(),
   numero_di_telefono: z.string().regex(/^\+[1-9]\d{1,14}$/, {
@@ -38,10 +37,9 @@ export const PreventivoSchema = z.object({
   feedback: z.string(),
   adulti: z.number().int().nonnegative(),
   bambini: z.number().int().nonnegative(),
-  data_partenza: z.string().date(),
-  data: z.string().date(),
-  numero_preventivo: z.number().int().nonnegative(),
-  confermato: z.boolean(),
+  data_partenza: z.string().nullable(),
+  data: z.string().nullable(),
+  numero_preventivo: z.string(),
   stato: z.enum(["da fare", "in trattativa", "confermato", "inviato"]),
 });
 export const FornitoreSchema = z.object({
@@ -56,21 +54,21 @@ export const ServizioATerraSchema = z.object({
   id_fornitore: z.string(),
   id_destinazione: z.string(),
   descrizione: z.string(),
-  data: z.string().date(),
+  data: z.string().nullable(),
   numero_notti: z.number().int().nonnegative(),
   totale: z.number().nonnegative(),
   valuta: z.enum(valuteArray as [string, ...string[]]),
   cambio: z.number().nonnegative(),
   ricarico: z.number().nonnegative(),
-  servizio_aggiuntivi: z.boolean(),
+  servizio_aggiuntivo: z.boolean(),
 });
 export const VoloSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
   compagnia_aerea: z.string(),
   descrizione: z.string(),
-  data_partenza: z.string().date(),
-  data_arrivo: z.string().date(),
+  data_partenza: z.string().nullable(),
+  data_arrivo: z.string().nullable(),
   totale: z.number().nonnegative(),
   valuta: z.enum(valuteArray as [string, ...string[]]),
   cambio: z.number().nonnegative(),
