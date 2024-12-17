@@ -59,7 +59,6 @@ export const ServizioATerraSchema = z.object({
   totale: z.number().nonnegative(),
   valuta: z.enum(valuteArray as [string, ...string[]]),
   cambio: z.number().nonnegative(),
-  ricarico: z.number().nonnegative(),
   servizio_aggiuntivo: z.boolean(),
 });
 export const VoloSchema = z.object({
@@ -72,14 +71,12 @@ export const VoloSchema = z.object({
   totale: z.number().nonnegative(),
   valuta: z.enum(valuteArray as [string, ...string[]]),
   cambio: z.number().nonnegative(),
-  ricarico: z.number().nonnegative(),
 });
 export const AssicurazioneSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
   assicurazione: z.string(),
   netto: z.number().nonnegative(),
-  ricarico: z.number().nonnegative(),
 });
 export const PreventivoMostrareClienteSchema = z.object({
   id_destinazione: z.string(),

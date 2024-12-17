@@ -93,7 +93,6 @@ const createTableServiziATerra = async () => {
          totale FLOAT,
          valuta VARCHAR(10),
          cambio FLOAT,
-         ricarico FLOAT,
          servizio_aggiuntivo BOOLEAN
       );
     `;
@@ -111,8 +110,7 @@ const createTableVoli = async () => {
          data_arrivo DATE,
          totale FLOAT,
          valuta VARCHAR(10),
-         cambio FLOAT,
-         ricarico FLOAT
+         cambio FLOAT
       );
     `;
 
@@ -125,8 +123,7 @@ const createTableAssicurazioni = async () => {
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
          id_fornitore UUID NOT NULL REFERENCES fornitori(id),
          assicurazione VARCHAR(255),
-         netto FLOAT,
-         ricarico FLOAT
+         netto FLOAT
       );
     `;
 }

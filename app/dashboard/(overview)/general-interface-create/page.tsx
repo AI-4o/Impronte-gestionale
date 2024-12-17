@@ -43,8 +43,6 @@ const initialData: Data = {
             new Date('2022-03-22'),
             1,
             'USD',
-            100,
-            1,
             100
         ),
         new ServizioATerraInputGroup(
@@ -55,8 +53,6 @@ const initialData: Data = {
             new Date('2022-04-22'),
             1,
             'USD',
-            100,
-            1,
             100
         )
     ],
@@ -70,7 +66,7 @@ const initialData: Data = {
         'USD',
         100,
         1,
-        100
+        true
     )],
     voli: [
         new VoloInputGroup(
@@ -160,6 +156,13 @@ export default function CreaPreventivoGeneralInterface() {
     const [showFormPreventivo, setShowFormPreventivo] = useState<boolean>(false);
     const [preventivoDaAggiornare, setPreventivoDaAggiornare] = useState<Data|{}>({});
 
+    const getSommaTuttiTotEuro = () => {
+        const totServiziATerra = serviziATerra.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0);
+        const totServiziAggiuntivi = serviziAggiuntivi.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0);
+        const totVoli = voli.reduce((acc, volo) => acc + getTot(volo.totale, volo.cambio ?? 1, getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico)), 0);
+        const totAssicurazioni = assicurazioni.reduce((acc, assicurazione) => acc + getTot(assicurazione.netto, 1, getRicarico(assicurazione.netto, 1, percentualeRicarico)), 0);
+        return totServiziATerra + totServiziAggiuntivi + totVoli + totAssicurazioni;
+    }
 
     /**
      * mostra form preventivo per il cliente, e aggiorna i valori in input del cliente con quelli del cliente passato
@@ -225,10 +228,6 @@ export default function CreaPreventivoGeneralInterface() {
                 } else {
                     servizio[name] = e.target.value;
                 }
-                if (!!percentualeRicarico && !!servizio.cambio && !!servizio.totale) {
-                    servizio.ricarico = getRicarico(servizio.totale, servizio.cambio, percentualeRicarico);
-                    servizio.tot = getTot(servizio.totale, servizio.cambio, servizio.ricarico);
-                }
             }
             return servizio;
         }));
@@ -254,10 +253,6 @@ export default function CreaPreventivoGeneralInterface() {
                     servizio.data = new Date(e.target.value);
                 } else {
                     servizio[name] = e.target.value;
-                }
-                if (!!percentualeRicarico && !!servizio.cambio && !!servizio.totale) {
-                    servizio.ricarico = getRicarico(servizio.totale, servizio.cambio, percentualeRicarico);
-                    servizio.tot = getTot(servizio.totale, servizio.cambio, servizio.ricarico);
                 }
             }
             return servizio;
@@ -288,10 +283,6 @@ export default function CreaPreventivoGeneralInterface() {
                 } else {
                     volo[name] = e.target.value;
                 }
-                if (!!percentualeRicarico && !!volo.cambio && !!volo.totale) {
-                    volo.ricarico = getRicarico(volo.totale, volo.cambio, percentualeRicarico);
-                    volo.tot = getTot(volo.totale, volo.cambio, volo.ricarico);
-                }
             }
             return volo;
         }));
@@ -313,12 +304,7 @@ export default function CreaPreventivoGeneralInterface() {
         setAssicurazioni(assicurazioni.map(assicurazione => {
             if (assicurazione.groupId === id) {
                 assicurazione[name] = e.target.value;
-            }
-            if (!!percentualeRicarico && !!assicurazione.netto) { // cambio di una assicurazione è sempre 1
-                assicurazione.ricarico = getRicarico(assicurazione.netto, 1, percentualeRicarico);
-                assicurazione.tot = getTot(assicurazione.netto, 1, assicurazione.ricarico);
-            }
-            return assicurazione;
+            }            return assicurazione;
         }));
     }
 
@@ -419,7 +405,7 @@ export default function CreaPreventivoGeneralInterface() {
         console.log('data: ', data);
         setPreventivoDaAggiornare(data);
     }
-    
+
     // gestione lista preventivi di un client
     useEffect(() => {
         fetchClienteIsNew();
@@ -612,13 +598,13 @@ export default function CreaPreventivoGeneralInterface() {
                                             <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
                                             <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
                                             <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
+                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
                                             <div className="flex flex-row items-center justify-center pt-10 pl-5">
                                                 <div className="pr-3">
-                                                    <p>ricarico: {servizio?.ricarico?.toString() ?? '0'}</p>
+                                                    <p>ricarico: {getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico) ?? '0'}</p>
                                                 </div>
                                                 <div className="pr-3">
-                                                    <p>tot euro: {servizio?.tot?.toString() ?? '0'}</p>
+                                                    <p>tot euro: {getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)) ?? '0'}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -665,13 +651,13 @@ export default function CreaPreventivoGeneralInterface() {
                                             <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
                                             <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
                                             <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString()} label="Cambio" name="cambio" />
+                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
                                             <div className="flex flex-row items-center justify-center pt-10 pl-5">
                                                 <div className="pr-3">
-                                                    <p>ricarico: {servizio?.ricarico?.toString() ?? '0'}</p>
+                                                    <p>ricarico: {getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico) ?? '0'}</p>
                                                 </div>
                                                 <div className="pr-3">
-                                                    <p>tot euro: {servizio?.tot?.toString() ?? '0'}</p>
+                                                    <p>tot euro: {getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)) ?? '0'}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -718,13 +704,13 @@ export default function CreaPreventivoGeneralInterface() {
                                             <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
                                             <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
                                             <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                            <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString()} label="Cambio" name="cambio" />
+                                            <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
                                             <div className="flex flex-row items-center justify-center pt-10 pl-5">
                                                 <div className="pr-3">
-                                                    <p>ricarico: {volo?.ricarico?.toString() ?? '0'}</p>
+                                                    <p>ricarico: {getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico) ?? '0'}</p>
                                                 </div>
                                                 <div className="pr-3">
-                                                    <p>tot euro: {volo?.tot?.toString() ?? '0'}</p>
+                                                    <p>tot euro: {getTot(volo.totale, volo.cambio, getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico)) ?? '0'}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -769,10 +755,10 @@ export default function CreaPreventivoGeneralInterface() {
                                             <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label="Netto" name="netto" />
                                             <div className="flex flex-row items-center justify-center pt-10 pl-5">
                                                 <div className="pr-3">
-                                                    <p>ricarico: {assicurazione?.ricarico?.toString() ?? '0'}</p>
+                                                    <p>ricarico: {getRicarico(assicurazione.netto, 1, percentualeRicarico) ?? '0'}</p>
                                                 </div>
                                                 <div className="pr-3">
-                                                    <p>tot euro: {assicurazione?.tot?.toString() ?? '0'}</p>
+                                                    <p>tot euro: {getTot(assicurazione.netto, 1, getRicarico(assicurazione.netto, 1, percentualeRicarico)) ?? '0'}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -794,12 +780,7 @@ export default function CreaPreventivoGeneralInterface() {
                     </div>
                     {/* Totale */}
                     <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                        <p>somma di tutti i tot euro: {
-                            serviziATerra.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0) +
-                            serviziAggiuntivi.reduce((acc, servizio) => acc + (servizio.tot ?? 0), 0) +
-                            voli.reduce((acc, volo) => acc + (volo.tot ?? 0), 0) +
-                            assicurazioni.reduce((acc, assicurazione) => acc + (assicurazione.tot ?? 0), 0)
-                        }</p>
+                        <p>somma di tutti i tot euro: {getSommaTuttiTotEuro()}</p>
                     </div>
                     <div className="flex flex-row items-center justify-center pt-4 pl-5">
                         <button
@@ -826,11 +807,17 @@ export default function CreaPreventivoGeneralInterface() {
 
 // helper functions to compute totale and ricarico
 const getTot = (totale: number, cambio: number, ricarico: number) => {
+    if (cambio === 0) {
+        return 0;
+    }
     const result = (totale / cambio) + ricarico;
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
 }
 const getRicarico = (totale: number, cambio: number, percentualeRicarico: number) => {
+    if (cambio === 0) {
+        return 0;
+    }
     const result = (totale / cambio) * percentualeRicarico;
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;

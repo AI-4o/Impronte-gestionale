@@ -46,9 +46,7 @@ export class ServizioATerraInputGroup {
         public valuta?: string,
         public totale?: number,
         public cambio?: number,
-        public ricarico?: number,
         public servizio_aggiuntivo?: boolean,
-        public tot?: number,
         public id?: string,
     ) { }
 }
@@ -64,8 +62,6 @@ export class VoloInputGroup {
         public totale?: number,
         public valuta?: string,
         public cambio?: number,
-        public ricarico?: number,
-        public tot?: number,
         public id?: string,
     ) { }
 }
@@ -76,8 +72,6 @@ export class AssicurazioneInputGroup {
         public fornitore?: string,
         public assicurazione?: string,
         public netto?: number,
-        public ricarico?: number,
-        public tot?: number,
         public id?: string,
     ) { }
 }
