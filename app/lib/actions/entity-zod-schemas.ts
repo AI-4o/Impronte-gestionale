@@ -3,24 +3,17 @@ import { z } from "zod";
 export const valuteArray = ["EUR", "USD"];
 export const ClienteSchema = z.object({
   nome: z.string(),
-  cognome: z.string(),
-  note: z.string(),
-  tipo: z.enum(["PRIVATO", "AGENZIA VIAGGI", "AZIENDA"]),
-  data_di_nascita: z.string().nullable(),
-  email: z.string().email(),
-  citta: z.string(),
-  collegato: z.string(),
+  cognome: z.string().optional(),
+  note: z.string().nullable().optional(),
+  tipo: z.string().nullable().optional(),
+  data_di_nascita: z.string().nullable().optional(),
+  email: z.string().email().optional(),
+  citta: z.string().nullable().optional(),
+  collegato: z.string().nullable().optional(),
   tel: z.string().regex(/^\+[1-9]\d{1,14}$/, {
     message: "telefono must be in international format",
-  }), // add control
-  provenienza: z.enum([
-    "Passaparola",
-    "Sito IWS",
-    "Sito INO",
-    "Telefono",
-    "Email Diretta",
-    "Sito ISE",
-  ]),
+  }).nullable().optional(), // add control
+  provenienza: z.string().nullable().optional(),
 });
 export const DestinazioneSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),
@@ -40,7 +33,7 @@ export const PreventivoSchema = z.object({
   data_partenza: z.string().nullable(),
   data: z.string().nullable(),
   numero_preventivo: z.string(),
-  stato: z.enum(["da fare", "in trattativa", "confermato", "inviato"]),
+  stato: z.string().nullable(),
 });
 export const FornitoreSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),

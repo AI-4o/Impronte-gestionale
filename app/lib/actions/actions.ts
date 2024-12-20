@@ -10,7 +10,6 @@ import { Cliente } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
 import { fetchDestinazioneByName, fetchFilteredClienti, fetchFornitoreByName, fetchPreventiviByCliente } from "../data";
 import { AssicurazioneInputGroup, ClienteInputGroup, Data, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
-import { formatDate } from "../utils";
 
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
@@ -159,35 +158,19 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
 
 export const createCliente = async (c: ClienteInputGroup): Promise<ClienteInputGroup | any> => {
   const parsedData = schemas.ClienteSchema.safeParse({
-    nome:
-      c.nome ??
-      (() => {
-        throw new Error("Nome must not be null");
-      })(),
-    cognome:
-      c.cognome ??
-      (() => {
-        throw new Error("Cognome must not be null");
-      })(),
+    nome: c.nome,
+    cognome: c.cognome,
     note: c.note,
     tipo: c.tipo,
-    data_di_nascita:
-      formatDate(c.data_di_nascita) ??
-      (() => {
-        throw new Error("Data di nascita must not be null");
-      })(),
+    data_di_nascita: c.data_di_nascita,
     tel: c.tel,
-    email:
-      c.email ??
-      (() => {
-        throw new Error("Email must not be null");
-      })(),
+    email: c.email,
     citta: c.citta,
     collegato: c.collegato,
     provenienza: c.provenienza,
   });
   if (!parsedData.success) {
-    //console.log("parsedData.error", parsedData.error);
+    console.log("parsedData.error", parsedData.error);
     return {
       values: parsedData.data,
       errors: parsedData.error.flatten().fieldErrors,
@@ -208,13 +191,12 @@ export const createCliente = async (c: ClienteInputGroup): Promise<ClienteInputG
     ${parsedData.data.citta},
     ${parsedData.data.collegato},
     ${parsedData.data.provenienza})
-    RETURNING *;
     ON CONFLICT (nome, cognome) DO NOTHING;
   `;
-    //console.log("result of createCliente: ", result);
+    console.log("result of createCliente: ", result);
     return result;
   } catch (error) {
-    //console.log("db error: ", error);
+    console.log("db error: ", error);
     return {
       values: parsedData.data,
       dbError: "Database Error: Failed to Create Cliente.",
@@ -228,11 +210,7 @@ export const createPreventivo = async (
 ) => {
   const parsedData = schemas.PreventivoSchema.safeParse({
     id_cliente: idCliente,
-    email:
-      p.email ??
-      (() => {
-        throw new Error("Email must not be null");
-      })(), // TODO: email di chi?
+    email: p.email,
     numero_di_telefono: c.tel,
     note: p.note,
     riferimento: p.riferimento,
@@ -240,8 +218,8 @@ export const createPreventivo = async (
     feedback: p.feedback,
     adulti: p.adulti,
     bambini: p.bambini,
-    data_partenza: formatDate(p.data_partenza),
-    data: formatDate(p.data),
+    data_partenza: p.data_partenza,
+    data: p.data,
     numero_preventivo: p.numero_preventivo,
     stato: p.stato,
   });
@@ -313,7 +291,7 @@ export const createServizioATerra = async (s: ServizioATerraInputGroup, id_preve
     id_fornitore: fornitore.id,
     id_destinazione: destinazione.id,
     descrizione: s.descrizione,
-    data: formatDate(s.data),
+    data: s.data,
     numero_notti: s.numero_notti,
     totale: s.totale,
     valuta: s.valuta,
@@ -355,8 +333,8 @@ export const createVolo = async (v: VoloInputGroup, id_preventivo: string) => {
     id_fornitore: fornitore.id,
     compagnia_aerea: v.compagnia,
     descrizione: v.descrizione,
-    data_partenza: formatDate(v.data_partenza),
-    data_arrivo: formatDate(v.data_arrivo),
+    data_partenza: v.data_partenza,
+    data_arrivo: v.data_arrivo,
     totale: v.totale,
     valuta: v.valuta,
     cambio: v.cambio
@@ -460,35 +438,19 @@ export const updateCliente = async (
 ) => {
   const parsedData = schemas.ClienteSchema.safeParse({
     id: id,
-    nome:
-      c.nome ??
-      (() => {
-        throw new Error("Nome must not be null");
-      })(),
-    cognome:
-      c.cognome ??
-      (() => {
-        throw new Error("Cognome must not be null");
-      })(),
+    nome: c.nome,
+    cognome: c.cognome,
     note: c.note,
     tipo: c.tipo,
-    data_di_nascita:
-      formatDate(c.data_di_nascita) ??
-      (() => {
-        throw new Error("Data di nascita must not be null");
-      })(),
+    data_di_nascita: c.data_di_nascita,
     tel: c.tel,
-    email:
-      c.email ??
-      (() => {
-        throw new Error("Email must not be null");
-      })(),
+    email: c.email,
     citta: c.citta,
     collegato: c.collegato,
     provenienza: c.provenienza,
   });
   if (!parsedData.success) {
-    //console.log("parsedData.error", parsedData.error);
+    console.log("parsedData.error", parsedData.error);
     return {
       values: parsedData.data,
       errors: parsedData.error.flatten().fieldErrors,
@@ -510,10 +472,10 @@ export const updateCliente = async (
     provenienza = ${parsedData.data.provenienza}
     WHERE id = ${id}
     `;
-    //console.log("SUCCESS UPDATING CLIENTE");
+    console.log("SUCCESS UPDATING CLIENTE");
     return true;
   } catch (error) {
-    //console.log("db error: ", error);
+    console.log("db error: ", error);
     return {
       values: parsedData.data,
       dbError: "Database Error: Failed to Create Invoice.",
@@ -522,18 +484,9 @@ export const updateCliente = async (
 };
 export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCliente: string) => {
   const parsedData = schemas.PreventivoSchema.safeParse({
-    id:
-      id ??
-      (() => {
-        throw new Error("ID must not be null");
-      })(),
-
+    id: id,
     id_cliente: idCliente,
-    email:
-      p.email ??
-      (() => {
-        throw new Error("Email must not be null");
-      })(),
+    email: p.email,
     numero_di_telefono: p.numero_di_telefono,
     note: p.note,
     riferimento: p.riferimento,
@@ -541,8 +494,8 @@ export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCl
     feedback: p.feedback,
     adulti: p.adulti,
     bambini: p.bambini,
-    data_partenza: formatDate(p.data_partenza),
-    data: formatDate(p.data),
+    data_partenza: p.data_partenza,
+    data: p.data,
     numero_preventivo: p.numero_preventivo,
     stato: p.stato,
   });

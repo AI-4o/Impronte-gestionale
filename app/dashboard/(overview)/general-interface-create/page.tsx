@@ -258,7 +258,6 @@ export default function CreaPreventivoGeneralInterface() {
         }));
     }
 
-
     // gestione aggiunta/rimozione voli
     const [voli, setVoli] = useState<VoloInputGroup[]>([
         ...initialData.voli
