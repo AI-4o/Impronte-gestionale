@@ -20,12 +20,10 @@ export class PreventivoInputGroup {
     constructor(
         public numero_preventivo?: string,
         public brand?: string,
-        public email?: string,
         public riferimento?: string,
         public operatore?: string,
         public feedback?: string,
         public note?: string,
-        public numero_di_telefono?: string,
         public adulti?: number,
         public bambini?: number,
         public data_partenza?: Date,
@@ -83,3 +81,10 @@ export interface Data {
     voli?: VoloInputGroup[];
     assicurazioni?: AssicurazioneInputGroup[];
 }
+export type Feedback = {
+    message: React.ReactNode;
+    type: 'success' | 'error';
+    errorsMessage?: string;
+}
+export const SUCCESSMESSAGE =  "Operazione effettuata con successo 🥳"
+export const ERRORMESSAGE = "Operazione fallita 😢"

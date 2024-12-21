@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 type ModalProps = {
   header?: React.ReactNode;
@@ -8,14 +8,23 @@ type ModalProps = {
   footer?: React.ReactNode;
   buttons?: React.ReactNode;
   isOpen: boolean;
+  timeout?: number;
   setIsOpen: (isOpen: boolean) => void; // Add this prop
 };
 
-const Modal: React.FC<ModalProps> = ({ header, footer, body, buttons, isOpen, setIsOpen }) => {
+const Modal: React.FC<ModalProps> = ({ header, footer, body, buttons, isOpen, setIsOpen, timeout }) => {
 
   const handleClose = () => {
     setIsOpen(false);
   };
+  useEffect(() => {
+    if (isOpen && timeout) {
+      setTimeout(() => {
+        setIsOpen(false);
+        console.log('the time is up after ', timeout, 'ms');
+      }, timeout);
+    }
+  });
   return (
     <>
       {isOpen && (

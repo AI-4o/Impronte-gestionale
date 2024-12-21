@@ -59,11 +59,11 @@ console.log('format date, date: ', date, typeof date);
 if(typeof date === 'string') {
   date = new Date(date);
 }
-if(date && date?.getFullYear()) {
+if(date && date instanceof Date && date.getFullYear()) {
 const year = date.getFullYear();
 const month = String(date.getMonth() + 1).padStart(2, '0'); // Mesi da 0 a 11
 const day = String(date.getDate()).padStart(2, '0');
 return  `${year}-${month}-${day}`;
 }
-return '';
+return null;
 }

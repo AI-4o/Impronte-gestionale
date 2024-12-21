@@ -63,8 +63,6 @@ const createTablePreventivi = async () => {
       CREATE TABLE IF NOT EXISTS preventivi (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_cliente UUID NOT NULL REFERENCES clienti(id),
-         email VARCHAR(255) NOT NULL,
-         numero_di_telefono VARCHAR(20),
          note TEXT,
          brand VARCHAR(255),
          adulti INT,

@@ -9,7 +9,15 @@ import bcrypt from "bcrypt";
 import { Cliente } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
 import { fetchDestinazioneByName, fetchFilteredClienti, fetchFornitoreByName, fetchPreventiviByCliente } from "../data";
-import { AssicurazioneInputGroup, ClienteInputGroup, Data, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
+import { AssicurazioneInputGroup, ClienteInputGroup, Data, ERRORMESSAGE, PreventivoInputGroup, ServizioATerraInputGroup, SUCCESSMESSAGE, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
+import { formatDate } from "../utils";
+
+export type DBResult<A> = {
+  message: string;
+  values?: any;
+  errors?: Partial<TransformToStringArray<A>>;
+  errorsMessage?: string;
+}
 
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
@@ -156,13 +164,13 @@ export const deleteEntityById = async (id: string, entityTableName: string) => {
 
 // CREATE ENTITY
 
-export const createCliente = async (c: ClienteInputGroup): Promise<ClienteInputGroup | any> => {
+export const createCliente = async (c: ClienteInputGroup): Promise<DBResult<ClienteInputGroup>> => {
   const parsedData = schemas.ClienteSchema.safeParse({
     nome: c.nome,
     cognome: c.cognome,
     note: c.note,
     tipo: c.tipo,
-    data_di_nascita: c.data_di_nascita,
+    data_di_nascita: formatDate(c.data_di_nascita),
     tel: c.tel,
     email: c.email,
     citta: c.citta,
@@ -174,7 +182,8 @@ export const createCliente = async (c: ClienteInputGroup): Promise<ClienteInputG
     return {
       values: parsedData.data,
       errors: parsedData.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Cliente.",
+      message: ERRORMESSAGE,
+      errorsMessage: "Fields validation error.",
     };
   }
   try {
@@ -194,12 +203,19 @@ export const createCliente = async (c: ClienteInputGroup): Promise<ClienteInputG
     ON CONFLICT (nome, cognome) DO NOTHING;
   `;
     console.log("result of createCliente: ", result);
-    return result;
+    return {
+      values: parsedData.data,
+      message: SUCCESSMESSAGE,
+      errors: {},
+      errorsMessage: "",
+    };
   } catch (error) {
     console.log("db error: ", error);
     return {
       values: parsedData.data,
-      dbError: "Database Error: Failed to Create Cliente.",
+      errors: {},
+      message: ERRORMESSAGE,
+      errorsMessage: "Database Error.",
     };
   }
 };
@@ -210,8 +226,6 @@ export const createPreventivo = async (
 ) => {
   const parsedData = schemas.PreventivoSchema.safeParse({
     id_cliente: idCliente,
-    email: p.email,
-    numero_di_telefono: c.tel,
     note: p.note,
     riferimento: p.riferimento,
     operatore: p.operatore,
@@ -235,8 +249,6 @@ export const createPreventivo = async (
     const result = await sql`
       INSERT INTO preventivi (
         id_cliente, 
-        email, 
-        numero_di_telefono, 
         note, 
         riferimento, 
         operatore, 
@@ -250,8 +262,6 @@ export const createPreventivo = async (
       )
       VALUES (
         ${parsedData.data.id_cliente}, 
-        ${parsedData.data.email}, 
-        ${parsedData.data.numero_di_telefono}, 
         ${parsedData.data.note}, 
         ${parsedData.data.riferimento}, 
         ${parsedData.data.operatore}, 
@@ -435,14 +445,14 @@ export const getFornitoreById = async (id_fornitore: string) => {
 export const updateCliente = async (
   c: ClienteInputGroup,
   id: string
-) => {
+): Promise<DBResult<ClienteInputGroup>> => {
   const parsedData = schemas.ClienteSchema.safeParse({
     id: id,
     nome: c.nome,
     cognome: c.cognome,
     note: c.note,
     tipo: c.tipo,
-    data_di_nascita: c.data_di_nascita,
+    data_di_nascita: formatDate(c.data_di_nascita),
     tel: c.tel,
     email: c.email,
     citta: c.citta,
@@ -454,7 +464,8 @@ export const updateCliente = async (
     return {
       values: parsedData.data,
       errors: parsedData.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Cliente.",
+      message: ERRORMESSAGE,
+      errorsMessage: "Missing Fields. Failed to Create Cliente.",
     };
   }
   try {
@@ -473,12 +484,19 @@ export const updateCliente = async (
     WHERE id = ${id}
     `;
     console.log("SUCCESS UPDATING CLIENTE");
-    return true;
+    return {
+      values: parsedData.data,
+      message: SUCCESSMESSAGE,
+      errors: {},
+      errorsMessage: "",
+    };
   } catch (error) {
     console.log("db error: ", error);
     return {
       values: parsedData.data,
-      dbError: "Database Error: Failed to Create Invoice.",
+      message: ERRORMESSAGE,
+      errors: {},
+      errorsMessage: "Database Error: Failed to Update Cliente.",
     };
   }
 };
@@ -486,16 +504,14 @@ export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCl
   const parsedData = schemas.PreventivoSchema.safeParse({
     id: id,
     id_cliente: idCliente,
-    email: p.email,
-    numero_di_telefono: p.numero_di_telefono,
     note: p.note,
     riferimento: p.riferimento,
     operatore: p.operatore,
     feedback: p.feedback,
     adulti: p.adulti,
     bambini: p.bambini,
-    data_partenza: p.data_partenza,
-    data: p.data,
+    data_partenza: formatDate(p.data_partenza),
+    data: formatDate(p.data),
     numero_preventivo: p.numero_preventivo,
     stato: p.stato,
   });
@@ -511,8 +527,6 @@ export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCl
     const result = await sql`
     UPDATE preventivi SET 
     id_cliente = ${parsedData.data.id_cliente}, 
-    email = ${parsedData.data.email}, 
-    numero_di_telefono = ${parsedData.data.numero_di_telefono}, 
     note = ${parsedData.data.note}, 
     riferimento = ${parsedData.data.riferimento}, 
     operatore = ${parsedData.data.operatore}, 
@@ -561,6 +575,7 @@ export async function submitCreatePreventivoGI(data: Data) {
         data.cliente,
         data.cliente.id
       );
+      console.log('PREVENTIVO CREATO: ', preventivoCreato);
       let idPreventivo: string | undefined;
       if (preventivoCreato && 'rows' in preventivoCreato) {
         idPreventivo = preventivoCreato.rows[0].id;
@@ -692,7 +707,7 @@ export const searchClienti = async (
 
 export const searchPreventivi = async (clienteId: string): Promise<PreventivoInputGroup[]> => {
   const preventiviByCliente = await fetchPreventiviByCliente(clienteId);
-  const preventivi = preventiviByCliente.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.email, p.riferimento, p.operatore, p.feedback, p.note, p.numero_di_telefono, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
+  const preventivi = preventiviByCliente.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
   return preventivi;
 } 
 
