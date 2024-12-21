@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
         const  clienteId: string = await request.json();
         // Esegui la logica lato server qui
         const preventivi = await searchPreventivi(clienteId);
-        console.log("Dato ricevuto nell'API route:", clienteId);
-        console.log("Dato restituito dall'API route: ", preventivi);
+        console.log("Dato ricevuto nell'API route preventivi-by-cliente:", clienteId);
+        console.log("Dato restituito dall'API route preventivi-by-cliente: ", preventivi);
         return NextResponse.json(preventivi);
     } catch (error) {
         console.error('Errore nell\'API route:', error);

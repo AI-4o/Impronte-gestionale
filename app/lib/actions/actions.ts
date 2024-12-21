@@ -8,7 +8,7 @@ import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
 import { Cliente } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
-import { fetchDestinazioneByName, fetchFilteredClienti, fetchFornitoreByName, fetchPreventiviByCliente } from "../data";
+import { fetchDestinazioneByName, fetchFilteredClienti, fetchFornitoreByName, fetchPreventiviByCliente, getDestinazioneByName, getFornitoreByName } from "../data";
 import { AssicurazioneInputGroup, ClienteInputGroup, Data, ERRORMESSAGE, PreventivoInputGroup, ServizioATerraInputGroup, SUCCESSMESSAGE, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
 import { formatDate } from "../utils";
 
@@ -276,12 +276,13 @@ export const createPreventivo = async (
       RETURNING *;
     `;
     //console.log('result of createPreventivo: ', result);
-    return result;
+    return {...result, message: SUCCESSMESSAGE, errorsMessage: ''};
   } catch (error) {
     //console.log("db error: ", error);
     return {
+      message: ERRORMESSAGE,
       values: parsedData.data,
-      dbError: "Database Error: Failed to Create Preventivo.",
+      errorsMessage: error,
     };
   }
 };
@@ -353,7 +354,10 @@ export const createVolo = async (v: VoloInputGroup, id_preventivo: string) => {
   if (!parsedData.success) {
     console.log('parsedData.error: ', parsedData.error);
     return {
-      message: "Failed to Create Volo due to a parsing Zod error.",
+      message: ERRORMESSAGE,
+      errorsMessage: "Failed to Create Volo due to a parsing Zod error.",
+      values: parsedData.data,
+      errors: parsedData.error.flatten().fieldErrors,
     };
   }
   try {
@@ -386,7 +390,10 @@ export const createAssicurazione = async (a: AssicurazioneInputGroup, id_prevent
   });
   if (!parsedData.success) {
     return {
-      message: "Failed to Create Assicurazione due to a parsing Zod error.",
+      message: ERRORMESSAGE,
+      errorsMessage: "Failed to Create Assicurazione due to a parsing Zod error.",
+      values: parsedData.data,
+      errors: parsedData.error.flatten().fieldErrors,
     };
   }
   try {
@@ -396,49 +403,145 @@ export const createAssicurazione = async (a: AssicurazioneInputGroup, id_prevent
     RETURNING *;
     `;
     //console.log('result of createAssicurazione: ', result);
-    return result;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
   } catch (error) {
     return {
+      rowCount: 0,
+      rows: [],
       message: "Database Error: Failed to Create Assicurazione.",
+      errorsMessage: error
     };
   }
 }
 
 // ### GET ENTITY BY PREVENTIVO ###
 export const getPreventivoById = async (id_preventivo: string) => {
-  const result = await sql`SELECT * FROM preventivi WHERE id = ${id_preventivo}`;
-  return result;
+  try {
+    const result = await sql`SELECT * FROM preventivi WHERE id = ${id_preventivo}`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 
 export const getServiziATerraByPreventivoId = async (id_preventivo: string) => {
-  //console.log("id_preventivo: ", id_preventivo);
-  const result = await sql`SELECT * FROM servizi_a_terra WHERE id_preventivo = ${id_preventivo}`;
-  //console.log('LKJHGFD: ', result);
-  
-  return result;
+  try {
+    const result = await sql`SELECT * FROM servizi_a_terra WHERE id_preventivo = ${id_preventivo}`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 export const getServiziAggiuntiviByPreventivoId = async (id_preventivo: string) => {
-  const result = await sql`SELECT * FROM servizi_a_terra WHERE id_preventivo = ${id_preventivo} AND servizio_aggiuntivo = true`;
-  return result;
+  try {
+    const result = await sql`SELECT * FROM servizi_a_terra WHERE id_preventivo = ${id_preventivo} AND servizio_aggiuntivo = true`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 export const getVoliByPreventivoId = async (id_preventivo: string) => {
-  const result = await sql`SELECT * FROM voli WHERE id_preventivo = ${id_preventivo}`;
-  return result;
+  try {
+    const result = await sql`SELECT * FROM voli WHERE id_preventivo = ${id_preventivo}`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 export const getAssicurazioniByPreventivoId = async (id_preventivo: string) => {
-  const result = await sql`SELECT * FROM assicurazioni WHERE id_preventivo = ${id_preventivo}`;
-  return result;
+  
+  try {
+    const result = await sql`SELECT * FROM assicurazioni WHERE id_preventivo = ${id_preventivo}`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 
 
 // ## GET DESTINAZIONE BY ID
 export const getDestinazioneById = async (id_destinazione: string) => {
-  const result = await sql`SELECT * FROM destinazioni WHERE id = ${id_destinazione}`;
-  return result;
+  try {
+    const result = await sql`SELECT * FROM destinazioni WHERE id = ${id_destinazione}`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 export const getFornitoreById = async (id_fornitore: string) => {
-  const result = await sql`SELECT * FROM fornitori WHERE id = ${id_fornitore}`;
-  return result;
+  try {
+    const result = await sql`SELECT * FROM fornitori WHERE id = ${id_fornitore}`;
+    return {
+      ...result, 
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      rowCount: 0,
+      rows: [],
+      message: ERRORMESSAGE,
+      errorsMessage: error
+    };
+  }
 }
 
 // ### UPDATE ENTITY ###
@@ -496,20 +599,19 @@ export const updateCliente = async (
       values: parsedData.data,
       message: ERRORMESSAGE,
       errors: {},
-      errorsMessage: "Database Error: Failed to Update Cliente.",
+      errorsMessage: "Database Error: Failed to Update Cliente: " + error,
     };
   }
 };
-export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCliente: string) => {
-  const parsedData = schemas.PreventivoSchema.safeParse({
-    id: id,
-    id_cliente: idCliente,
+export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: string): Promise<DBResult<PreventivoInputGroup>> => {
+  const parsedData = schemas.UpdatePreventivoSchema.safeParse({
+    id: p.id,
     note: p.note,
     riferimento: p.riferimento,
     operatore: p.operatore,
     feedback: p.feedback,
-    adulti: p.adulti,
-    bambini: p.bambini,
+    adulti: p.adulti?.toString(),
+    bambini: p.bambini?.toString(),
     data_partenza: formatDate(p.data_partenza),
     data: formatDate(p.data),
     numero_preventivo: p.numero_preventivo,
@@ -520,36 +622,162 @@ export const updatePreventivo = async (p: PreventivoInputGroup, id: string, idCl
     return {
       values: parsedData.data,
       errors: parsedData.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Update Preventivo.",
+      message: ERRORMESSAGE,
+      errorsMessage: "Missing Fields. Failed to Update Preventivo.",
     };
   }
   try {
     const result = await sql`
     UPDATE preventivi SET 
-    id_cliente = ${parsedData.data.id_cliente}, 
     note = ${parsedData.data.note}, 
     riferimento = ${parsedData.data.riferimento}, 
     operatore = ${parsedData.data.operatore}, 
     feedback = ${parsedData.data.feedback}, 
-    adulti = ${parsedData.data.adulti}, 
-    bambini = ${parsedData.data.bambini}, 
+    adulti = ${parsedData.data.adulti?.toString()}, 
+    bambini = ${parsedData.data.bambini?.toString()}, 
     data_partenza = ${parsedData.data.data_partenza}, 
     data = ${parsedData.data.data}, 
     numero_preventivo = ${parsedData.data.numero_preventivo}, 
     stato = ${parsedData.data.stato}
-    WHERE id = ${id}
+    WHERE id = ${p.id}
   `;
     //console.log("SUCCESS UPDATING PREVENTIVO");
-    return result;
+    return {
+      ...result,
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
   } catch (error) {
     //console.log("db error: ", error);
     return {
       values: parsedData.data,
-      dbError: "Database Error: Failed to Update Preventivo.",
+      message: ERRORMESSAGE,
+      errorsMessage: "Database Error: Failed to Update Preventivo: " + error,
     };
   }
 };
 
+export const updateServiziATerra = async (s: ServizioATerraInputGroup, idPreventivo: string): Promise<DBResult<ServizioATerraInputGroup>> => {
+  
+  const parsedData = schemas.UpdateServizioATerraSchema.safeParse({
+    id_preventivo: idPreventivo,
+    descrizione: s.descrizione,
+    data: s.data,
+    numero_notti: s.numero_notti?.toString(),
+    totale: s.totale?.toString(),
+    valuta: s.valuta?.toString(),
+    cambio: s.cambio?.toString(),
+    servizio_aggiuntivo: s.servizio_aggiuntivo,
+  });
+  if (!parsedData.success) {
+    return {
+      values: parsedData.data,
+      message: ERRORMESSAGE,
+      errors: parsedData.error.flatten().fieldErrors,
+      errorsMessage: "Missing Fields. Failed to Update Servizio a Terra.",
+    };
+  }
+  try {
+    const result = await sql`
+    UPDATE servizi_a_terra SET 
+    descrizione = ${parsedData.data.descrizione}, 
+    data = ${parsedData.data.data}, 
+    numero_notti = ${parsedData.data.numero_notti?.toString()}, 
+    totale = ${parsedData.data.totale?.toString()}, 
+    valuta = ${parsedData.data.valuta?.toString()}, 
+    cambio = ${parsedData.data.cambio?.toString()}, 
+    servizio_aggiuntivo = ${parsedData.data.servizio_aggiuntivo}
+    WHERE id = ${s.id}
+  `;
+    return {
+      ...result,
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      message: ERRORMESSAGE,
+      errorsMessage: "Database Error: Failed to Update Servizio a Terra: " + error,
+    };
+  }
+} 
+export const updateVoli = async (v: VoloInputGroup, idPreventivo: string): Promise<DBResult<VoloInputGroup>> => {
+  const parsedData = schemas.UpdateVoloSchema.safeParse({
+    compagnia_aerea: v.compagnia,
+    descrizione: v.descrizione,
+    data_partenza: v.data_partenza,
+    data_arrivo: v.data_arrivo,
+    totale: v.totale?.toString(),
+    valuta: v.valuta?.toString(),
+    cambio: v.cambio?.toString()
+  });
+  if (!parsedData.success) {
+    return {
+      values: parsedData.data,
+      message: ERRORMESSAGE,
+      errors: parsedData.error.flatten().fieldErrors,
+      errorsMessage: "Missing Fields. Failed to Update Volo.",
+    };
+  }
+  try {
+    const result = await sql`
+    UPDATE voli SET 
+    compagnia_aerea = ${parsedData.data.compagnia_aerea}, 
+    descrizione = ${parsedData.data.descrizione}, 
+    data_partenza = ${parsedData.data.data_partenza}, 
+    data_arrivo = ${parsedData.data.data_arrivo}, 
+    totale = ${parsedData.data.totale?.toString()}, 
+    valuta = ${parsedData.data.valuta?.toString()}, 
+    cambio = ${parsedData.data.cambio?.toString()}
+    WHERE id = ${v.id}
+  `;
+    return {
+      ...result,
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      message: ERRORMESSAGE,
+      errorsMessage: "Database Error: Failed to Update Volo: " + error,
+    };
+  }
+}
+export const updateAssicurazioni = async (a: AssicurazioneInputGroup, idPreventivo: string): Promise<DBResult<AssicurazioneInputGroup>> => {
+  const parsedData = schemas.AssicurazioneSchema.safeParse({
+    id_preventivo: idPreventivo,
+    id_fornitore: a.fornitore,
+    assicurazione: a.assicurazione,
+    netto: a.netto?.toString(),
+  });
+  if (!parsedData.success) {
+    return {
+      values: parsedData.data,
+      message: ERRORMESSAGE,
+      errors: parsedData.error.flatten().fieldErrors,
+      errorsMessage: "Missing Fields. Failed to Update Assicurazione.",
+    };
+  }
+  try {
+    const result = await sql`
+    UPDATE assicurazioni SET 
+    assicurazione = ${parsedData.data.assicurazione}, 
+    netto = ${parsedData.data.netto?.toString()}
+    WHERE id = ${a.id}
+  `;
+    return {
+      ...result,
+      message: SUCCESSMESSAGE,
+      errorsMessage: ''
+    };
+  } catch (error) {
+    return {
+      message: ERRORMESSAGE,
+      errorsMessage: "Database Error: Failed to Update Assicurazione: "+ error,
+      errors: {},
+    };
+  }
+}
 /**
  * Do the following:
  *
@@ -707,6 +935,7 @@ export const searchClienti = async (
 
 export const searchPreventivi = async (clienteId: string): Promise<PreventivoInputGroup[]> => {
   const preventiviByCliente = await fetchPreventiviByCliente(clienteId);
+  console.log("PREVENTIVIBYCLIENTE: ", preventiviByCliente);
   const preventivi = preventiviByCliente.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
   return preventivi;
 } 

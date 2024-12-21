@@ -12,92 +12,7 @@ import { ClienteInputGroup, PreventivoInputGroup, ServizioATerraInputGroup, Volo
 import { formatDate } from "@/app/lib/utils";
 import { createCliente, updateCliente } from "@/app/lib/actions/actions";
 import Modal from "@/app/ui/invoices/modal";
-
-
-const initialData: Data = {
-    cliente: new ClienteInputGroup(
-        'Alfredo',
-        'Ingraldo',
-        'Ma quanto è figo'
-    ),
-    preventivo: new PreventivoInputGroup(
-        '666',
-        'IWS',
-        'riferimento esempio',
-        'operatore esempio',
-        'feedback esempio',
-        'note esempio',
-        2,
-        0,
-        new Date('2021-12-03'),
-        new Date('2022-03-22'),
-        'da fare'
-    ),
-    serviziATerra: [
-        new ServizioATerraInputGroup(
-            1,
-            'ALASKA',
-            'AAA JALALA',
-            'descrizione esempio',
-            new Date('2022-03-22'),
-            1,
-            'USD',
-            100
-        ),
-        new ServizioATerraInputGroup(
-            2,
-            'ALASKA',
-            'AAA JALALA',
-            'descrizione esempio',
-            new Date('2022-04-22'),
-            1,
-            'USD',
-            100
-        )
-    ],
-    serviziAggiuntivi: [new ServizioATerraInputGroup(
-        1,
-        'BALI',
-        'AAA JALALA',
-        'descrizione esempio servizio aggiuntivo',
-        new Date('2025-01-01'),
-        1,
-        'USD',
-        100,
-        1,
-        true
-    )],
-    voli: [
-        new VoloInputGroup(
-            1,
-            'AAA JALALA',
-            'compagnia esempio',
-            'descrizione esempio',
-            new Date('2025-01-01'),
-            new Date('2025-01-01'),
-            1,
-            'USD',
-            100
-        ),
-        new VoloInputGroup(
-            2,
-            'AAA JALALA',
-            'compagnia esempio',
-            'descrizione esempio',
-            new Date('2025-01-01'),
-            new Date('2025-01-01'),
-            1,
-            'USD',
-            100
-        )
-    ],
-    assicurazioni: [new AssicurazioneInputGroup(
-        1,
-        'AAA JALALA',
-        'assicurazione esempio',
-        666
-    )],
-}
+import { CompleteUpdatePreventivoFeedback } from "@/app/api/preventivi/update/route";
 
 export default function CreaPreventivoGeneralInterface() {
     // Extract the 'fornitori' and 'destinazioni' arrays from json
@@ -128,7 +43,7 @@ export default function CreaPreventivoGeneralInterface() {
     ]
 
     // cliente che compare nel form 
-    const [cliente, setCliente] = useState<ClienteInputGroup>(initialData.cliente ?? new ClienteInputGroup());
+    const [cliente, setCliente] = useState<ClienteInputGroup>(new ClienteInputGroup());
     const onVCCliente = async (e: any, name: string) => {
         console.log('change in a value of a cliente <event, id, name>: ', e, name);
         setCliente((prevState) => {
@@ -221,7 +136,6 @@ export default function CreaPreventivoGeneralInterface() {
     const aggiungiServizioAggiuntivo = () => {
         const newId = Math.max(...serviziAggiuntivi.map(s => Math.max(s.groupId, 0))) + 5
         setServiziAggiuntivi([...serviziAggiuntivi, new ServizioATerraInputGroup(newId)]);
-
     }
     const rimuoviServizioAggiuntivo = (groupId: number) => {
         setServiziAggiuntivi(serviziAggiuntivi.filter(servizio => servizio.groupId !== groupId));
@@ -289,6 +203,9 @@ export default function CreaPreventivoGeneralInterface() {
     const [feedback, setFeedback] = useState<Feedback>({ message: <></>, type: 'error' });
     const [showFeedback, setShowFeedback] = useState<boolean>(false);
 
+    // errors list
+    const [errorsList, setErrorsList] = useState<string[]>([]);
+
     // ### API CALLS ###
     /** Fetch the clienti corrispondenti to the cliente input. */
     const fetchClientiCorrispondenti = async () => {
@@ -321,11 +238,8 @@ export default function CreaPreventivoGeneralInterface() {
                 },
                 body: JSON.stringify(p),
             });
-            if (!response.ok) {
-                throw new Error('Errore nella risposta del server');
-            }
             const data: Data = await response.json();
-            console.log('data: ', data);
+            console.log('data completi preventivo: ', data);
             return data;
         } catch (error) {
             console.error('Errore durante la ricerca dei dati del preventivo:', error);
@@ -342,19 +256,19 @@ export default function CreaPreventivoGeneralInterface() {
 
     const onClickUpdateCliente = async (c: ClienteInputGroup) => {
         setShowFormAggiornaCliente(false);
-        console.log('the clienteDaAggiornare state is POIUYTRE: ', clienteDaAggiornare);
+        console.log('the clienteDaAggiornare state is: ', clienteDaAggiornare);
         const res = await updateCliente(c, c.id);
         if (res.message == SUCCESSMESSAGE) {
             setFeedback(() => {
-                return { 
-                    message: getFeedbackBody({message: SUCCESSMESSAGE, type: 'success'}),
+                return {
+                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
                     type: 'success'
                 }
             });
         } else {
             setFeedback(() => {
-                return { 
-                    message: getFeedbackBody({message: res.message, type: 'error'}),
+                return {
+                    message: getFeedbackBody({ message: res.message, type: 'error' }),
                     type: 'error',
                     errorsMessage: res.errorsMessage
                 }
@@ -381,14 +295,14 @@ export default function CreaPreventivoGeneralInterface() {
             const data: PreventivoInputGroup[] = await response.json();
             console.log('data: ', data);
             setPreventiviClienteList(data);
-            if(data.length > 0) {
+            if (data.length > 0) {
                 setClienteDaAggiornare(c);
                 setShowPreventiviClienteList(!showPreventiviClienteList);
             } else {
                 setShowPreventiviClienteList(false);
                 setFeedback(() => {
-                    return { 
-                        message: getFeedbackBody({message: 'Il cliente non ha preventivi...', type: 'error'}),
+                    return {
+                        message: getFeedbackBody({ message: 'Il cliente non ha preventivi...', type: 'error' }),
                         type: 'error'
                     }
                 });
@@ -413,8 +327,8 @@ export default function CreaPreventivoGeneralInterface() {
         const res = await createCliente(cliente);
         if (res.message == SUCCESSMESSAGE) { // cliente creato con successo
             setFeedback(() => {
-                return { 
-                    message: getFeedbackBody({message: SUCCESSMESSAGE, type: 'success'}),
+                return {
+                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
                     type: 'success'
                 }
             });
@@ -422,9 +336,9 @@ export default function CreaPreventivoGeneralInterface() {
             setClientiTrovati(clienti);
             setShowClientiTrovati(true);
         } else { // TODO: mostrare errori in modo più esplicito -> mostrare errori validazione, mostrare tipo di errore (db o altro)
-            setFeedback(() => { 
-                return { 
-                    message: getFeedbackBody({message: ERRORMESSAGE, type: 'error'}),
+            setFeedback(() => {
+                return {
+                    message: getFeedbackBody({ message: ERRORMESSAGE, type: 'error' }),
                     type: 'error',
                     errorsMessage: res.errorsMessage
                 }
@@ -435,10 +349,8 @@ export default function CreaPreventivoGeneralInterface() {
 
     const onClickAggiornaPreventivo = async (c: ClienteInputGroup, p: PreventivoInputGroup) => {
         const data = await fetchDataPreventivoDaAggiornare(p);
-
-
-        setCliente(data.cliente);
-        setPreventivo(data.preventivo);
+        setCliente(c);
+        setPreventivo(p);
         setServiziATerra(data.serviziATerra);
         setServiziAggiuntivi(data.serviziAggiuntivi);
         setVoli(data.voli);
@@ -466,15 +378,15 @@ export default function CreaPreventivoGeneralInterface() {
         });
         if (response.ok) { // preventivo creato con successo
             setFeedback(() => {
-                return { 
-                    message: getFeedbackBody({message: SUCCESSMESSAGE, type: 'success'}),
+                return {
+                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
                     type: 'success'
                 }
             });
         } else {
             setFeedback(() => {
-                return { 
-                    message: getFeedbackBody({message: ERRORMESSAGE, type: 'error'}),
+                return {
+                    message: getFeedbackBody({ message: ERRORMESSAGE, type: 'error' }),
                     type: 'error',
                     errorsMessage: "TODO: gestisci questo messaggio di errore"
                 }
@@ -483,28 +395,107 @@ export default function CreaPreventivoGeneralInterface() {
         setShowFeedback(true);
     }
 
-    // gestione lista preventivi di un client
+    const submitUpdatePreventivo = async () => {
+        const data: Data = {
+            cliente: cliente,
+            preventivo: preventivo,
+            serviziATerra: serviziATerra,
+            serviziAggiuntivi: serviziAggiuntivi,
+            voli: voli,
+            assicurazioni: assicurazioni,
+        }
+        const response = await fetch('/api/preventivi/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        const res: CompleteUpdatePreventivoFeedback = await response.json();
+        console.log('res: ', res);
+
+        // creazione del feedback
+        let feedbackMessage: string[]=[];
+        if (res.feedbackPreventivo.message != SUCCESSMESSAGE) {
+            feedbackMessage[0] = 'errore in aggiornamento preventivo: ' 
+            + res.feedbackPreventivo.errorsMessage + '\n' 
+            + Object.entries(res.feedbackPreventivo?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
+        }
+        res.feedbackServiziATerra.forEach((feedback, i) => {
+            if (feedback.message != SUCCESSMESSAGE) {
+                feedbackMessage[i + 1] = 'errore in aggiornamento servizio a terra n.' + (i + 1) + ': ' + feedback.errorsMessage;
+                if(feedback?.errors) {
+                    feedbackMessage[i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
+                }
+            }
+        });
+        res.feedbackServiziAggiuntivi.forEach((feedback, i) => {
+            if (feedback.message != SUCCESSMESSAGE) {
+                feedbackMessage[res.feedbackServiziATerra.length + i + 1] = 'errore in aggiornamento servizio aggiuntivo n.' + (i + 1) + ':' + feedback.errorsMessage ?? '';
+                if(feedback?.errors) {
+                    feedbackMessage[res.feedbackServiziATerra.length + i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
+                }
+            }
+        });
+        res.feedbackVoli.forEach((feedback, i) => {
+            if (feedback.message != SUCCESSMESSAGE) {
+                feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + i + 1] = 'errore in aggiornamento volo n.' + (i + 1) + ':' + feedback.errorsMessage;
+                if(feedback?.errors) {
+                    feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
+                }
+            }
+        });
+        res.feedbackAssicurazioni.forEach((feedback, i) => {
+            if (feedback.message != SUCCESSMESSAGE) {
+                feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + res.feedbackVoli.length + i + 1] = 'errore in aggiornamento assicurazione n.' + (i + 1) + ':' + feedback.errorsMessage;
+                if(feedback?.errors) {
+                    feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + res.feedbackVoli.length + i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
+                }
+            }
+        });
+        if (feedbackMessage.length == 0) {
+            setFeedback(() => {
+                return {
+                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
+                    type: 'success'
+                }
+            });
+            setShowFeedback(true);
+            setErrorsList([]);
+        } else {
+            setErrorsList(feedbackMessage);
+        }
+    }
+
+    // gestione lista preventivi di un cliente
     useEffect(() => {
         fetchClientiCorrispondenti();
         console.log('the cliente state is: ', cliente);
+        setErrorsList([]);
     }, [cliente]);
     useEffect(() => {
         console.log('the clienteDaAggiornare state is: ', clienteDaAggiornare);
+        setErrorsList([]);
     }, [clienteDaAggiornare]);
     useEffect(() => {
         console.log('the preventivo state is: ', preventivo);
+        setErrorsList([]);
     }, [preventivo]);
     useEffect(() => {
         console.log('the serviziATerra state is: ', serviziATerra);
+        setErrorsList([]);
     }, [serviziATerra]);
     useEffect(() => {
         console.log('the serviziAggiuntivi state is: ', serviziAggiuntivi);
+        setErrorsList([]);
     }, [serviziAggiuntivi]);
     useEffect(() => {
         console.log('the voli state is: ', voli);
+        setErrorsList([]);
     }, [voli]);
     useEffect(() => {
         console.log('the assicurazioni state is: ', assicurazioni);
+        setErrorsList([]);
     }, [assicurazioni]);
 
 
@@ -525,7 +516,7 @@ export default function CreaPreventivoGeneralInterface() {
             <h1 className={`mb-4 text-xl md:text-2xl`}>CREA PREVENTIVO</h1>
 
             {/* FEEDBACK */}
-            <Modal isOpen={showFeedback} setIsOpen={setShowFeedback} timeout={3000} body={feedback.message}/>
+            <Modal isOpen={showFeedback} setIsOpen={setShowFeedback} timeout={3000} body={feedback.message} />
 
             {/* Cliente */}
             <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
@@ -556,7 +547,7 @@ export default function CreaPreventivoGeneralInterface() {
                                         onClick={() => { onClickMostraListaPreventivi(c); }}
                                     >
                                         {showPreventiviClienteList && c.id == clienteDaAggiornare.id ? 'Nascondi lista preventivi' : 'Mostra lista preventivi'}
-                                      
+
                                     </button>
                                     <button
                                         className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
@@ -871,14 +862,33 @@ export default function CreaPreventivoGeneralInterface() {
                         <p>somma di tutti i tot euro: {getSommaTuttiTotEuro()}</p>
                     </div>
                     <div className="flex flex-row items-center justify-center pt-4 pl-5">
-                        <button
-                            className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
-                            type="button"
-                            onClick={submitCreatePreventivo}
-                        >
-                            Crea preventivo
-                        </button>
+                        {!preventivo?.id &&
+                            <button
+                                className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                                type="button"
+                                onClick={submitCreatePreventivo}
+                            >
+                                Crea preventivo
+                            </button>
+                        }
+                        {preventivo?.id &&
+                            <button
+                                className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                                type="button"
+                                onClick={submitUpdatePreventivo}
+                            >
+                                Aggiorna preventivo
+                            </button>
+                        }
                     </div >
+                    {
+                        errorsList.length > 0 &&
+                        errorsList.map((error, index) => (
+                            <div key={index} className={`flex flex-row items-center justify-center pt-4 pl-5 text-red-500`}>
+                                <p>{error}</p>
+                            </div>
+                        ))
+                    }
                 </div >
             }
         </>
@@ -906,11 +916,13 @@ const getRicarico = (totale: number, cambio: number, percentualeRicarico: number
 }
 
 const formatDateToString = (date: Date): string => {
-    if (!date) return '';
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const year = date.getFullYear();
-    return `${month}${day}${year}`;
+    if (date instanceof Date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const year = date.getFullYear();
+        return `${month}${day}${year}`;
+    }
+    return null;
 }
 
 const getFeedbackBody = (feedback: Feedback) => {

@@ -10,21 +10,25 @@ import {
 import {
   AssicurazioneInputGroup,
   Data,
+  Feedback,
   PreventivoInputGroup,
   ServizioATerraInputGroup,
   VoloInputGroup,
 } from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
 
 export async function POST(request: NextRequest) {
+  
   try {
-    let res: Data = {
+    let res: Data & {feedback?: Feedback} = {
       preventivo: undefined,
       serviziATerra: [],
       serviziAggiuntivi: [],
       voli: [],
       assicurazioni: [],
+      feedback: undefined,
     };
     const p: PreventivoInputGroup = await request.json();
+    console.log("Dato ricevuto nell'API route di get-data-preventivo-completi:", p);
     const preventivoId = p.id;
 
     // dato id preventivo vogliamo -> serviziATerra, serviziAggiuntivi, voli, assicurazioni
@@ -47,9 +51,7 @@ export async function POST(request: NextRequest) {
     res.serviziAggiuntivi = serviziAggiuntiviInputGroup;
     res.voli = voliInputGroup;
     res.assicurazioni = assicurazioniInputGroup;
-
-    console.log("Dato ricevuto nell'API route:", p);
-    console.log("Dato restituito dall'API route: ", res);
+    console.log("Dato restituito dall'API route di get-data-preventivo-completi: ", res);
     return NextResponse.json(res);
   } catch (error) {
     console.error("Errore nell'API route:", error);
@@ -149,11 +151,3 @@ const getAssicurazioniInputGroup = async (assicurazioni: any): Promise<Assicuraz
   }
   return res;
 }
-/*
-        public groupId: number,
-        public fornitore?: string,
-        public assicurazione?: string,
-        public netto?: number,
-        public id?: string,
-
-*/

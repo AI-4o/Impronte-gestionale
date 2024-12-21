@@ -987,7 +987,7 @@ export const fetchPreventiviByCliente = async (idCliente: string): Promise<Preve
       SELECT * FROM preventivi
       WHERE id_cliente = ${idCliente}
     `;
-    return preventivo.rows.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.email, p.riferimento, p.operatore, p.feedback, p.note, p.numero_di_telefono, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
+    return preventivo.rows.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch preventivo by cliente.');
@@ -1018,4 +1018,38 @@ export const fetchFornitoreByName = async (name: string): Promise<Fornitore | nu
     console.error('Database Error:', error);
     throw new Error('Failed to fetch fornitore by name.');
   }
+};
+
+export const getAllFornitori = async (): Promise<Fornitore[]> => {
+  try {
+    const fornitori = await sql<Fornitore>`
+      SELECT * FROM fornitori
+      ORDER BY id ASC
+    `;  
+    return fornitori.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all fornitori.');
+  }
+};
+export const getAllDestinazioni = async (): Promise<Destinazione[]> => {
+  try {
+    const destinazioni = await sql<Destinazione>`
+      SELECT * FROM destinazioni
+      ORDER BY id ASC
+    `;
+    return destinazioni.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all destinazioni.');
+  }
+};
+
+export const getFornitoreByName = async (name: string): Promise<Fornitore | null> => {
+  const fornitori = await getAllFornitori();
+  return fornitori.find(f => f.nome === name) || null;
+};
+export const getDestinazioneByName = async (name: string): Promise<Destinazione | null> => {
+  const destinazioni = await getAllDestinazioni();
+  return destinazioni.find(d => d.nome === name) || null;
 };

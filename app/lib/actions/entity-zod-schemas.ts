@@ -31,6 +31,18 @@ export const PreventivoSchema = z.object({
   numero_preventivo: z.string().optional(),
   stato: z.string().nullable().optional(),
 });
+export const UpdatePreventivoSchema = z.object({
+  note: z.string().nullable().optional(),
+  riferimento: z.string().nullable().optional(),
+  operatore: z.string().nullable().optional(),
+  feedback: z.string().nullable().optional(),
+  adulti: z.string().nullable().optional(),
+  bambini: z.string().nullable().optional(),
+  data_partenza: z.string().nullable().optional(),
+  data: z.string().nullable().optional(),
+  stato: z.string().nullable().optional(),
+  numero_preventivo: z.string().nullable().optional(),
+});
 export const FornitoreSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),
   valuta: z.enum(valuteArray as [string, ...string[]]),
@@ -51,6 +63,16 @@ export const ServizioATerraSchema = z.object({
   cambio: z.string().nullable().optional(),
   servizio_aggiuntivo: z.boolean(),
 });
+export const UpdateServizioATerraSchema = z.object({
+  descrizione: z.string().nullable().optional(),
+  data_partenza: z.string().nullable().optional(),
+  data: z.string().nullable().optional(),
+  numero_notti: z.string().nullable().optional(),
+  totale: z.string().nullable().optional(),
+  valuta: z.enum(valuteArray as [string, ...string[]]).optional(),
+  cambio: z.string().nullable().optional(),
+  servizio_aggiuntivo: z.boolean(),
+});
 export const VoloSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
@@ -62,9 +84,22 @@ export const VoloSchema = z.object({
   valuta: z.enum(valuteArray as [string, ...string[]]).optional(),
   cambio: z.string().nullable().optional(),
 });
+export const UpdateVoloSchema = z.object({
+  compagnia_aerea: z.string().nullable().optional(),
+  descrizione: z.string().nullable().optional(),
+  data_partenza: z.string().nullable().optional(),
+  data_arrivo: z.string().nullable().optional(),
+  totale: z.string().nullable().optional(),
+  valuta: z.enum(valuteArray as [string, ...string[]]).optional(),
+  cambio: z.string().nullable().optional(),
+});
 export const AssicurazioneSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string(),
+  assicurazione: z.string(),
+  netto: z.string().nullable().optional(),
+});
+export const UpdateAssicurazioneSchema = z.object({
   assicurazione: z.string(),
   netto: z.string().nullable().optional(),
 });
@@ -122,5 +157,4 @@ export const PraticaSchema = z.object({
   data_rientro: z.string().nullable().optional(),
   note: z.string().optional(),
   numero_passeggeri: z.string().nullable().optional(),
-  totale: z.string().nullable().optional(),
 });
