@@ -9,10 +9,12 @@ import { useEffect, useState } from "react";
 import fornitoriData from '@/app/seed/fornitori.json';
 import destinazioniData from '@/app/seed/destinazioni.json';
 import { ClienteInputGroup, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup, Data, SUCCESSMESSAGE, Feedback, ERRORMESSAGE } from "./general-interface.defs";
-import { formatDate } from "@/app/lib/utils";
-import { createCliente, updateCliente } from "@/app/lib/actions/actions";
+import { formatDate, isValidEmail } from "@/app/lib/utils";
+import { createCliente, DBResult, updateCliente } from "@/app/lib/actions/actions";
 import Modal from "@/app/ui/invoices/modal";
 import { CompleteUpdatePreventivoFeedback } from "@/app/api/preventivi/update/route";
+import { getTotServizio, getRicaricoServizio, getTotVolo, getRicaricoAssicurazione, getTotAssicurazione, formatDateToString, getSommaTuttiTotEuro, validationErrorsToString, numberToExcelFormat, formatNumberItalian } from "./helpers";
+import { getNumberOfPreventivi } from "@/app/lib/data";
 
 export default function CreaPreventivoGeneralInterface() {
     // Extract the 'fornitori' and 'destinazioni' arrays from json
@@ -41,11 +43,18 @@ export default function CreaPreventivoGeneralInterface() {
         'IMS',
         'BORN'
     ]
+    const operatoreOptions = [
+        'Serenella',
+        'Carlo',
+        'Silvia',
+        'Valentina',
+        'Elena'
+    ]
 
     // cliente che compare nel form 
     const [cliente, setCliente] = useState<ClienteInputGroup>(new ClienteInputGroup());
     const onVCCliente = async (e: any, name: string) => {
-        console.log('change in a value of a cliente <event, id, name>: ', e, name);
+        //console.log('change in a value of a cliente <event, id, name>: ', e, name);
         setCliente((prevState) => {
             if (name === 'data_di_nascita') {
                 return { ...prevState, data_di_nascita: new Date(e.target.value) };
@@ -67,7 +76,7 @@ export default function CreaPreventivoGeneralInterface() {
     const [clienteDaAggiornare, setClienteDaAggiornare] = useState<ClienteInputGroup>({});
 
     const onVCClienteDaAggiornare = (e: any, name: string) => {
-        console.log('change in a value of a clienteDaAggiornare <event, id, name>: ', e, name);
+        //console.log('change in a value of a clienteDaAggiornare <event, id, name>: ', e, name);
         setClienteDaAggiornare((prevState) => {
             if (name === 'data_di_nascita') {
                 return { ...prevState, data_di_nascita: new Date(e.target.value) };
@@ -83,25 +92,26 @@ export default function CreaPreventivoGeneralInterface() {
     // gestione show form per creare preventivo
     const [showFormPreventivo, setShowFormPreventivo] = useState<boolean>(false);
 
-    const getSommaTuttiTotEuro = () => {
-        const totServiziATerra = serviziATerra.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0);
-        const totServiziAggiuntivi = serviziAggiuntivi.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0);
-        const totVoli = voli.reduce((acc, volo) => acc + getTot(volo.totale, volo.cambio ?? 1, getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico)), 0);
-        const totAssicurazioni = assicurazioni.reduce((acc, assicurazione) => acc + getTot(assicurazione.netto, 1, getRicarico(assicurazione.netto, 1, percentualeRicarico)), 0);
-        return totServiziATerra + totServiziAggiuntivi + totVoli + totAssicurazioni;
-    }
+
 
     // gestione preventivo
     const [preventivo, setPreventivo] = useState<PreventivoInputGroup>({});
     const onVCpreventivo = (e: any, name: string) => {
-        console.log('change in a value of a preventivo <event, id, name>: ', e, name);
+        //console.log('change in a value of a preventivo <event, id, name>: ', e, name);
         setPreventivo((prevState) => {
             if (name === 'data_partenza') {
                 return { ...prevState, data_partenza: new Date(e.target.value) };
             } else if (name === 'data') {
                 return { ...prevState, data: new Date(e.target.value) };
             } else {
-                return { ...prevState, [name]: e.target.value };
+                let p = { ...prevState, [name]: e.target.value }
+                switch (name) {
+                    case 'adulti': p[name] = parseInt(e.target.value);
+                        break;
+                    case 'bambini': p[name] = parseInt(e.target.value);
+                        break;
+                }
+                return p;
             }
         });
     }
@@ -111,20 +121,33 @@ export default function CreaPreventivoGeneralInterface() {
     // gestione aggiunta/rimozione servizi a terra
     const [serviziATerra, setServiziATerra] = useState<ServizioATerraInputGroup[]>([]);
     const aggiungiServizioATerra = () => {
-        const newId = Math.max(...serviziATerra.map(s => Math.max(s.groupId, 0))) + 5
-        setServiziATerra([...serviziATerra, new ServizioATerraInputGroup(newId)]);
+        const maxId = Math.max(...serviziATerra.map(s => Math.max(s.groupId, 0)))
+        let baseId = maxId;
+        if (!(maxId > 0)) baseId = 0;
+        const newId = baseId + 5;
+        setServiziATerra([...serviziATerra, new ServizioATerraInputGroup(newId, undefined, undefined, undefined, new Date(), 0, 0, 'EUR', 0, 1, false)]);
     }
     const rimuoviServizioATerra = (groupId: number) => {
         setServiziATerra(serviziATerra.filter(servizio => servizio.groupId !== groupId));
     }
     const onVCServizioATerra = (e: any, id: number, name: string) => {
-        console.log('change in a value of a servizioATerra <event, id, name>: ', e, id, name);
+        //console.log('change in a value of a servizioATerra <event, id, name>: ', e, id, name);
         setServiziATerra(serviziATerra.map(servizio => {
             if (servizio.groupId === id) {
                 if (name === 'data') {
                     servizio.data = new Date(e.target.value);
                 } else {
                     servizio[name] = e.target.value;
+                    switch (name) {
+                        case 'numero_notti': servizio[name] = parseInt(e.target.value);
+                            break;
+                        case 'numero_camere': servizio[name] = parseInt(e.target.value);
+                            break;
+                        case 'totale': servizio[name] = parseFloat(e.target.value);
+                            break
+                        case 'cambio': servizio[name] = parseFloat(e.target.value);
+                            break
+                    }
                 }
             }
             return servizio;
@@ -134,20 +157,33 @@ export default function CreaPreventivoGeneralInterface() {
     // gestione aggiunta/rimozione servizi aggiuntivi
     const [serviziAggiuntivi, setServiziAggiuntivi] = useState<ServizioATerraInputGroup[]>([]);
     const aggiungiServizioAggiuntivo = () => {
-        const newId = Math.max(...serviziAggiuntivi.map(s => Math.max(s.groupId, 0))) + 5
-        setServiziAggiuntivi([...serviziAggiuntivi, new ServizioATerraInputGroup(newId)]);
+        const maxId = Math.max(...serviziAggiuntivi.map(s => Math.max(s.groupId, 0)))
+        let baseId = maxId;
+        if (!(maxId > 0)) baseId = 0;
+        const newId = baseId + 5;
+        setServiziAggiuntivi([...serviziAggiuntivi, new ServizioATerraInputGroup(newId, undefined, undefined, undefined, new Date(), 0, 0, 'EUR', 0, 1, true)]);
     }
     const rimuoviServizioAggiuntivo = (groupId: number) => {
         setServiziAggiuntivi(serviziAggiuntivi.filter(servizio => servizio.groupId !== groupId));
     }
     const onVCServizioAggiuntivo = (e: any, id: number, name: string) => {
-        console.log('change in a value of a servizioAggiuntivo <event, id, name>: ', e, id, name);
+        //console.log('change in a value of a servizioAggiuntivo <event, id, name>: ', e, id, name);
         setServiziAggiuntivi(serviziAggiuntivi.map(servizio => {
             if (servizio.groupId === id) {
                 if (name === 'data') {
                     servizio.data = new Date(e.target.value);
                 } else {
                     servizio[name] = e.target.value;
+                    switch (name) {
+                        case 'numero_notti': servizio[name] = parseInt(e.target.value);
+                            break;
+                        case 'numero_camere': servizio[name] = parseInt(e.target.value);
+                            break;
+                        case 'totale': servizio[name] = parseFloat(e.target.value);
+                            break
+                        case 'cambio': servizio[name] = parseFloat(e.target.value);
+                            break
+                    }
                 }
             }
             return servizio;
@@ -157,15 +193,18 @@ export default function CreaPreventivoGeneralInterface() {
     // gestione aggiunta/rimozione voli
     const [voli, setVoli] = useState<VoloInputGroup[]>([]);
     const aggiungiVolo = () => {
-        const newId = Math.max(...voli.map(s => Math.max(s.groupId, 0))) + 5
-        setVoli([...voli, new VoloInputGroup(newId)]);
+        const maxId = Math.max(...voli.map(s => Math.max(s.groupId, 0)))
+        let baseId = maxId;
+        if (!(maxId > 0)) baseId = 0;
+        const newId = baseId + 5;
+        setVoli([...voli, new VoloInputGroup(newId, undefined, undefined, undefined, new Date(), new Date(), 0, 0, 0, undefined, 1)]);
 
     }
     const rimuoviVolo = (groupId: number) => {
         setVoli(voli.filter(servizio => servizio.groupId !== groupId));
     }
     const onVCVolo = (e: any, id: number, name: string) => {
-        console.log('change in a value of a volo <event, id, name>: ', e, id, name);
+        //console.log('change in a value of a volo <event, id, name>: ', e, id, name);
         setVoli(voli.map(volo => {
             if (volo.groupId === id) {
                 if (name === 'data_partenza') {
@@ -174,6 +213,15 @@ export default function CreaPreventivoGeneralInterface() {
                     volo.data_arrivo = new Date(e.target.value);
                 } else {
                     volo[name] = e.target.value;
+                    switch (name) {
+                        case 'totale': volo[name] = parseFloat(e.target.value);
+                            break;
+                        case 'ricarico': volo[name] = parseFloat(e.target.value);
+                            break;
+                        case 'cambio': volo[name] = parseFloat(e.target.value);
+                            break;
+                        case 'numero': volo[name] = parseInt(e.target.value);
+                    }
                 }
             }
             return volo;
@@ -183,17 +231,21 @@ export default function CreaPreventivoGeneralInterface() {
     // gestione aggiunta/rimozione assicurazioni
     const [assicurazioni, setAssicurazioni] = useState<AssicurazioneInputGroup[]>([]);
     const aggiungiAssicurazione = () => {
-        const newId = Math.max(...assicurazioni.map(s => Math.max(s.groupId, 0))) + 5
-        setAssicurazioni([...assicurazioni, new AssicurazioneInputGroup(newId)]);
+        const maxId = Math.max(...assicurazioni.map(s => Math.max(s.groupId, 0)))
+        let baseId = maxId;
+        if (!(maxId > 0)) baseId = 0;
+        const newId = baseId + 5;
+        setAssicurazioni([...assicurazioni, new AssicurazioneInputGroup(newId, null, undefined, 0)]);
     }
     const rimuoviAssicurazione = (groupId: number) => {
         setAssicurazioni(assicurazioni.filter(assicurazione => assicurazione.groupId !== groupId));
     }
     const onVCAssicurazione = (e: any, id: number, name: string) => {
-        console.log('change in a value of a assicurazione <event, id, name>: ', e, id, name);
+        //console.log('change in a value of a assicurazione <event, id, name>: ', e, id, name);
         setAssicurazioni(assicurazioni.map(assicurazione => {
             if (assicurazione.groupId === id) {
                 assicurazione[name] = e.target.value;
+                if (name == 'netto') assicurazione[name] = parseFloat(e.target.value);
             } return assicurazione;
         }));
     }
@@ -211,40 +263,40 @@ export default function CreaPreventivoGeneralInterface() {
     const fetchClientiCorrispondenti = async () => {
         // Esegui la chiamata all'API solo se 
         // showFormPreventivo è false
-        try {
-            const response = await fetch('/api/clienti', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(cliente),
-            });
-            if (!response.ok) {
-                throw new Error('Errore nella risposta del server');
-            }
+        const response = await fetch('/api/clienti', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(cliente),
+        });
+        if (response.ok) {
             const data: ClienteInputGroup[] = await response.json();
             console.log('data: ', data);
             return data;
-        } catch (error) {
-            console.error('Errore durante la verifica del cliente:', error);
+        } else {
+            setErrorsList(['Errore nella chiamata: ', response.statusText]);
         }
     }
     const fetchDataPreventivoDaAggiornare = async (p: PreventivoInputGroup): Promise<Data> => {
-        try {
-            const response = await fetch('/api/preventivi/data-preventivo-completi', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(p),
-            });
-            const data: Data = await response.json();
+        const response = await fetch('/api/preventivi/data-preventivo-completi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(p),
+        });
+        if (response.ok) {
+            const data: DBResult<Data> = await response.json();
             console.log('data completi preventivo: ', data);
-            return data;
-        } catch (error) {
-            console.error('Errore durante la ricerca dei dati del preventivo:', error);
+            if (data.success) {
+                return data.values;
+            } else {
+                setErrorsList(['Errore nella chiamata: ', data.errorsMessage + '\n', validationErrorsToString(data.errors)]);
+            }
+        } else {
+            setErrorsList(['Errore nella chiamata: ', response.statusText]);
         }
-        return undefined;
     }
 
     // ### GESTIONE EVENTI CLICK ###
@@ -254,112 +306,123 @@ export default function CreaPreventivoGeneralInterface() {
         setShowFormAggiornaCliente(!showFormAggiornaCliente);
     }
 
-    const onClickUpdateCliente = async (c: ClienteInputGroup) => {
-        setShowFormAggiornaCliente(false);
-        console.log('the clienteDaAggiornare state is: ', clienteDaAggiornare);
-        const res = await updateCliente(c, c.id);
-        if (res.message == SUCCESSMESSAGE) {
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                    type: 'success'
-                }
-            });
-        } else {
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: res.message, type: 'error' }),
-                    type: 'error',
-                    errorsMessage: res.errorsMessage
-                }
-            });
-        }
-        setShowFeedback(true);
-        const clienti = await fetchClientiCorrispondenti();
-        setClientiTrovati(clienti);
-        setShowClientiTrovati(true);
-    }
-
-    const onClickMostraListaPreventivi = async (c: ClienteInputGroup) => {
-        try {
-            const response = await fetch('/api/preventivi/preventivi-by-cliente', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(c.id),
-            });
-            if (!response.ok) {
-                throw new Error('Errore nella risposta del server');
-            }
-            const data: PreventivoInputGroup[] = await response.json();
-            console.log('data: ', data);
-            setPreventiviClienteList(data);
-            if (data.length > 0) {
-                setClienteDaAggiornare(c);
-                setShowPreventiviClienteList(!showPreventiviClienteList);
-            } else {
-                setShowPreventiviClienteList(false);
+    /**
+     * Check if the email is valid and try to create cliente
+     * if creation is successful, fetch clienti based on clienti form and show them.
+     */
+    const onClickCreateCliente = async () => {
+        if (cliente.email && isValidEmail(cliente.email)) { // email esiste ed è valida -> procedi a creazione cliente
+            const res = await createCliente(cliente);
+            console.log('res: ', res);
+            if (res.success) { // cliente creato con successo
                 setFeedback(() => {
                     return {
-                        message: getFeedbackBody({ message: 'Il cliente non ha preventivi...', type: 'error' }),
-                        type: 'error'
+                        message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
+                        type: 'success'
                     }
                 });
                 setShowFeedback(true);
+                const clienti = await fetchClientiCorrispondenti();
+                setClientiTrovati(clienti);
+                setShowClientiTrovati(true);
+            } else { // TODO: mostrare errori in modo più esplicito -> mostrare errori validazione, mostrare tipo di errore (db o altro)
+                setErrorsList(['Errore nella creazione del cliente: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
             }
-        } catch (error) {
-            console.error('Errore durante la ricerca dei preventivi del cliente:', error);
+        }
+        else { // email non esiste o non è valida -> mostrare errore
+            setErrorsList(['Inserisci una email con formato valido.']);
         }
     }
 
-    const onClickNuovoPreventivo = (c: ClienteInputGroup) => {
+    /**
+     * Check if the email is valid and update cliente
+     * if update is successful, fetch clienti based on clienti form and show them.
+     * @param c - cliente to update
+     */
+    const onClickUpdateCliente = async (c: ClienteInputGroup) => {
+        if (c.email && isValidEmail(c.email)) {
+            const res = await updateCliente(c, c.id);
+            if (res.success) {
+                setFeedback(() => {
+                    return {
+                        message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
+                        type: 'success'
+                    }
+                });
+                setShowFeedback(true);
+                const clienti = await fetchClientiCorrispondenti();
+                setClientiTrovati(clienti);
+                setShowClientiTrovati(true);
+            } else {
+                setErrorsList(['Errore nell\'aggiornamento del cliente: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
+            }
+        } else { // email non esiste o non è valida -> mostrare errore
+            setErrorsList(['Inserisci un email con formato valido.']);
+        }
+    }
+
+    const onClickMostraListaPreventivi = async (c: ClienteInputGroup) => {
+        const response = await fetch('/api/preventivi/preventivi-by-cliente', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(c.id),
+        });
+        const preventiviByClienteDBResult: DBResult<PreventivoInputGroup[]> = await response.json();
+        console.log('data: ', preventiviByClienteDBResult);
+        if (preventiviByClienteDBResult.success) { // se la chiamata all'API è andata a buon fine
+            // se ci sono preventivi, mostrare la lista, altrimenti mostrare errore
+            if (preventiviByClienteDBResult.values.length > 0) {
+                setClienteDaAggiornare(c);
+                setPreventiviClienteList(preventiviByClienteDBResult.values);
+                setShowPreventiviClienteList(!showPreventiviClienteList);
+            } else {
+                setErrorsList(['Il cliente non ha preventivi...']);
+            }
+        } else {
+            setErrorsList(['Errore nella ricerca dei preventivi del cliente: ', preventiviByClienteDBResult.errorsMessage + '\n', validationErrorsToString(preventiviByClienteDBResult.errors)]);
+        }
+    }
+
+    /**
+     * Pulisci tutti i campi del form preventivo e mostra il form per creare un nuovo preventivo
+     * @param c - cliente
+     */
+    const onClickNuovoPreventivo = async (c: ClienteInputGroup) => {
         setCliente((prevState) => { return { ...prevState, ...c } });
-        setPreventivo(() => new PreventivoInputGroup());
-        setServiziATerra(() => [new ServizioATerraInputGroup(0)]);
-        setServiziAggiuntivi(() => [new ServizioATerraInputGroup(0)]);
-        setVoli(() => [new VoloInputGroup(0)]);
-        setAssicurazioni(() => [new AssicurazioneInputGroup(0)]);
-        setShowFormPreventivo(true);
-    }
 
-    const onClickCreaNuovoCliente = async () => {
-        const res = await createCliente(cliente);
-        if (res.message == SUCCESSMESSAGE) { // cliente creato con successo
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                    type: 'success'
-                }
-            });
-            const clienti = await fetchClientiCorrispondenti();
-            setClientiTrovati(clienti);
-            setShowClientiTrovati(true);
-        } else { // TODO: mostrare errori in modo più esplicito -> mostrare errori validazione, mostrare tipo di errore (db o altro)
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: ERRORMESSAGE, type: 'error' }),
-                    type: 'error',
-                    errorsMessage: res.errorsMessage
-                }
-            });
+        const response = await fetch('/api/preventivi/number-of-preventivi', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (response.ok) {
+            const numeroPreventiviDBResult: DBResult<number> = await response.json();
+            if (numeroPreventiviDBResult.success) {
+                const numeroPreventivo = numberToExcelFormat(parseInt(numeroPreventiviDBResult.values) + 1);
+
+                setPreventivo(() => new PreventivoInputGroup(numeroPreventivo, undefined, undefined, undefined, undefined, undefined, 0, 0, new Date(), new Date()));
+                setServiziATerra(() => []);
+                setServiziAggiuntivi(() => []);
+                setVoli(() => []);
+                setAssicurazioni(() => []);
+                setShowFormPreventivo(true);
+            } else {
+                setErrorsList([
+                    'Errore nella chiamata per ottenere numero di preventivi: ' +
+                    numeroPreventiviDBResult.errorsMessage + '\n'
+                ]);
+            }
+        } else {
+            setErrorsList(['Errore nella chiamata per ottenere numero di preventivi, controlla la connessione e riprova: ', response.statusText]);
         }
-        setShowFeedback(true);
-    }
-
-    const onClickAggiornaPreventivo = async (c: ClienteInputGroup, p: PreventivoInputGroup) => {
-        const data = await fetchDataPreventivoDaAggiornare(p);
-        setCliente(c);
-        setPreventivo(p);
-        setServiziATerra(data.serviziATerra);
-        setServiziAggiuntivi(data.serviziAggiuntivi);
-        setVoli(data.voli);
-        setAssicurazioni(data.assicurazioni);
-        setShowFormPreventivo(true);
     }
 
     /** Call api to create a preventivo and set the feedback */
     const submitCreatePreventivo = async () => {
+        setErrorsList([]);
         const data: Data = {
             cliente: cliente,
             preventivo: preventivo,
@@ -369,33 +432,64 @@ export default function CreaPreventivoGeneralInterface() {
             assicurazioni: assicurazioni,
         }
         console.log('THE DATA IS: ', data);
-        const response = await fetch('/api/preventivi/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
-        if (response.ok) { // preventivo creato con successo
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                    type: 'success'
-                }
-            });
-        } else {
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: ERRORMESSAGE, type: 'error' }),
-                    type: 'error',
-                    errorsMessage: "TODO: gestisci questo messaggio di errore"
-                }
-            });
+        const errors = [];
+        if (!data.preventivo.operatore) {
+            errors.push('\'Operatore\' è un campo da inserire.\n');
         }
-        setShowFeedback(true);
+        if (!data.preventivo.brand) {
+            errors.push('\'Brand\' è un campo da inserire.\n');
+        }
+        if (!data.preventivo.stato) {
+            errors.push('\'Stato\' è un campo da inserire.\n');
+        }
+        if (errors.length == 0) { // all required fields are filled -> CALL API
+
+            const response = await fetch('/api/preventivi/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            if (response.ok) { // no errori nella chiamata all'API
+                const res = await response.json();
+                if (res.success) { // preventivo creato con successo
+                    setFeedback(() => {
+                        return {
+                            message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
+                            type: 'success'
+                        }
+                    });
+                    setShowFeedback(true);
+                    setShowFormPreventivo(false);
+                } else { // preventivo non creato -> mostra errori
+                    setErrorsList(['Errore nella creazione del preventivo: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
+                }
+            } else { // errore nella chiamata all'API
+                setErrorsList(['Errore nella chiamata: ', response.statusText]);
+            }
+        } else {
+            setErrorsList(errors);
+        }
+    }
+
+    const onClickAggiornaPreventivo = async (c: ClienteInputGroup, p: PreventivoInputGroup) => {
+        const data = await fetchDataPreventivoDaAggiornare(p);
+        data.preventivo.numero_preventivo = numberToExcelFormat(parseInt(data.preventivo.numero_preventivo));
+        console.log('data preventivo: ', data.preventivo);
+        if (data) {
+            setCliente(c);
+            setPreventivo(data.preventivo);
+            setServiziATerra(data.serviziATerra);
+            setServiziAggiuntivi(data.serviziAggiuntivi);
+            setVoli(data.voli);
+            setAssicurazioni(data.assicurazioni);
+            setShowFormPreventivo(true);
+        }
     }
 
     const submitUpdatePreventivo = async () => {
+        setErrorsList([]);
         const data: Data = {
             cliente: cliente,
             preventivo: preventivo,
@@ -411,61 +505,53 @@ export default function CreaPreventivoGeneralInterface() {
             },
             body: JSON.stringify(data),
         });
-        const res: CompleteUpdatePreventivoFeedback = await response.json();
-        console.log('res: ', res);
+        if (response.ok) {
+            const res: CompleteUpdatePreventivoFeedback = await response.json();
 
-        // creazione del feedback
-        let feedbackMessage: string[]=[];
-        if (res.feedbackPreventivo.message != SUCCESSMESSAGE) {
-            feedbackMessage[0] = 'errore in aggiornamento preventivo: ' 
-            + res.feedbackPreventivo.errorsMessage + '\n' 
-            + Object.entries(res.feedbackPreventivo?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-        }
-        res.feedbackServiziATerra.forEach((feedback, i) => {
-            if (feedback.message != SUCCESSMESSAGE) {
-                feedbackMessage[i + 1] = 'errore in aggiornamento servizio a terra n.' + (i + 1) + ': ' + feedback.errorsMessage;
-                if(feedback?.errors) {
-                    feedbackMessage[i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                }
+            // creazione del feedback
+            let errorsMessage: string[] = [];
+            if (!res.feedbackPreventivo.success) {
+                errorsMessage[0] = 'errore in aggiornamento preventivo: '
+                    + res.feedbackPreventivo.errorsMessage + '\n'
+                    + Object.entries(res.feedbackPreventivo?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
             }
-        });
-        res.feedbackServiziAggiuntivi.forEach((feedback, i) => {
-            if (feedback.message != SUCCESSMESSAGE) {
-                feedbackMessage[res.feedbackServiziATerra.length + i + 1] = 'errore in aggiornamento servizio aggiuntivo n.' + (i + 1) + ':' + feedback.errorsMessage ?? '';
-                if(feedback?.errors) {
-                    feedbackMessage[res.feedbackServiziATerra.length + i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                }
+            if (res.feedbackServiziATerra && !res.feedbackServiziATerra.success) {
+                errorsMessage[1] = 'errore in aggiornamento servizi a terra: '
+                    + res.feedbackServiziATerra.errorsMessage + '\n'
+                    + Object.entries(res.feedbackServiziATerra?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
             }
-        });
-        res.feedbackVoli.forEach((feedback, i) => {
-            if (feedback.message != SUCCESSMESSAGE) {
-                feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + i + 1] = 'errore in aggiornamento volo n.' + (i + 1) + ':' + feedback.errorsMessage;
-                if(feedback?.errors) {
-                    feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                }
+            if (res.feedbackServiziAggiuntivi && !res.feedbackServiziAggiuntivi.success) {
+                errorsMessage[2] = 'errore in aggiornamento servizi aggiuntivi: '
+                    + res.feedbackServiziAggiuntivi.errorsMessage + '\n'
+                    + Object.entries(res.feedbackServiziAggiuntivi?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
             }
-        });
-        res.feedbackAssicurazioni.forEach((feedback, i) => {
-            if (feedback.message != SUCCESSMESSAGE) {
-                feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + res.feedbackVoli.length + i + 1] = 'errore in aggiornamento assicurazione n.' + (i + 1) + ':' + feedback.errorsMessage;
-                if(feedback?.errors) {
-                    feedbackMessage[res.feedbackServiziATerra.length + res.feedbackServiziAggiuntivi.length + res.feedbackVoli.length + i + 1] += '\n' + Object.entries(feedback?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                }
+            if (res.feedbackVoli && !res.feedbackVoli.success) {
+                errorsMessage[3] = 'errore in aggiornamento voli: '
+                    + res.feedbackVoli.errorsMessage + '\n'
+                    + Object.entries(res.feedbackVoli?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
             }
-        });
-        if (feedbackMessage.length == 0) {
-            setFeedback(() => {
-                return {
-                    message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                    type: 'success'
-                }
-            });
-            setShowFeedback(true);
-            setErrorsList([]);
+            if (res.feedbackAssicurazioni && !res.feedbackAssicurazioni.success) {
+                errorsMessage[4] = 'errore in aggiornamento assicurazioni: '
+                    + res.feedbackAssicurazioni.errorsMessage + '\n'
+                    + Object.entries(res.feedbackAssicurazioni?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
+            }
+            if (errorsMessage.length == 0) {
+                setFeedback(() => {
+                    return {
+                        message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
+                        type: 'success'
+                    }
+                });
+                setShowFeedback(true);
+                setErrorsList([]);
+            } else {
+                setErrorsList(errorsMessage);
+            }
         } else {
-            setErrorsList(feedbackMessage);
+            setErrorsList(['Errore nella chiamata: ', response.statusText]);
         }
     }
+
 
     // gestione lista preventivi di un cliente
     useEffect(() => {
@@ -498,46 +584,55 @@ export default function CreaPreventivoGeneralInterface() {
         setErrorsList([]);
     }, [assicurazioni]);
 
-
     useEffect(() => {
         if (showFormPreventivo) { setShowPreventiviClienteList(false); setShowClientiTrovati(false); }
+        setErrorsList([]);
     }, [showFormPreventivo]);
     useEffect(() => {
         if (showClientiTrovati) setShowFormPreventivo(false);
+        setErrorsList([]);
     }, [showClientiTrovati]);
     useEffect(() => {
         if (showFormAggiornaCliente) setShowFormPreventivo(false);
+        setErrorsList([]);
     }, [showFormAggiornaCliente]);
     useEffect(() => {
         if (showPreventiviClienteList) setShowFormPreventivo(false);
+        setErrorsList([]);
     }, [showPreventiviClienteList]);
     return (
         <>
-            <h1 className={`mb-4 text-xl md:text-2xl`}>CREA PREVENTIVO</h1>
-
+            <h1 className={`mb-4 text-xl md:text-2xl`}>GENERAL INTERFACE PREVENTIVO</h1>
             {/* FEEDBACK */}
             <Modal isOpen={showFeedback} setIsOpen={setShowFeedback} timeout={3000} body={feedback.message} />
-
             {/* Cliente */}
             <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
-            <div className="flex flex-row">
-                <InputEmail label="Email" name="email" onChange={(e) => onVCCliente(e, 'email')} value={cliente?.email} />
-                <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
-                <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
-                <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
-                <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={formatDate(cliente?.data_di_nascita)} />
-                <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
-                <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
-                <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
-                <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
-                <InputText label="Note" name="note" onChange={(e) => onVCCliente(e, 'note')} value={cliente?.note} />
+            <div className="flex flex-col">
+                <div className="flex flex-row">
+                    <InputEmail label="Email" name="email" onChange={(e) => onVCCliente(e, 'email')} value={cliente?.email} />
+                    <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
+                    <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
+                    <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
+                    <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={formatDate(cliente?.data_di_nascita)} />
+                    <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCCliente(e, 'indirizzo')} value={cliente?.indirizzo} />
+                    <InputText label="CAP" name="cap" onChange={(e) => onVCCliente(e, 'cap')} value={cliente?.cap} />
+                    <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
+                    <InputText label="CF" name="cf" onChange={(e) => onVCCliente(e, 'cf')} value={cliente?.cf} />
+                    <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
+                    <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
+                    <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
+                </div>
+                <div className="pb-4">
+                    <InputText textarea label="Note" name="note" onChange={(e) => onVCCliente(e, 'note')} value={cliente?.note} />
+                </div>
             </div>
+
 
             {/* lista clienti trovati */}
             {showClientiTrovati &&
                 <div className="flex flex-col pt-4">
                     <p>Lista clienti corrispondenti:</p>
-                    {clientiTrovati.length > 0 && clientiTrovati.map((c, i) => (
+                    {clientiTrovati?.length > 0 && clientiTrovati.map((c, i) => (
                         <div key={c.id} className="flex flex-col gap-2">
                             <div className="flex flex-row gap-1 pt-4 justify-between">
                                 <p> {i + 1}. {c.nome}, {c.cognome}, {c.email}</p>
@@ -571,11 +666,16 @@ export default function CreaPreventivoGeneralInterface() {
                                         <InputText label="Nome" name="nome" onChange={(e) => onVCClienteDaAggiornare(e, 'nome')} value={clienteDaAggiornare?.nome} />
                                         <InputText label="Cognome" name="cognome" onChange={(e) => onVCClienteDaAggiornare(e, 'cognome')} value={clienteDaAggiornare?.cognome} />
                                         <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={formatDate(clienteDaAggiornare?.data_di_nascita)} />
+                                        <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCClienteDaAggiornare(e, 'indirizzo')} value={clienteDaAggiornare?.indirizzo} />
+                                        <InputText label="CAP" name="cap" onChange={(e) => onVCClienteDaAggiornare(e, 'cap')} value={clienteDaAggiornare?.cap} />
                                         <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
+                                        <InputText label="CF" name="cf" onChange={(e) => onVCClienteDaAggiornare(e, 'cf')} value={clienteDaAggiornare?.cf} />
                                         <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
                                         <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCClienteDaAggiornare(e, 'provenienza')} value={clienteDaAggiornare?.provenienza} />
                                         <InputText label="Collegato" name="collegato" onChange={(e) => onVCClienteDaAggiornare(e, 'collegato')} value={clienteDaAggiornare?.collegato} />
-                                        <InputText label="Note" name="note" onChange={(e) => onVCClienteDaAggiornare(e, 'note')} value={clienteDaAggiornare?.note} />
+                                    </div>
+                                    <div className="pb-4">
+                                        <InputText textarea label="Note" name="note" onChange={(e) => onVCClienteDaAggiornare(e, 'note')} value={clienteDaAggiornare?.note} />
                                     </div>
                                     <button
                                         className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
@@ -604,7 +704,7 @@ export default function CreaPreventivoGeneralInterface() {
                             }
                         </div>
                     ))}
-                    {clientiTrovati.length === 0 &&
+                    {clientiTrovati?.length == 0 &&
                         <div>
                             <div className="flex flex-col pt-4">
                                 <p>Nessun cliente corrispondente...</p>
@@ -612,7 +712,7 @@ export default function CreaPreventivoGeneralInterface() {
                             <div className="flex flex-row gap-2 pt-4">
                                 <button
                                     className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
-                                    onClick={async () => onClickCreaNuovoCliente()}
+                                    onClick={async () => onClickCreateCliente()}
                                 >
                                     Crea nuovo cliente
                                 </button>
@@ -628,12 +728,12 @@ export default function CreaPreventivoGeneralInterface() {
                     <h3 className="text-xl md:text-2xl pt-4 pb-1">Preventivo</h3>
                     <p>I dati seguenti verranno usati per creare il preventivo</p>
                     <div className="flex flex-row">
-                        <InputNumber label="N. Preventivo" name="numero_preventivo" onChange={(e) => onVCpreventivo(e, 'numero_preventivo')} value={preventivo?.numero_preventivo?.toString()} />
+                        <InputNumber disabled label="N. Preventivo" name="numero_preventivo" onChange={(e) => onVCpreventivo(e, 'numero_preventivo')} value={preventivo?.numero_preventivo?.toString()} />
                         <InputSelect label="Brand" name="brand" options={brandPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'brand')} value={preventivo?.brand} />
                         <div className="flex flex-row items-end justify-center pb-2 px-2">
                             {formatDateToString(preventivo?.data_partenza)} {preventivo?.brand} {preventivo?.numero_preventivo?.toString()}
                         </div>
-                        <InputText label="Operatore" name="operatore" onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
+                        <InputSelect label="Operatore" name="operatore" options={operatoreOptions} onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
                         <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
                         <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
                     </div>
@@ -669,21 +769,24 @@ export default function CreaPreventivoGeneralInterface() {
                             {
                                 serviziATerra.map((servizio) => (
                                     <div key={servizio.groupId}>
-                                        <div className="flex flex-row">
-                                            <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
-                                            <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                            <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                            <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
-                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
-                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
-                                            <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                            <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-row">
+                                                <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
+                                                <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                                <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
+                                                <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
+                                                <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
+                                                <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_camere')} value={servizio?.numero_camere?.toString()} label="N. Camere" name="numero_camere" />
+                                                <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
+                                                <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
+                                                <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                            </div>
                                             <div className="flex flex-row items-center justify-center pt-10 pl-5">
                                                 <div className="pr-3">
-                                                    <p>ricarico: {getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico) ?? '0'}</p>
+                                                    <p>ricarico: {formatNumberItalian(getRicaricoServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere))}</p>
                                                 </div>
                                                 <div className="pr-3">
-                                                    <p>tot euro: {getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)) ?? '0'}</p>
+                                                    <p>tot eu: {formatNumberItalian(getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere))}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -699,8 +802,8 @@ export default function CreaPreventivoGeneralInterface() {
                                 ))
                             }
                         </div>
-                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {serviziATerra.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0)}</p>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-11">
+                            <p>somma tot eu: {formatNumberItalian(serviziATerra.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere), 0))}</p>
                         </div>
                     </div>
                     {/* Servizi Aggiuntivi */}
@@ -722,21 +825,24 @@ export default function CreaPreventivoGeneralInterface() {
                             {
                                 serviziAggiuntivi.map((servizio) => (
                                     <div key={servizio.groupId}>
-                                        <div className="flex flex-row">
-                                            <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
-                                            <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                            <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                            <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
-                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
-                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
-                                            <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                            <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-row">
+                                                <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
+                                                <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                                <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
+                                                <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
+                                                <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
+                                                <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_camere')} value={servizio?.numero_camere?.toString()} label="N. Camere" name="numero_camere" />
+                                                <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
+                                                <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
+                                                <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                            </div>
                                             <div className="flex flex-row items-center justify-center pt-10 pl-5">
                                                 <div className="pr-3">
-                                                    <p>ricarico: {getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico) ?? '0'}</p>
+                                                    <p>ricarico: {formatNumberItalian(getRicaricoServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere))}</p>
                                                 </div>
                                                 <div className="pr-3">
-                                                    <p>tot euro: {getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)) ?? '0'}</p>
+                                                    <p>tot eu: {formatNumberItalian(getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere))}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -752,8 +858,8 @@ export default function CreaPreventivoGeneralInterface() {
                                 ))
                             }
                         </div>
-                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {serviziAggiuntivi.reduce((acc, servizio) => acc + getTot(servizio.totale, servizio.cambio ?? 1, getRicarico(servizio.totale, servizio.cambio ?? 1, percentualeRicarico)), 0)}</p>
+                        <div className="tot-euro-of-list flex flex-row items-end justify-end pt-4 pr-11">
+                            <p>somma tot eu: {formatNumberItalian(serviziAggiuntivi.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere), 0))}</p>
                         </div>
                     </div>
                     {/* Voli */}
@@ -775,21 +881,22 @@ export default function CreaPreventivoGeneralInterface() {
                             {
                                 voli.map((volo) => (
                                     <div key={volo.groupId}>
-                                        <div className="flex flex-row">
-                                            <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                            <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label="Compagnia" name="compagnia" />
-                                            <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label="Descrizione" name="descrizione" />
-                                            <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={formatDate(volo?.data_partenza)} label="Partenza" name="data_partenza" />
-                                            <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
-                                            <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
-                                            <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                            <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
-                                            <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                                <div className="pr-3">
-                                                    <p>ricarico: {getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico) ?? '0'}</p>
-                                                </div>
-                                                <div className="pr-3">
-                                                    <p>tot euro: {getTot(volo.totale, volo.cambio, getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico)) ?? '0'}</p>
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-row">
+                                                <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                                <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label="Compagnia" name="compagnia" />
+                                                <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label="Descrizione" name="descrizione" />
+                                                <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={formatDate(volo?.data_partenza)} label="Partenza" name="data_partenza" />
+                                                <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
+                                                <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
+                                                <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'ricarico')} value={volo?.ricarico?.toString()} label="Ricarico" name="ricarico" />
+                                                <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'numero')} value={volo?.numero?.toString()} label="Numero" name="numero" />
+                                                <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
+                                                <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                            </div>
+                                            <div className="flex flex-row items-center justify-end pt-10 pl-5">
+                                                <div className="pr-1">
+                                                    <p>tot eu: {formatNumberItalian(getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero))}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -805,8 +912,8 @@ export default function CreaPreventivoGeneralInterface() {
                                 ))
                             }
                         </div>
-                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {voli.reduce((acc, volo) => acc + getTot(volo.totale, volo.cambio ?? 1, getRicarico(volo.totale, volo.cambio ?? 1, percentualeRicarico)), 0)}</p>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-20">
+                            <p className="pr-2">somma tot eu: {formatNumberItalian(voli.reduce((acc, volo) => acc + getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero), 0))}</p>
                         </div>
                     </div>
                     {/* Assicurazioni */}
@@ -828,16 +935,18 @@ export default function CreaPreventivoGeneralInterface() {
                             {
                                 assicurazioni.map((assicurazione) => (
                                     <div key={assicurazione.groupId}>
-                                        <div className="flex flex-row">
-                                            <InputSelect onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'fornitore')} value={assicurazione?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                            <InputText onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'assicurazione')} value={assicurazione?.assicurazione} label="Assicurazione" name="assicurazione" />
-                                            <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label="Netto" name="netto" />
-                                            <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                                <div className="pr-3">
-                                                    <p>ricarico: {getRicarico(assicurazione.netto, 1, percentualeRicarico) ?? '0'}</p>
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-row">
+                                                <InputSelect onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'fornitore')} value={assicurazione?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
+                                                <InputText onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'assicurazione')} value={assicurazione?.assicurazione} label="Assicurazione" name="assicurazione" />
+                                                <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label="Netto" name="netto" />
+                                            </div>
+                                            <div className="flex flex-row items-center pt-10 pl-5">
+                                                <div className="pr-2 flex flex-row items-center">
+                                                    <p>ricarico: {formatNumberItalian(getRicaricoAssicurazione(assicurazione.netto, percentualeRicarico))}</p>
                                                 </div>
-                                                <div className="pr-3">
-                                                    <p>tot euro: {getTot(assicurazione.netto, 1, getRicarico(assicurazione.netto, 1, percentualeRicarico)) ?? '0'}</p>
+                                                <div className="pr-2 flex flex-row items-center">
+                                                    <p>tot: {formatNumberItalian(getTotAssicurazione(assicurazione.netto, percentualeRicarico))}</p>
                                                 </div>
                                                 <div>
                                                     <button
@@ -853,13 +962,14 @@ export default function CreaPreventivoGeneralInterface() {
                                 ))
                             }
                         </div>
-                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma tot euro: {assicurazioni.reduce((acc, assicurazione) => acc + getTot(assicurazione.netto, 1, getRicarico(assicurazione.netto, 1, percentualeRicarico)), 0)}</p>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-10">
+                            <p>somma tot: {formatNumberItalian(assicurazioni.reduce((acc, assicurazione) => acc + getTotAssicurazione(assicurazione.netto, percentualeRicarico), 0))}</p>
                         </div>
+
                     </div>
                     {/* Totale */}
                     <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                        <p>somma di tutti i tot euro: {getSommaTuttiTotEuro()}</p>
+                        <p>somma di tutti i tot: {formatNumberItalian(getSommaTuttiTotEuro(percentualeRicarico, serviziATerra, serviziAggiuntivi, voli, assicurazioni))}</p>
                     </div>
                     <div className="flex flex-row items-center justify-center pt-4 pl-5">
                         {!preventivo?.id &&
@@ -881,48 +991,19 @@ export default function CreaPreventivoGeneralInterface() {
                             </button>
                         }
                     </div >
-                    {
-                        errorsList.length > 0 &&
-                        errorsList.map((error, index) => (
-                            <div key={index} className={`flex flex-row items-center justify-center pt-4 pl-5 text-red-500`}>
-                                <p>{error}</p>
-                            </div>
-                        ))
-                    }
                 </div >
+            }
+            {/* ERRORS */}
+            {
+                errorsList.length > 0 &&
+                errorsList.map((error, index) => (
+                    <div key={index} className={`flex flex-row items-center justify-center py-4 pl-5 text-red-500`}>
+                        <p>{index + 1}. {error}</p>
+                    </div>
+                ))
             }
         </>
     );
-}
-/*
- */
-
-// helper functions to compute totale and ricarico
-const getTot = (totale: number, cambio: number, ricarico: number) => {
-    if (cambio === 0) {
-        return 0;
-    }
-    const result = (totale / cambio) + ricarico;
-    // Truncate the result to two decimal places
-    return Math.trunc(result * 100) / 100;
-}
-const getRicarico = (totale: number, cambio: number, percentualeRicarico: number) => {
-    if (cambio === 0) {
-        return 0;
-    }
-    const result = (totale / cambio) * percentualeRicarico;
-    // Truncate the result to two decimal places
-    return Math.trunc(result * 100) / 100;
-}
-
-const formatDateToString = (date: Date): string => {
-    if (date instanceof Date) {
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-        const year = date.getFullYear();
-        return `${month}${day}${year}`;
-    }
-    return null;
 }
 
 const getFeedbackBody = (feedback: Feedback) => {

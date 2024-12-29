@@ -21,7 +21,7 @@ const Modal: React.FC<ModalProps> = ({ header, footer, body, buttons, isOpen, se
     if (isOpen && timeout) {
       setTimeout(() => {
         setIsOpen(false);
-        console.log('the time is up after ', timeout, 'ms');
+        //console.log('the time is up after ', timeout, 'ms');
       }, timeout);
     }
   });

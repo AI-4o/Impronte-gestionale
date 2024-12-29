@@ -3,6 +3,7 @@ export interface InputInterface {
     name: string;
     state?: any;
     value?: string;
+    disabled?: boolean;
     onChange?: (e: any) => void;
 }
 function formatDate(defaultValue: string): string {

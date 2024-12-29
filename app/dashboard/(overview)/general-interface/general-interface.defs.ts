@@ -11,10 +11,12 @@ export class ClienteInputGroup {
         public tel?: string,
         public email?: string,
         public provenienza?: string,
+        public indirizzo?: string,
+        public cap?: string,
+        public cf?: string,
         public id?: string,
     ) { }
 }
-
 // preventivo cliente interface
 export class PreventivoInputGroup {
     constructor(
@@ -28,7 +30,7 @@ export class PreventivoInputGroup {
         public bambini?: number,
         public data_partenza?: Date,
         public data?: Date,
-        public stato?: string,
+        public stato?: 'da fare' | 'in trattativa' | 'confermato' | 'inviato',
         public id?: string,
     ) { }
 }
@@ -41,7 +43,8 @@ export class ServizioATerraInputGroup {
         public descrizione?: string,
         public data?: Date,
         public numero_notti?: number,
-        public valuta?: string,
+        public numero_camere?: number,
+        public valuta?: 'EUR' | 'USD',
         public totale?: number,
         public cambio?: number,
         public servizio_aggiuntivo?: boolean,
@@ -58,7 +61,9 @@ export class VoloInputGroup {
         public data_partenza?: Date,
         public data_arrivo?: Date,
         public totale?: number,
-        public valuta?: string,
+        public ricarico?: number,
+        public numero?: number,
+        public valuta?: 'EUR' | 'USD',
         public cambio?: number,
         public id?: string,
     ) { }

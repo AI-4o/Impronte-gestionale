@@ -1,4 +1,3 @@
-import { deleteEntityById } from '@/app/lib/actions/actions';
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -31,15 +30,4 @@ export function UpdateInvoice({ id, entityName }: { id: string, entityName: stri
     </Link>
   );
 }
-// TODO: add custom action for delete
-export function DeleteEntity({ id, entityName }: { id: string, entityName: string }) {
-  const deleteEntityWithId = deleteEntityById.bind(null, id, entityName);
-  return (
-    <form action={deleteEntityWithId}>
-      <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">
-        <span className="sr-only">Delete</span>
-        <TrashIcon className="w-5" />
-      </button>
-    </form>
-  );
-}
+

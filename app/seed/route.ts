@@ -3,8 +3,6 @@ import destinazioni from './destinazioni.json';
 import fornitori from './fornitori.json';
 import clienti from './clienti.json';
 import banche from './banche.json';
-import { Preventivo } from "../lib/definitions";
-import { format, addDays } from 'date-fns';
 const client = await db.connect();
 
 const createTableDestinazioni = async () => {
@@ -32,17 +30,20 @@ const createTableClienti = async () => {
   await client.sql`
       CREATE TABLE IF NOT EXISTS clienti (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         nome VARCHAR(255) NOT NULL,
-         cognome VARCHAR(255) NOT NULL,
+         nome VARCHAR(255),
+         cognome VARCHAR(255),
          tel VARCHAR(20),
-         email VARCHAR(255),
+         indirizzo VARCHAR(255),
+         CAP VARCHAR(10),
+         citta VARCHAR(255),
+         CF VARCHAR(16),
+         email VARCHAR(255) NOT NULL,
          tipo VARCHAR(20) CHECK (tipo IN ('PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA')),
          provenienza VARCHAR(20) CHECK (provenienza IN ('Passaparola', 'Sito IWS', 'Sito INO', 'Telefono', 'Email Diretta', 'Sito ISE')),
          collegato VARCHAR(255),
-         citta VARCHAR(255),
          note TEXT,
          data_di_nascita DATE,
-         UNIQUE (nome, cognome)
+         UNIQUE (email)
       );
     `;
 }
@@ -83,11 +84,12 @@ const createTableServiziATerra = async () => {
       CREATE TABLE IF NOT EXISTS servizi_a_terra (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_fornitore UUID NOT NULL REFERENCES fornitori(id),
-         id_destinazione UUID NOT NULL REFERENCES destinazioni(id),
+         id_fornitore UUID REFERENCES fornitori(id),
+         id_destinazione UUID REFERENCES destinazioni(id),
          descrizione TEXT,
          data DATE,
          numero_notti INT,
+         numero_camere INT,
          totale FLOAT,
          valuta VARCHAR(10),
          cambio FLOAT,
@@ -101,12 +103,14 @@ const createTableVoli = async () => {
       CREATE TABLE IF NOT EXISTS voli (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_fornitore UUID NOT NULL REFERENCES fornitori(id),
+         id_fornitore UUID REFERENCES fornitori(id),
          compagnia_aerea VARCHAR(255),
          descrizione TEXT,
          data_partenza DATE,
          data_arrivo DATE,
          totale FLOAT,
+         ricarico FLOAT,
+         numero INT,
          valuta VARCHAR(10),
          cambio FLOAT
       );
@@ -119,7 +123,7 @@ const createTableAssicurazioni = async () => {
       CREATE TABLE IF NOT EXISTS assicurazioni (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_fornitore UUID NOT NULL REFERENCES fornitori(id),
+         id_fornitore UUID REFERENCES fornitori(id),
          assicurazione VARCHAR(255),
          netto FLOAT
       );
@@ -131,7 +135,7 @@ const createTablePreventiviMostrareClienti = async () => {
       CREATE TABLE IF NOT EXISTS preventivi_mostrare_clienti (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_destinazione UUID NOT NULL REFERENCES destinazioni(id),
+         id_destinazione UUID REFERENCES destinazioni(id),
          descrizione TEXT,
          tipo VARCHAR(50) CHECK (tipo IN ('destinazione', 'volo', 'assicurazione')),
          costo_individuale FLOAT,
@@ -158,7 +162,7 @@ const createTableIncassiPartecipanti = async () => {
       CREATE TABLE IF NOT EXISTS incassi_partecipanti (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_partecipante UUID NOT NULL REFERENCES partecipanti(id),
-         id_banca UUID NOT NULL REFERENCES banche(id),
+         id_banca UUID REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -171,7 +175,7 @@ const createTablePagamentiServiziATerra = async () => {
       CREATE TABLE IF NOT EXISTS pagamenti_servizi_a_terra (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_servizio_a_terra UUID NOT NULL REFERENCES servizi_a_terra(id),
-         id_banca UUID NOT NULL REFERENCES banche(id),
+         id_banca UUID REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -184,7 +188,7 @@ const createTablePagamentiVoli = async () => {
       CREATE TABLE IF NOT EXISTS pagamenti_voli (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_volo UUID NOT NULL REFERENCES voli(id),
-         id_banca UUID NOT NULL REFERENCES banche(id),
+         id_banca UUID REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -197,7 +201,7 @@ const createTablePagamentiAssicurazioni = async () => {
       CREATE TABLE IF NOT EXISTS pagamenti_assicurazioni (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_assicurazione UUID NOT NULL REFERENCES assicurazioni(id),
-         id_banca UUID NOT NULL REFERENCES banche(id),
+         id_banca UUID REFERENCES banche(id),
          importo FLOAT,
          data_scadenza DATE,
          data_incasso DATE
@@ -210,7 +214,7 @@ const createTablePratiche = async () => {
       CREATE TABLE IF NOT EXISTS pratiche (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_cliente UUID NOT NULL REFERENCES clienti(id),
+         id_cliente UUID REFERENCES clienti(id),
          data_conferma DATE,
          data_partenza DATE,
          data_rientro DATE,
@@ -243,7 +247,7 @@ const seedClienti = async () => {
     await client.sql`
       INSERT INTO clienti (nome, cognome, tel, email, tipo, provenienza, collegato, citta, note, data_di_nascita)
       VALUES (${cliente.nome}, ${cliente.cognome}, ${cliente.tel}, ${cliente.email}, ${cliente.tipo}, ${cliente.provenienza}, ${cliente.collegato}, ${cliente.citta}, ${cliente.note}, ${cliente.data_di_nascita})
-      ON CONFLICT (nome, cognome) DO NOTHING;
+      ON CONFLICT (email) DO NOTHING;
     `;
   }
 }

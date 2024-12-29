@@ -1,31 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getServiziATerraByPreventivoId,
-  getServiziAggiuntiviByPreventivoId,
-  getVoliByPreventivoId,
-  getAssicurazioniByPreventivoId,
-  getDestinazioneById,
-  getFornitoreById,
-} from "@/app/lib/actions/actions";
+
 import {
   AssicurazioneInputGroup,
   Data,
-  Feedback,
   PreventivoInputGroup,
   ServizioATerraInputGroup,
   VoloInputGroup,
-} from "@/app/dashboard/(overview)/general-interface-create/general-interface.defs";
+} from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
+import { DBResult, getDestinazioneById, getFornitoreById } from "@/app/lib/actions/actions";
+import { fetchServiziATerraByPreventivoId, fetchServiziAggiuntiviByPreventivoId, fetchVoliByPreventivoId, fetchAssicurazioniByPreventivoId } from "@/app/lib/data";
 
 export async function POST(request: NextRequest) {
-  
-  try {
-    let res: Data & {feedback?: Feedback} = {
-      preventivo: undefined,
-      serviziATerra: [],
-      serviziAggiuntivi: [],
-      voli: [],
-      assicurazioni: [],
-      feedback: undefined,
+    let res: DBResult<Data> = {
+      values: {
+        preventivo: undefined,
+        serviziATerra: [],
+        serviziAggiuntivi: [],
+        voli: [],
+        assicurazioni: [],
+      },
+      success: false,
+      errors: {},
+      errorsMessage: ""
     };
     const p: PreventivoInputGroup = await request.json();
     console.log("Dato ricevuto nell'API route di get-data-preventivo-completi:", p);
@@ -33,53 +29,64 @@ export async function POST(request: NextRequest) {
 
     // dato id preventivo vogliamo -> serviziATerra, serviziAggiuntivi, voli, assicurazioni
 
-    const serviziATerra = await getServiziATerraByPreventivoId(preventivoId);
-    const serviziAggiuntivi = await getServiziAggiuntiviByPreventivoId(
+    const serviziATerra = await fetchServiziATerraByPreventivoId(preventivoId);
+    const serviziAggiuntivi = await fetchServiziAggiuntiviByPreventivoId(
       preventivoId
     );
-    const voli = await getVoliByPreventivoId(preventivoId);
-    const assicurazioni = await getAssicurazioniByPreventivoId(preventivoId);
+    const voli = await fetchVoliByPreventivoId(preventivoId);
+    const assicurazioni = await fetchAssicurazioniByPreventivoId(preventivoId);
+
+    // if any of the fetching fails, return the error
+    if(!serviziATerra.success || !serviziAggiuntivi.success || !voli.success || !assicurazioni.success) {
+      [serviziATerra, serviziAggiuntivi, voli, assicurazioni].forEach(s => {
+        if(!s.success) {
+          res.errorsMessage += s.errorsMessage + "\n";
+        }
+      });
+      return NextResponse.json(res);
+    }
+    else { // if all fetching succeed
 
     // ### trasformare dati nei rispettivi inputGroups ###
-    const serviziATerraInputGroup = await getServiziATerraInputGroup(serviziATerra);
-    const serviziAggiuntiviInputGroup = await getServiziATerraInputGroup(serviziAggiuntivi);
-    const voliInputGroup = await getVoliInputGroup(voli);
-    const assicurazioniInputGroup = await getAssicurazioniInputGroup(assicurazioni);
+    console.log('serviziATerra: ', serviziATerra);
+    console.log('serviziAggiuntivi: ', serviziAggiuntivi);
+    console.log('voli: ', voli);
+    console.log('assicurazioni: ', assicurazioni);
+    const serviziATerraInputGroup = await getServiziATerraInputGroup(serviziATerra.values as any[]);
+    const serviziAggiuntiviInputGroup = await getServiziATerraInputGroup(serviziAggiuntivi.values as any[]);
+    const voliInputGroup = await getVoliInputGroup(voli.values as any[]);
+    const assicurazioniInputGroup = await getAssicurazioniInputGroup(assicurazioni.values as any[]);
 
-    res.preventivo = p;
-    res.serviziATerra = serviziATerraInputGroup;
-    res.serviziAggiuntivi = serviziAggiuntiviInputGroup;
-    res.voli = voliInputGroup;
-    res.assicurazioni = assicurazioniInputGroup;
+    res.values.preventivo = p;
+    res.values.serviziATerra = serviziATerraInputGroup;
+    res.values.serviziAggiuntivi = serviziAggiuntiviInputGroup;
+    res.values.voli = voliInputGroup;
+    res.values.assicurazioni = assicurazioniInputGroup;
+    res.success = true;
     console.log("Dato restituito dall'API route di get-data-preventivo-completi: ", res);
     return NextResponse.json(res);
-  } catch (error) {
-    console.error("Errore nell'API route:", error);
-    return NextResponse.json({ error: "Errore nel server" }, { status: 500 });
-  }
+    }
 }
 
-const getServiziATerraInputGroup = async (serviziATerra: any): Promise<ServizioATerraInputGroup[]> => {
+const getServiziATerraInputGroup = async (serviziATerra: any[]): Promise<ServizioATerraInputGroup[]> => {
   const res: ServizioATerraInputGroup[] = [];
-  for (let i = 0; i < serviziATerra.rowCount; i++) {
+  for (let i = 0; i < serviziATerra.length; i++) {
     // se c'è la destinazione, ottienila
     let destinazione: any = "";
-    if (serviziATerra.rows[i].id_destinazione) {
-      const _destinazione = await getDestinazioneById(
-        serviziATerra.rows[i].id_destinazione
-      );
-      if (_destinazione.rowCount > 0 && _destinazione.rows[0].nome) {
-        destinazione = _destinazione.rows[0].nome;
+    const id_destinazione = serviziATerra[i]?.id_destinazione;
+    if (id_destinazione) {
+      const _destinazione = await getDestinazioneById(id_destinazione);
+      if (_destinazione.success) {
+        destinazione = _destinazione.values?.nome;
       }
     }
     // se c'è il fornitore, ottienilo
     let fornitore: any = "";
-    if (serviziATerra.rows[i].id_fornitore) {
-      const _fornitore = await getFornitoreById(
-        serviziATerra.rows[i].id_fornitore
-      );
-      if (_fornitore.rowCount > 0 && _fornitore.rows[0].nome) {
-        fornitore = _fornitore.rows[0].nome;
+    const id_fornitore = serviziATerra[i]?.id_fornitore;
+    if (id_fornitore) {
+      const _fornitore = await getFornitoreById(id_fornitore);
+      if (_fornitore.success) {
+        fornitore = _fornitore?.values.nome;
       }
     }
     // create inputGroup
@@ -87,65 +94,70 @@ const getServiziATerraInputGroup = async (serviziATerra: any): Promise<ServizioA
       i,
       destinazione,
       fornitore,
-      serviziATerra.rows[i].descrizione,
-      serviziATerra.rows[i].data,
-      serviziATerra.rows[i].numero_notti,
-      serviziATerra.rows[i].valuta,
-      serviziATerra.rows[i].totale,
-      serviziATerra.rows[i].cambio,
-      serviziATerra.rows[i].servizio_aggiuntivo,
-      serviziATerra.rows[i].id
+      serviziATerra[i]?.descrizione,
+      serviziATerra[i]?.data,
+      serviziATerra[i]?.numero_notti,
+      serviziATerra[i]?.numero_camere,
+      serviziATerra[i]?.valuta,
+      serviziATerra[i]?.totale,
+      serviziATerra[i]?.cambio,
+      serviziATerra[i]?.servizio_aggiuntivo,
+      serviziATerra[i]?.id
     );
     res.push(iG);
   }
   return res;
 }
 
-const getVoliInputGroup = async (voli: any): Promise<VoloInputGroup[]> => {
+const getVoliInputGroup = async (voli: any[]): Promise<VoloInputGroup[]> => {
     const res: VoloInputGroup[] = [];
-    for (let i = 0; i < voli.rowCount; i++) {
+    for (let i = 0; i < voli.length; i++) {
       // se c'è il fornitore, ottienilo
       let fornitore: any = "";
-      if (voli.rows[i].id_fornitore) {
-        const _fornitore = await getFornitoreById(voli.rows[i].id_fornitore);
-        if (_fornitore.rowCount > 0 && _fornitore.rows[0].nome) {
-          fornitore = _fornitore.rows[0].nome;
+      const id_fornitore = voli[i]?.id_fornitore;
+      if (id_fornitore) {
+        const _fornitore = await getFornitoreById(id_fornitore);
+        if (_fornitore.success) {
+          fornitore = _fornitore.values?.nome;
         }
       }
       const iG = new VoloInputGroup(
         i,
         fornitore,
-        voli.rows[i].compagnia,
-        voli.rows[i].descrizione,
-        voli.rows[i].data_partenza,
-        voli.rows[i].data_arrivo,
-        voli.rows[i].totale,
-        voli.rows[i].valuta,
-        voli.rows[i].cambio,
-      voli.rows[i].id
+        voli[i]?.compagnia,
+        voli[i]?.descrizione,
+        voli[i]?.data_partenza,
+        voli[i]?.data_arrivo,
+        voli[i]?.totale,
+        voli[i]?.ricarico,
+        voli[i]?.numero,
+        voli[i]?.valuta,
+        voli[i]?.cambio,
+        voli[i]?.id
     );
     res.push(iG);
   }
   return res;
 }
 
-const getAssicurazioniInputGroup = async (assicurazioni: any): Promise<AssicurazioneInputGroup[]> => {
+const getAssicurazioniInputGroup = async (assicurazioni: any[]): Promise<AssicurazioneInputGroup[]> => {
   const res: AssicurazioneInputGroup[] = [];
-  for (let i = 0; i < assicurazioni.rowCount; i++) {
+  for (let i = 0; i < assicurazioni.length; i++) {
     // se c'è il fornitore, ottienilo
     let fornitore: any = "";
-    if (assicurazioni.rows[i].id_fornitore) {
-      const _fornitore = await getFornitoreById(assicurazioni.rows[i].id_fornitore);
-      if (_fornitore.rowCount > 0 && _fornitore.rows[0].nome) {
-        fornitore = _fornitore.rows[0].nome;
+    const id_fornitore = assicurazioni[i]?.id_fornitore;
+    if (id_fornitore) {
+      const _fornitore = await getFornitoreById(id_fornitore);
+      if (_fornitore.success) {
+        fornitore = _fornitore.values.nome;
       }
     }
     const iG = new AssicurazioneInputGroup(
       i, 
       fornitore, 
-      assicurazioni.rows[i].assicurazione, 
-      assicurazioni.rows[i].netto, 
-      assicurazioni.rows[i].id
+      assicurazioni[i]?.assicurazione, 
+      assicurazioni[i]?.netto, 
+      assicurazioni[i]?.id
     );
     res.push(iG);
   }

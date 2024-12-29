@@ -13,22 +13,6 @@ export type User = {
 export interface Entity {
   id: string;
 }
-/**
- * Interface with fields:
- * 1. entityName -> name of the type T of entity
- * 2. data -> array of entities of type T
- */
-export interface TEntityList<T> {
-  entityName: string;
-  data: T[];
-}
-/**
- * Interface 
- */
-export interface FetchableEntity<T> {
-  name: string;
-  fetchCallback: () => Promise<TEntityList<T>>;
-}
 export interface Destinazione extends Entity {
   id: string;
   nome: string;
@@ -47,8 +31,10 @@ export interface Cliente extends Entity {
   citta?: string;
   note?: string;
   data_di_nascita?: Date;
+  indirizzo?: string;
+  cap?: string;
+  cf?: string;
 }
-
 export interface Fornitore extends Entity {
   nome: string;
   valuta?: string;

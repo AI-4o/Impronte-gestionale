@@ -55,7 +55,7 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
  * @param date 
  */
 export const formatDate = (date: Date): string => {
-console.log('format date, date: ', date, typeof date);
+//console.log('format date, date: ', date, typeof date);
 if(typeof date === 'string') {
   date = new Date(date);
 }
@@ -66,4 +66,13 @@ const day = String(date.getDate()).padStart(2, '0');
 return  `${year}-${month}-${day}`;
 }
 return null;
+}
+/**
+ * check if string has a valid email format
+ * @param email 
+ * @returns true if email is valid, false otherwises
+ */
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }

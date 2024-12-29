@@ -1,5 +1,4 @@
 'use client'
-import { useState } from "react";
 import { InputInterface } from "./input-interface";
 
 export default function InputText(
@@ -8,8 +7,9 @@ export default function InputText(
         name, 
         state, 
         value, 
-        onChange 
-    }: InputInterface) {
+        onChange,
+        textarea
+    }: InputInterface & {textarea?: boolean} ) {
 
     return (
         <div>
@@ -19,6 +19,16 @@ export default function InputText(
             >
                 {label}
             </label>
+            {textarea ?
+            <textarea
+                id={label}
+                name={name}
+                className="block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
+                placeholder={`note`}
+                value={value ?? ''}
+                onChange={onChange}
+            />
+               :
             <input
                 id={label}
                 name={name}
@@ -28,6 +38,7 @@ export default function InputText(
                 value={value ?? ''}
                 onChange={onChange}
             />
+            }
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {state?.errors?.[name] &&
                     state?.errors[name].map((error: string) => (

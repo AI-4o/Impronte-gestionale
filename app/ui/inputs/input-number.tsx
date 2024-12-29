@@ -9,11 +9,12 @@ export default function InputNumber(
         name, 
         state, 
         value, 
-        onChange 
+        onChange,
+        disabled
     }: InputInterface) {
-    const [inputValue, setInputValue] = useState(value ?? '');
+    const [inputValue, setInputValue] = useState(value ?? 0);
     const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
+        setInputValue(e.target.value);      
         if(onChange) onChange(e);
     }
     return (
@@ -32,6 +33,7 @@ export default function InputNumber(
                 value={inputValue}
                 placeholder={`number`}
                 onChange={e => _onChange(e)}
+                disabled={disabled}
             />
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">
                 {state?.errors?.[name] &&
