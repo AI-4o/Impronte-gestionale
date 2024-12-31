@@ -62,9 +62,10 @@ const createTablePreventivi = async () => {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
       CREATE TABLE IF NOT EXISTS preventivi (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_cliente UUID NOT NULL REFERENCES clienti(id),
-         note TEXT,
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        id_cliente UUID NOT NULL REFERENCES clienti(id),
+        percentuale_ricarico FLOAT,
+        note TEXT,
          brand VARCHAR(255),
          adulti INT,
          bambini INT,

@@ -1,3 +1,7 @@
 .sidenav {
     width: 150px !important;
 }
+
+.sidenav__logo {
+    position:absolute;
+}

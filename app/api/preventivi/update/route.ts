@@ -17,7 +17,6 @@ import {
   Data,
   PreventivoInputGroup,
   ServizioATerraInputGroup,
-  SUCCESSMESSAGE,
   VoloInputGroup,
 } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import {
@@ -29,20 +28,15 @@ import {
   fetchVoliByPreventivoId,
   fetchVoloById,
 } from "@/app/lib/data";
+import { validationErrorsToString } from "@/app/dashboard/(overview)/general-interface/helpers";
 
-type EntityFeedback = {
-  message: string;
-  errorsMessage?: string;
-  typeOfEntity: string;
-  idOfEntity: string;
-  errors?: { [key: string]: string[] };
-};
+
 export type CompleteUpdatePreventivoFeedback = {
-  feedbackPreventivo: DBResult<PreventivoInputGroup>;
-  feedbackServiziATerra: DBResult<ServizioATerraInputGroup[]>;
-  feedbackServiziAggiuntivi: DBResult<ServizioATerraInputGroup[]>;
-  feedbackVoli: DBResult<VoloInputGroup[]>;
-  feedbackAssicurazioni: DBResult<AssicurazioneInputGroup[]>;
+  feedbackPreventivo: DBResult<PreventivoInputGroup> & {message?: string};
+  feedbackServiziATerra: DBResult<ServizioATerraInputGroup[]> & {message?: string};
+  feedbackServiziAggiuntivi: DBResult<ServizioATerraInputGroup[]> & {message?: string};
+  feedbackVoli: DBResult<VoloInputGroup[]> & {message?: string};
+  feedbackAssicurazioni: DBResult<AssicurazioneInputGroup[]> & {message?: string};
 };
 export async function POST(request: NextRequest) {
   try {
@@ -52,18 +46,21 @@ export async function POST(request: NextRequest) {
         errorsMessage: '',
         errors: undefined,
         values: {},
+        message: ''
       },
       feedbackServiziATerra: {
         success: false,
         errorsMessage: 'servizi a terra non aggiornati',
         errors: undefined,
         values: [],
+        message: ''
       },
       feedbackServiziAggiuntivi: {
         success: false,
         errorsMessage: 'servizi aggiuntivi non aggiornati',
         errors: undefined,
         values: [],
+        message: ''
       },
       feedbackVoli: {
         success: false,
@@ -76,6 +73,7 @@ export async function POST(request: NextRequest) {
         errorsMessage: 'assicurazioni non aggiornate',
         errors: undefined,
         values: [],
+        message: ''
       },
     };
     const d: Data = await request.json();
@@ -93,16 +91,27 @@ export async function POST(request: NextRequest) {
       res.feedbackPreventivo.errorsMessage = "Errore nell'aggiornare il preventivo: " + feedbackPreventivo.errorsMessage;
       return NextResponse.json(res);
     }
-    switch(true) {
-      case !(await updateServiziATerraPreventivo(d, res)):
-        return NextResponse.json(res);
-      case !(await updateServiziAggiuntiviPreventivo(d, res)):
-        return NextResponse.json(res);
-      case !(await updateVoliPreventivo(d, res)):
-        return NextResponse.json(res);
-      case !(await updateAssicurazioniPreventivo(d, res)):
-        return NextResponse.json(res);
-    }
+     const resServiziATerra = await updateServiziATerraPreventivo(d, res);
+     if(!resServiziATerra) {
+      console.log("Errore nell'aggiornare i servizi a terra: ", res.feedbackServiziATerra.errorsMessage);
+      
+      return NextResponse.json(res);
+     }
+     const resServiziAggiuntivi = await updateServiziAggiuntiviPreventivo(d, res);
+     if(!resServiziAggiuntivi) {
+      console.log("Errore nell'aggiornare i servizi aggiuntivi: ", res.feedbackServiziAggiuntivi.errorsMessage);  
+      return NextResponse.json(res);
+     }
+     const resVoli = await updateVoliPreventivo(d, res);
+     if(!resVoli) {
+      console.log("Errore nell'aggiornare i voli: ", res.feedbackVoli.errorsMessage);
+      return NextResponse.json(res);
+     }
+     const resAssicurazioni = await updateAssicurazioniPreventivo(d, res);
+     if(!resAssicurazioni) {
+      console.log("Errore nell'aggiornare le assicurazioni: ", res.feedbackAssicurazioni.errorsMessage);
+      return NextResponse.json(res);
+     }
     console.log(
       "Dato restituito dall'API route di update-data-preventivo-completi: ",
       res
@@ -128,6 +137,11 @@ const updateServiziATerraPreventivo = async (
   d: Data,
   res: CompleteUpdatePreventivoFeedback
 ): Promise<boolean> => {
+  if(d.serviziATerra.length === 0) { // caso no servizi a terra passati dal FE
+    res.feedbackServiziATerra.success = true;
+    res.feedbackServiziATerra.message = 'no servizi a terra passati dal FE, nulla da aggiornare';
+    return true;
+  }
   // check which ids of serviziATerra in the database do not correspond to the ids in the request
   // if they do not correspond, delete them
 
@@ -168,6 +182,9 @@ const updateServiziATerraPreventivo = async (
         if(!feedbackServiziATerra.success) {
           res.feedbackServiziATerra.success = false;
           res.feedbackServiziATerra.errorsMessage = "Errore nell'aggiornare il servizio a terra: " + feedbackServiziATerra.errorsMessage;
+          if(feedbackServiziATerra.errors) {
+            res.feedbackServiziATerra.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackServiziATerra.errors);
+          }
           return false;
         }
         res.feedbackServiziATerra.values[i] = feedbackServiziATerra.values;
@@ -181,7 +198,10 @@ const updateServiziATerraPreventivo = async (
         res.feedbackServiziATerra.success = false;
         res.feedbackServiziATerra.errorsMessage = "Errore nel verificare se il servizio a terra esiste: " 
         + servizioATerraDBResult.errorsMessage
-        + "--- id servizio a terra: " + d.serviziATerra[i].id;
+        + "--- id servizio a terra: " + d.serviziATerra[i].id
+        if(servizioATerraDBResult.errors) {
+          res.feedbackServiziATerra.errorsMessage += "--- validation errors: " + validationErrorsToString(servizioATerraDBResult.errors);
+        }
         return false;
       }
     } else {
@@ -194,6 +214,9 @@ const updateServiziATerraPreventivo = async (
       if(!feedbackServiziATerraDBResult.success) {
         res.feedbackServiziATerra.success = false;
         res.feedbackServiziATerra.errorsMessage = "Errore nel creare il servizio a terra: " + feedbackServiziATerraDBResult.errorsMessage;
+        if(feedbackServiziATerraDBResult.errors) {
+          res.feedbackServiziATerra.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackServiziATerraDBResult.errors);
+        }
         return false;
       }
       res.feedbackServiziATerra.values[i] = feedbackServiziATerraDBResult.values;
@@ -216,12 +239,20 @@ const updateServiziAggiuntiviPreventivo = async (
   d: Data,
   res: CompleteUpdatePreventivoFeedback
 ) => {
+  if(d.serviziAggiuntivi.length === 0) { // caso no servizi aggiuntivi passati dal FE
+    res.feedbackServiziAggiuntivi.success = true;
+    res.feedbackServiziAggiuntivi.message = 'no servizi aggiuntivi passati dal FE, nulla da aggiornare';
+    return true;
+  }
   // check which ids of serviziATerra in the database do not correspond to the ids in the request
   // if they do not correspond, delete them
   const serviziAggiuntiviPrevDBResult = await fetchServiziAggiuntiviByPreventivoId(d.preventivo.id);
   if(!serviziAggiuntiviPrevDBResult.success) {
     res.feedbackPreventivo.success = false;
     res.feedbackPreventivo.errorsMessage = "Errore nel recuperare i servizi aggiuntivi del preventivo: " + serviziAggiuntiviPrevDBResult.errorsMessage;
+    if(serviziAggiuntiviPrevDBResult.errors) {
+      res.feedbackPreventivo.errorsMessage += "--- validation errors: " + validationErrorsToString(serviziAggiuntiviPrevDBResult.errors);
+    }
     return;
   }
   const serviziAggiuntiviPreventivoInDB = serviziAggiuntiviPrevDBResult.values;
@@ -251,6 +282,9 @@ const updateServiziAggiuntiviPreventivo = async (
         if(!feedbackServizioAggiuntivo.success) {
           res.feedbackServiziAggiuntivi.success = false;
           res.feedbackServiziAggiuntivi.errorsMessage = "Errore nell'aggiornare il servizio aggiuntivo: " + feedbackServizioAggiuntivo.errorsMessage;
+          if(feedbackServizioAggiuntivo.errors) {
+            res.feedbackServiziAggiuntivi.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackServizioAggiuntivo.errors);
+          }
           return false;
         }
         res.feedbackServiziAggiuntivi.values[i] = feedbackServizioAggiuntivo.values;
@@ -277,6 +311,9 @@ const updateServiziAggiuntiviPreventivo = async (
       if(!feedbackServizioAggiuntivoDBResult.success) {
         res.feedbackServiziAggiuntivi.success = false;
         res.feedbackServiziAggiuntivi.errorsMessage = "Errore nel creare il servizio aggiuntivo: " + feedbackServizioAggiuntivoDBResult.errorsMessage;
+        if(feedbackServizioAggiuntivoDBResult.errors) {
+          res.feedbackServiziAggiuntivi.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackServizioAggiuntivoDBResult.errors);
+        }
         return false;
       }
       res.feedbackServiziAggiuntivi.values[i] = feedbackServizioAggiuntivoDBResult.values;
@@ -299,10 +336,18 @@ const updateVoliPreventivo = async (
   d: Data,
   res: CompleteUpdatePreventivoFeedback
 ) => {
+  if(d.voli.length === 0) { // caso no voli passati dal FE
+    res.feedbackVoli.success = true;
+    res.feedbackVoli.message = 'no voli passati dal FE, nulla da aggiornare';
+    return true;
+  }
   const voliPrevDBResult = await fetchVoliByPreventivoId(d.preventivo.id);
   if(!voliPrevDBResult.success) {
     res.feedbackVoli.success = false;
     res.feedbackVoli.errorsMessage = "Errore nel recuperare i voli del preventivo: " + voliPrevDBResult.errorsMessage;
+    if(voliPrevDBResult.errors) {
+      res.feedbackVoli.errorsMessage += "--- validation errors: " + validationErrorsToString(voliPrevDBResult.errors);
+    }
     return false;
   }
   const idsVoliInDB = voliPrevDBResult.values.map((volo) => volo.id);
@@ -321,6 +366,9 @@ const updateVoliPreventivo = async (
         if(!feedbackVolo.success) {
           res.feedbackVoli.success = false;
           res.feedbackVoli.errorsMessage = "Errore nell'aggiornare il volo: " + feedbackVolo.errorsMessage;
+          if(feedbackVolo.errors) {
+            res.feedbackVoli.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackVolo.errors);
+          }
           return false;
         }
         res.feedbackVoli.values[i] = feedbackVolo.values;
@@ -335,6 +383,9 @@ const updateVoliPreventivo = async (
         res.feedbackVoli.errorsMessage = "Errore nel verificare se il volo esiste: " 
         + voloDBResult.errorsMessage
         + "--- id volo: " + d.voli[i].id;
+        if(voloDBResult.errors) {
+          res.feedbackVoli.errorsMessage += "--- validation errors: " + validationErrorsToString(voloDBResult.errors);
+        }
         return false;
       }
     } else {
@@ -342,6 +393,9 @@ const updateVoliPreventivo = async (
       if(!feedbackVoloDBResult.success) {
         res.feedbackVoli.success = false;
         res.feedbackVoli.errorsMessage = "Errore nel creare il volo: " + feedbackVoloDBResult.errorsMessage;
+        if(feedbackVoloDBResult.errors) {
+          res.feedbackVoli.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackVoloDBResult.errors);
+        }
         return false;
       }
       res.feedbackVoli.values[i] = feedbackVoloDBResult.values;
@@ -364,12 +418,20 @@ const updateAssicurazioniPreventivo = async (
   d: Data,
   res: CompleteUpdatePreventivoFeedback
 ) => {
+  if(d.assicurazioni.length === 0) { // caso no assicurazioni passate dal FE
+    res.feedbackAssicurazioni.success = true;
+    res.feedbackAssicurazioni.message = 'no assicurazioni passate dal FE, nulla da aggiornare';
+    return true;
+  }
   const assicurazioniPrevDBResult = await fetchAssicurazioniByPreventivoId(
     d.preventivo.id
   );
   if(!assicurazioniPrevDBResult.success) {
     res.feedbackAssicurazioni.success = false;
     res.feedbackAssicurazioni.errorsMessage = "Errore nel recuperare le assicurazioni del preventivo: " + assicurazioniPrevDBResult.errorsMessage;
+    if(assicurazioniPrevDBResult.errors) {
+      res.feedbackAssicurazioni.errorsMessage += "--- validation errors: " + validationErrorsToString(assicurazioniPrevDBResult.errors);
+    }
     return false;
   }
   const idsAssicurazioniInDB = assicurazioniPrevDBResult.values.map(
@@ -394,6 +456,9 @@ const updateAssicurazioniPreventivo = async (
         if(!feedbackAssicurazione.success) {
           res.feedbackAssicurazioni.success = false;
           res.feedbackAssicurazioni.errorsMessage = "Errore nell'aggiornare l'assicurazione: " + feedbackAssicurazione.errorsMessage;
+          if(feedbackAssicurazione.errors) {
+            res.feedbackAssicurazioni.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackAssicurazione.errors);
+          }
           return false;
         }
         res.feedbackAssicurazioni.values[i] = feedbackAssicurazione.values;
@@ -411,6 +476,9 @@ const updateAssicurazioniPreventivo = async (
       if(!feedbackAssicurazione.success) {
         res.feedbackAssicurazioni.success = false;
         res.feedbackAssicurazioni.errorsMessage = "Errore nel creare l'assicurazione: " + feedbackAssicurazione.errorsMessage;
+        if(feedbackAssicurazione.errors) {
+          res.feedbackAssicurazioni.errorsMessage += "--- validation errors: " + validationErrorsToString(feedbackAssicurazione.errors);
+        }
         return false;
       }
       res.feedbackAssicurazioni.values[i] = feedbackAssicurazione.values;

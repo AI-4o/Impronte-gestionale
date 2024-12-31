@@ -15,6 +15,6 @@ export async function POST(request: NextRequest) {
 }
 const getPreventiviInputGroupByCliente = async (clienteId: string): Promise<DBResult<PreventivoInputGroup[]>> => {
     const preventiviDBResult = await fetchPreventiviByIdCliente(clienteId);
-    preventiviDBResult.values = preventiviDBResult.values.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
+    preventiviDBResult.values = preventiviDBResult.values.map(p => new PreventivoInputGroup(p.numero_preventivo, p.percentuale_ricarico, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato, p.id));
     return preventiviDBResult;
   } 

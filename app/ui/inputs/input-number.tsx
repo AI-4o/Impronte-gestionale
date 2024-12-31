@@ -1,5 +1,3 @@
-'use client'
-import { useState } from "react";
 import { InputInterface } from "./input-interface";
 import './inputs-style.css';
 
@@ -12,11 +10,7 @@ export default function InputNumber(
         onChange,
         disabled
     }: InputInterface) {
-    const [inputValue, setInputValue] = useState(value ?? 0);
-    const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);      
-        if(onChange) onChange(e);
-    }
+
     return (
         <div className="number">
             <label
@@ -30,9 +24,9 @@ export default function InputNumber(
                 name={name}
                 type="number"
                 className="number block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
-                value={inputValue}
+                value={value ?? 0}
                 placeholder={`number`}
-                onChange={e => _onChange(e)}
+                onChange={onChange}
                 disabled={disabled}
             />
             <div id={`${name}-error`} aria-live="polite" aria-atomic="true">

@@ -7,8 +7,8 @@ import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
 import { Cliente } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
-import { fetchFilteredClienti, fetchFornitoreByName, fetchPreventiviByIdCliente, fetchDestinazioneByName, getFornitoreByName } from "../data";
-import { AssicurazioneInputGroup, ClienteInputGroup, Data, ERRORMESSAGE, PreventivoInputGroup, ServizioATerraInputGroup, SUCCESSMESSAGE, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
+import { fetchFilteredClienti, fetchFornitoreByName, fetchDestinazioneByName, getFornitoreByName } from "../data";
+import { AssicurazioneInputGroup, ClienteInputGroup, Data, ERRORMESSAGE, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import { formatDate } from "../utils";
 export type DBResult<A> = {
   success: boolean;
@@ -91,6 +91,7 @@ export const createPreventivo = async (
   const parsedData = schemas.PreventivoSchema.safeParse({
     id_cliente: idCliente,
     note: p.note,
+    percentuale_ricarico: p.percentuale_ricarico,
     brand: p.brand,
     riferimento: p.riferimento,
     operatore: p.operatore,
@@ -115,6 +116,7 @@ export const createPreventivo = async (
       INSERT INTO preventivi (
         id_cliente, 
         note, 
+        percentuale_ricarico,
         riferimento, 
         operatore, 
         brand,
@@ -129,6 +131,7 @@ export const createPreventivo = async (
       VALUES (
         ${parsedData.data.id_cliente}, 
         ${parsedData.data.note}, 
+        ${parsedData.data.percentuale_ricarico},
         ${parsedData.data.riferimento}, 
         ${parsedData.data.operatore}, 
         ${parsedData.data.brand},
@@ -451,6 +454,8 @@ export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: strin
   const parsedData = schemas.UpdatePreventivoSchema.safeParse({
     id: p.id,
     note: p.note,
+    brand: p.brand,
+    percentuale_ricarico: p.percentuale_ricarico,
     riferimento: p.riferimento,
     operatore: p.operatore,
     feedback: p.feedback,
@@ -473,6 +478,7 @@ export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: strin
     const result = await sql`
     UPDATE preventivi SET 
     note = ${parsedData.data.note}, 
+    percentuale_ricarico = ${parsedData.data.percentuale_ricarico},
     riferimento = ${parsedData.data.riferimento}, 
     operatore = ${parsedData.data.operatore}, 
     feedback = ${parsedData.data.feedback}, 

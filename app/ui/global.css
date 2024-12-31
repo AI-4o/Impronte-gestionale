@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ### Global styles for components ### */
+
+
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;

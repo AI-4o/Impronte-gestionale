@@ -87,6 +87,7 @@ export const formatDateToString = (date: Date): string => {
 }
 
 export const validationErrorsToString = (errors: any): string => {
+    if(!errors) return '';
     return Object.keys(errors).reduce((acc, key) => acc + `${key}: ` + errors[key].join(', ') + '\n', '');
 }
 

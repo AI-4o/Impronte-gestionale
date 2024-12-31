@@ -1,5 +1,3 @@
-'use client'
-import { useState } from "react";
 import { InputInterface } from "./input-interface";
 import './inputs-style.css';
 export default function InputDate({

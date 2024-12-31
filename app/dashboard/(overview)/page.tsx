@@ -7,6 +7,13 @@ export default async function ChangelogPage() {
       <h1 className={`mb-4 text-xl md:text-2xl`}>CHANGELOG</h1>
 
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
+      <p className='version-paragraph'>V2.3.0</p>
+      <ul>
+        <li>Feat: add spinner to manifest the loading state of the app.</li>
+        <li>Feat: add logo.</li>
+        <li>Fix: 'percentuale_ricarico' should be saved in the DB as a field of the entity 'preventivo'.</li>
+        <li>Fix: fix 'updatePreventivo' functionality.</li>
+      </ul>
       <p className='version-paragraph'>V2.2.0</p>
       <ul>
           <li>Feat: In 'cliente', add 'IMS' as a possible value for 'provenienza'.</li>

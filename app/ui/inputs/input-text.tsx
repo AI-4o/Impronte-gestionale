@@ -1,4 +1,3 @@
-'use client'
 import { InputInterface } from "./input-interface";
 
 export default function InputText(

@@ -41,6 +41,7 @@ export interface Fornitore extends Entity {
 }
 export interface Preventivo extends Entity{
   id_cliente: string;
+  percentuale_ricarico?: number;
   email: string;
   numero_di_telefono?: string;
   id_fornitore?: string;

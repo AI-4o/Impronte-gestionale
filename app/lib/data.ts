@@ -900,7 +900,7 @@ export const fetchPreventiviByIdCliente = async (idCliente: string): Promise<DBR
       WHERE id_cliente = ${idCliente}
     `;
     return {
-      values: preventivo.rows.map(p => new PreventivoInputGroup(p.numero_preventivo, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato as 'da fare' | 'in trattativa' | 'confermato' | 'inviato', p.id)),
+      values: preventivo.rows.map(p => new PreventivoInputGroup(p.numero_preventivo, p.percentuale_ricarico, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato as 'da fare' | 'in trattativa' | 'confermato' | 'inviato', p.id)),
       success: true,
       errorsMessage: ''
     }
