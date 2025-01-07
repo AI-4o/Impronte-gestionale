@@ -411,7 +411,7 @@ const updateVoliPreventivo = async (
  * Update the assicurazioni of the preventivo as follows:
  * 1. check which ids of assicurazioni in the database do not correspond to the ids in the request: if they do not correspond, delete them
  * 2. check if the assicurazione is already in the database and if so update it, ow create it
- * @param d - The data of the preventivo
+ * @param d - The data of the preventivo passed from the FE
  * @param res - The feedback of the preventivo
  */
 const updateAssicurazioniPreventivo = async (
@@ -447,6 +447,7 @@ const updateAssicurazioniPreventivo = async (
     await deleteAssicurazioneById(id);
   }
   for (let i = 0; i < d.assicurazioni.length; i++) {
+    console.log('ASSICURAZIONE passed from FE: ', d.assicurazioni[i]);
     if (d.assicurazioni[i].id) {
       const assicurazioneDBResult = await fetchAssicurazioneById(d.assicurazioni[i].id);
       if (assicurazioneDBResult.success) {

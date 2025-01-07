@@ -126,7 +126,8 @@ const createTableAssicurazioni = async () => {
          id_preventivo UUID NOT NULL REFERENCES preventivi(id),
          id_fornitore UUID REFERENCES fornitori(id),
          assicurazione VARCHAR(255),
-         netto FLOAT
+         netto FLOAT,
+         ricarico FLOAT
       );
     `;
 }
@@ -300,8 +301,8 @@ const createTables = async () => {
 const seedDb = async () => {
     await seedDestinazioni();
     await seedFornitori();
-    await seedClienti(); // test data
     await seedBanche();
+    await seedClienti();
 }
 export async function GET() {
   try {

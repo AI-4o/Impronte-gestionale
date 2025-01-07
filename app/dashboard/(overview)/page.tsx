@@ -9,10 +9,15 @@ export default async function ChangelogPage() {
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
       <p className='version-paragraph'>V2.3.0</p>
       <ul>
+        <li>Feat: allow custom success message styles.</li>
+        <li>Fix: <i>le date devono poter essere inserite da tastiera.</i></li>
+        <li>Fix: <i>anche sulle assicurazioni bisogna aggiungere il campo ricarico come input che inseriamo noi di volta in volta ed il totale sarà dato dal netto + ricarico</i></li>
+        <li>Feat: update layout of input groups for preventivo interface.</li>
         <li>Feat: add spinner to manifest the loading state of the app.</li>
         <li>Feat: add logo.</li>
-        <li>Fix: 'percentuale_ricarico' should be saved in the DB as a field of the entity 'preventivo'.</li>
-        <li>Fix: fix 'updatePreventivo' functionality.</li>
+        <li>Fix: <i>la percentuale di ricarico che noi inseriamo deve essere memorizzata per ogni preventivo (ho provato a fare una variazione e la percentuale di ricarico ogni volta 
+          che si apre il preventivo torna ad essere uno, invece deve essere quella da noi inserita per quel preventivo specifico)</i></li>
+        <li>Fix: <i>in fase di variazione di preventivo cliccando sul tasto aggiorna non succede niente e la variazione non viene memorizzata</i></li>
       </ul>
       <p className='version-paragraph'>V2.2.0</p>
       <ul>

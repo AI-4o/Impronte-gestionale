@@ -1,3 +1,4 @@
+import moment from 'moment';
 export const formatCurrency = (amount: number) => {
   return (amount / 100).toLocaleString('en-US', {
     style: 'currency',
@@ -55,17 +56,8 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
  * @param date 
  */
 export const formatDate = (date: Date): string => {
-//console.log('format date, date: ', date, typeof date);
-if(typeof date === 'string') {
-  date = new Date(date);
-}
-if(date && date instanceof Date && date.getFullYear()) {
-const year = date.getFullYear();
-const month = String(date.getMonth() + 1).padStart(2, '0'); // Mesi da 0 a 11
-const day = String(date.getDate()).padStart(2, '0');
-return  `${year}-${month}-${day}`;
-}
-return null;
+const formattedDate = moment(date).format('YYYY-MM-DD');
+return formattedDate;
 }
 /**
  * check if string has a valid email format

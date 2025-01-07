@@ -21,7 +21,7 @@ export default function InputEmail(
                 id={label}
                 name={name}
                 type="email"
-                className="block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
+                className="h-input-height block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
                 placeholder={`email`}
                 value={value ?? ''}
                 onChange={onChange}

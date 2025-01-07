@@ -3,12 +3,6 @@
 Gestionale per l'azienda 'ImpronteSafari'.
 
 ## Segnalazioni
-
-- [ x] la percentuale di ricarico che noi inseriamo deve essere memorizzata per ogni preventivo (ho provato a fare una variazione e la percentuale di ricarico ogni volta    che si apre il preventivo torna ad essere uno, invece deve essere quella da noi inserita per quel preventivo specifico)
-- [ ] sui voli non funziona il calcolo (importo + ricarico)*numero
-- [ ] anche sulle assicurazioni bisogna aggiungere il campo ricarico come input che inseriamo noi di volta in volta ed il totale sarà dato dal netto + ricarico
-- [ x] in fase di variazione di preventivo cliccando sul tasto aggiorna non succede niente e la variazione non viene memorizzata
-- [ ] the input dates should be filled also by keyboard interactions
 - [ ] User friendly edits: 
       - [ ] feat: add btn ‘pulisci’ which cleans the data in the cliente form
       - [ ] when the user clicks on create preventivo btn → rimane il form compilato, ma adesso pronto con btn updatePreventivo

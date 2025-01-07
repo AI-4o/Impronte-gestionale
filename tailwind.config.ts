@@ -20,6 +20,9 @@ const config: Config = {
         isorange: '#be401e',
         isyellow: '#d99b20'
       },
+      height: {
+        'input-height': '37px',
+      },
     },
     keyframes: {
       shimmer: {

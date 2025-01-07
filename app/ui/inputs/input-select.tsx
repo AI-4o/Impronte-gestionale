@@ -21,7 +21,7 @@ export default function InputSelect({
                 <select
                     id={label}
                     name={name}
-                    className="select peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 text-sm  placeholder:text-gray-500"
+                    className="select h-input-height peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 text-sm  placeholder:text-gray-500"
                     value={value ?? ''}
                     onChange={onChange}
                 >

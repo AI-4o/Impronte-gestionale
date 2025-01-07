@@ -964,7 +964,7 @@ export const fetchServiziATerraByPreventivoId = async (idPreventivo: string): Pr
   try {
     const serviziATerra = await sql<ServizioATerra>`
       SELECT * FROM servizi_a_terra
-      WHERE id_preventivo = ${idPreventivo}
+      WHERE id_preventivo = ${idPreventivo} AND servizio_aggiuntivo = false
     `;
     return {
       values: serviziATerra.rows,
@@ -984,7 +984,7 @@ export const fetchServiziAggiuntiviByPreventivoId = async (idPreventivo: string)
     const serviziAggiuntivi = await sql<ServizioATerra>`
       SELECT * FROM servizi_a_terra
       WHERE id_preventivo = ${idPreventivo} AND servizio_aggiuntivo = true
-    `;
+    `;    
     return {
       values: serviziAggiuntivi.rows,
       success: true,

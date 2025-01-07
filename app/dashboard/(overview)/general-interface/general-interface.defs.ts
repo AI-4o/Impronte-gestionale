@@ -130,12 +130,14 @@ export class AssicurazioneInputGroup {
         public fornitore?: string,
         public assicurazione?: string,
         public netto?: number,
+        public ricarico?: number,
         public id?: string,
     ) { 
         this.id = id ?? undefined;
         this.fornitore = fornitore ?? undefined;
         this.assicurazione = assicurazione ?? undefined;
         this.netto = netto ?? undefined;
+        this.ricarico = ricarico ?? undefined;
     }
 }
 export interface Data {

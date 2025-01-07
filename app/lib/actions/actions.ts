@@ -10,6 +10,7 @@ import * as schemas from "./entity-zod-schemas";
 import { fetchFilteredClienti, fetchFornitoreByName, fetchDestinazioneByName, getFornitoreByName } from "../data";
 import { AssicurazioneInputGroup, ClienteInputGroup, Data, ERRORMESSAGE, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import { formatDate } from "../utils";
+import moment from "moment";
 export type DBResult<A> = {
   success: boolean;
   values?: any; // TODO: successivo refactoring si rende di tipo A | A[] | null
@@ -258,6 +259,7 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
     id_fornitore: fornitore.values?.id,
     assicurazione: a.assicurazione,
     netto: a.netto,
+    ricarico: a.ricarico,
   });
   if (!parsedData.success) {
     return {
@@ -269,8 +271,8 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
   }
   try {
     const result = await sql`
-    INSERT INTO assicurazioni (id_preventivo, id_fornitore, assicurazione, netto)
-    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.assicurazione}, ${parsedData.data.netto})
+    INSERT INTO assicurazioni (id_preventivo, id_fornitore, assicurazione, netto, ricarico)
+    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.assicurazione}, ${parsedData.data.netto}, ${parsedData.data.ricarico})
     RETURNING *;
     `;
     return {values: result.rows[0], success: true, errorsMessage: ''};
@@ -478,6 +480,7 @@ export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: strin
     const result = await sql`
     UPDATE preventivi SET 
     note = ${parsedData.data.note}, 
+    brand = ${parsedData.data.brand},
     percentuale_ricarico = ${parsedData.data.percentuale_ricarico},
     riferimento = ${parsedData.data.riferimento}, 
     operatore = ${parsedData.data.operatore}, 
@@ -630,6 +633,7 @@ export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<D
     id_fornitore: id_fornitore,
     assicurazione: a.assicurazione,
     netto: a.netto,
+    ricarico: a.ricarico,
   });
   if (!parsedData.success) {
     return {
@@ -644,7 +648,8 @@ export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<D
     UPDATE assicurazioni SET 
     id_fornitore = ${id_fornitore},
     assicurazione = ${parsedData.data.assicurazione}, 
-    netto = ${parsedData.data.netto}
+    netto = ${parsedData.data.netto},
+    ricarico = ${parsedData.data.ricarico}
     WHERE id = ${a.id}
   `;
     return {
@@ -675,6 +680,7 @@ export const searchClienti = async (
   const clientiByIndirizzo = await fetchFilteredClienti(c.indirizzo, 1);
   const clientiByCap = await fetchFilteredClienti(c.cap, 1);
   const clientiByCf = await fetchFilteredClienti(c.cf, 1);
+  const clientiByDataDiNascita = await fetchFilteredClienti(moment(c.data_di_nascita).format('YYYY-MM-DD'), 1);
   const allClienti = [
     ...clientiByNome.values,
     ...clientiByCognome.values,
@@ -687,6 +693,7 @@ export const searchClienti = async (
     ...clientiByIndirizzo.values,
     ...clientiByCap.values,
     ...clientiByCf.values,
+    ...clientiByDataDiNascita.values,
   ];
 
 /*//console.log(
@@ -743,7 +750,10 @@ export const searchClienti = async (
   const idsByCf = c.cf
     ? new Set(clientiByCf.values.map((cliente) => cliente.id))
     : allIds;
-  
+  const idsByDataDiNascita = c.data_di_nascita
+    ? new Set(clientiByDataDiNascita.values.map((cliente) => cliente.id))
+    : allIds;
+
   // Compute the intersection of the IDs
   const intersectedIds = [...allIds].filter(
     (id) =>
@@ -757,7 +767,8 @@ export const searchClienti = async (
       idsByTipo.has(id) &&
       idsByIndirizzo.has(id) &&
       idsByCap.has(id) &&
-      idsByCf.has(id)
+      idsByCf.has(id) &&
+      idsByDataDiNascita.has(id)
   );
 
   ////console.log("intersectedIds: ", intersectedIds);

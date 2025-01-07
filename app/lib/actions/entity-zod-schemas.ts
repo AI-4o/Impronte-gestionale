@@ -106,11 +106,13 @@ export const AssicurazioneSchema = z.object({
   id_fornitore: z.string().nullable().optional(),
   assicurazione: z.string(),
   netto: z.number().optional(),
+  ricarico: z.number().optional(),
 });
 export const UpdateAssicurazioneSchema = z.object({
   id_fornitore: z.string().nullable().optional(),
   assicurazione: z.string(),
   netto: z.number().optional(),
+  ricarico: z.number().optional(),
 });
 
 

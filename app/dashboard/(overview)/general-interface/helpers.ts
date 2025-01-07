@@ -6,7 +6,7 @@ import { ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup } fro
 
 // ### servizi a terra e servizi aggiuntivi ###
 export const getTotServizio = (totale: number, cambio: number, percentualeRicarico: number, numeroNotti?: number, numeroCamere?: number) => {
-    if(!totale || !cambio || !percentualeRicarico || !numeroNotti || !numeroCamere || cambio === 0) {
+    if(isNaN(totale) || isNaN(cambio) || isNaN(percentualeRicarico) || isNaN(numeroNotti) || isNaN(numeroCamere) || cambio === 0) {
         return 0;
     }
     if(!numeroNotti) numeroNotti = 0;
@@ -16,7 +16,7 @@ export const getTotServizio = (totale: number, cambio: number, percentualeRicari
     return Math.trunc(result * 100) / 100;
 }
 export const getRicaricoServizio = (totale: number, cambio: number, percentualeRicarico: number, numeroNotti?: number, numeroCamere?: number) => {
-    if(!totale || !cambio || !percentualeRicarico || !numeroNotti || !numeroCamere || cambio === 0) {
+    if(isNaN(totale) || isNaN(cambio) || isNaN(percentualeRicarico) || isNaN(numeroNotti) || isNaN(numeroCamere) || cambio === 0) {
         return 0;
     }
     if(!numeroNotti) numeroNotti = 0;
@@ -28,7 +28,7 @@ export const getRicaricoServizio = (totale: number, cambio: number, percentualeR
 
 // ### voli ###
 export const getTotVolo = (totale: number, cambio: number, ricarico: number, numero: number) => {
-    if (!cambio || !totale || !ricarico || !numero || cambio === 0) {
+    if (isNaN(totale) || isNaN(cambio) || isNaN(ricarico) || isNaN(numero) || cambio === 0) {
         return 0;
     }
     console.log('getTotVolo: ','totale: ', totale, 'cambio: ', cambio, 'ricarico: ', ricarico, 'numero: ', numero, 'result: ', numero * (totale / cambio + ricarico));
@@ -39,19 +39,11 @@ export const getTotVolo = (totale: number, cambio: number, ricarico: number, num
 }
 
 // ### assicurazioni ###
-export const getRicaricoAssicurazione = (totale: number, percentualeRicarico: number) => {
-    if(!totale || !percentualeRicarico) {
+export const getTotAssicurazione = (netto: number, ricarico: number) => {
+    if(isNaN(netto) || isNaN(ricarico)) {
         return 0;
     }
-    const result = totale * percentualeRicarico;
-    // Truncate the result to two decimal places
-    return Math.trunc(result * 100) / 100;
-}
-export const getTotAssicurazione = (totale: number, percentualeRicarico: number) => {
-    if(!totale || !percentualeRicarico) {
-        return 0;
-    }
-    const result = totale + getRicaricoAssicurazione(totale, percentualeRicarico);
+    const result = netto + ricarico;
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
 }

@@ -11,6 +11,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { name: 'Changelog', href: '/dashboard' },
     { name: 'Preventivo', href: '/dashboard/general-interface' },
     { name: 'Analisi funzionale', href: '/dashboard/functional-analysis' },
+    { name: 'Settings', href: '/dashboard/settings' },
   ];
   return (
     <SpinnerContextProvider>

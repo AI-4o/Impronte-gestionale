@@ -14,9 +14,10 @@ import { formatDate, isValidEmail } from "@/app/lib/utils";
 import { createCliente, DBResult, updateCliente } from "@/app/lib/actions/actions";
 import Modal from "@/app/ui/modal";
 import { CompleteUpdatePreventivoFeedback } from "@/app/api/preventivi/update/route";
-import { getTotServizio, getRicaricoServizio, getTotVolo, getRicaricoAssicurazione, getTotAssicurazione, formatDateToString, getSommaTuttiTotEuro, validationErrorsToString, numberToExcelFormat, formatNumberItalian } from "./helpers";
+import { getTotServizio, getRicaricoServizio, getTotVolo, getTotAssicurazione, formatDateToString, getSommaTuttiTotEuro, validationErrorsToString, numberToExcelFormat, formatNumberItalian } from "./helpers";
 import { useSpinnerContext } from '@/app/context/spinner-context';
 import { useDebouncedCallback } from 'use-debounce';
+import moment from 'moment';
 
 export default function CreaPreventivoGeneralInterface() {
 
@@ -61,10 +62,10 @@ export default function CreaPreventivoGeneralInterface() {
     const [isSearchingClienti, setIsSearchingClienti] = useState<boolean>(false);
     const onVCCliente = async (e: any, name: string) => {
         //console.log('change in a value of a cliente <event, id, name>: ', e, name);
-
         setCliente((prevState) => {
-            if (name === 'data_di_nascita') {
-                return { ...prevState, data_di_nascita: new Date(e.target.value) };
+            if (name == 'data_di_nascita') {
+                const newDate = new Date(e.target.value);
+                return { ...prevState, data_di_nascita: newDate };
             } else {
                 return { ...prevState, [name]: e.target.value };
             }
@@ -98,9 +99,10 @@ export default function CreaPreventivoGeneralInterface() {
     const onVCClienteDaAggiornare = (e: any, name: string) => {
         //console.log('change in a value of a clienteDaAggiornare <event, id, name>: ', e, name);
         setClienteDaAggiornare((prevState) => {
-            if (name === 'data_di_nascita') {
-                return { ...prevState, data_di_nascita: new Date(e.target.value) };
-            } else {
+            if (name == 'data_di_nascita') {
+                const newDate = new Date(e.target.value);
+                return { ...prevState, data_di_nascita: newDate };
+            } else {               
                 return { ...prevState, [name]: e.target.value };
             }
         });
@@ -133,7 +135,7 @@ export default function CreaPreventivoGeneralInterface() {
                     case 'percentuale_ricarico': p[name] = parseFloat(e.target.value);
                         break;
                 }
-                return p;
+                return {...p};
             }
         });
     }
@@ -170,7 +172,7 @@ export default function CreaPreventivoGeneralInterface() {
                     }
                 }
             }
-            return servizio;
+            return {...servizio};
         }));
     }
 
@@ -206,7 +208,7 @@ export default function CreaPreventivoGeneralInterface() {
                     }
                 }
             }
-            return servizio;
+            return {...servizio};
         }));
     }
 
@@ -244,7 +246,7 @@ export default function CreaPreventivoGeneralInterface() {
                     }
                 }
             }
-            return volo;
+            return {...volo};
         }));
     }
 
@@ -265,8 +267,8 @@ export default function CreaPreventivoGeneralInterface() {
         setAssicurazioni(assicurazioni.map(assicurazione => {
             if (assicurazione.groupId === id) {
                 assicurazione[name] = e.target.value;
-                if (name == 'netto') assicurazione[name] = parseFloat(e.target.value);
-            } return assicurazione;
+                if (name == 'netto' || name == 'ricarico') assicurazione[name] = parseFloat(e.target.value);
+            } return {...assicurazione};
         }));
     }
 
@@ -337,18 +339,18 @@ export default function CreaPreventivoGeneralInterface() {
                 const res = await createCliente(cliente);
                 console.log('res: ', res);
                 if (res.success) { // cliente creato con successo
-                setFeedback(() => {
-                    return {
-                        message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                        type: 'success'
-                    }
-                });
-                const clienti = await fetchClientiCorrispondenti();
-                setClientiTrovati(clienti);
-                setShowClientiTrovati(true);
-                setIsActiveSpinner(false);
-                setShowFeedback(true);
-            } else { // TODO: mostrare errori in modo più esplicito -> mostrare errori validazione, mostrare tipo di errore (db o altro)
+                    setFeedback(() => {
+                        return {
+                            message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
+                            type: 'success'
+                        }
+                    });
+                    const clienti = await fetchClientiCorrispondenti();
+                    setClientiTrovati(clienti);
+                    setShowClientiTrovati(true);
+                    setIsActiveSpinner(false);
+                    setShowFeedback(true);
+                } else { // TODO: mostrare errori in modo più esplicito -> mostrare errori validazione, mostrare tipo di errore (db o altro)
                     setErrorsList(['Errore nella creazione del cliente: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
                 }
             } catch (error) {
@@ -524,7 +526,7 @@ export default function CreaPreventivoGeneralInterface() {
         setIsActiveSpinner(true);
         const data = await fetchDataPreventivoDaAggiornare(p);
         data.preventivo.numero_preventivo = numberToExcelFormat(parseInt(data.preventivo.numero_preventivo));
-        console.log('data preventivo: ', data.preventivo);
+        console.log('data ricevuti in form aggiorna preventivo: ', data);
         if (data) {
             setCliente(c);
             setPreventivo(data.preventivo);
@@ -626,6 +628,9 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione lista preventivi di un cliente
     useEffect(() => {
+        console.log('the cliente state is: ', cliente);
+        setShowFormAggiornaCliente(false);
+        setShowPreventiviClienteList(false);
         fetchClientiCorrispondenti();
         setErrorsList([]);
     }, [cliente]);
@@ -663,11 +668,18 @@ export default function CreaPreventivoGeneralInterface() {
         setErrorsList([]);
     }, [showClientiTrovati]);
     useEffect(() => {
-        if (showFormAggiornaCliente) setShowFormPreventivo(false);
+        if (showFormAggiornaCliente) {
+            setShowFormPreventivo(false);
+            setShowPreventiviClienteList(false);
+        }
+
         setErrorsList([]);
     }, [showFormAggiornaCliente]);
     useEffect(() => {
-        if (showPreventiviClienteList) setShowFormPreventivo(false);
+        if (showPreventiviClienteList) {
+            setShowFormPreventivo(false);
+            setShowFormAggiornaCliente(false);
+        }
         setErrorsList([]);
     }, [showPreventiviClienteList]);
     return (
@@ -685,7 +697,7 @@ export default function CreaPreventivoGeneralInterface() {
                         <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
                         <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
                         <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
-                        <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={formatDate(cliente?.data_di_nascita)} />
+                        <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={moment(cliente?.data_di_nascita).format('YYYY-MM-DD')} />
                         <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCCliente(e, 'indirizzo')} value={cliente?.indirizzo} />
                         <InputText label="CAP" name="cap" onChange={(e) => onVCCliente(e, 'cap')} value={cliente?.cap} />
                         <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
@@ -743,7 +755,7 @@ export default function CreaPreventivoGeneralInterface() {
                                             <InputTell label="Telefono" name="tel" onChange={(e) => onVCClienteDaAggiornare(e, 'tel')} value={clienteDaAggiornare?.tel} />
                                             <InputText label="Nome" name="nome" onChange={(e) => onVCClienteDaAggiornare(e, 'nome')} value={clienteDaAggiornare?.nome} />
                                             <InputText label="Cognome" name="cognome" onChange={(e) => onVCClienteDaAggiornare(e, 'cognome')} value={clienteDaAggiornare?.cognome} />
-                                            <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={formatDate(clienteDaAggiornare?.data_di_nascita)} />
+                                            <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={moment(clienteDaAggiornare?.data_di_nascita).format('YYYY-MM-DD')} />
                                             <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCClienteDaAggiornare(e, 'indirizzo')} value={clienteDaAggiornare?.indirizzo} />
                                             <InputText label="CAP" name="cap" onChange={(e) => onVCClienteDaAggiornare(e, 'cap')} value={clienteDaAggiornare?.cap} />
                                             <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
@@ -812,7 +824,7 @@ export default function CreaPreventivoGeneralInterface() {
                                 {formatDateToString(preventivo?.data_partenza)} {preventivo?.brand} {preventivo?.numero_preventivo?.toString()}
                             </div>
                             <InputSelect label="Operatore" name="operatore" options={operatoreOptions} onChange={(e) => onVCpreventivo(e, 'operatore')} value={preventivo?.operatore} />
-                            <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={formatDate(preventivo?.data)} />
+                            <InputDate label="Data" name="data" onChange={(e) => onVCpreventivo(e, 'data')} value={moment(preventivo?.data).format('YYYY-MM-DD')} />
                             <InputSelect label="Stato" name="stato" options={statoPreventivoOptions} onChange={(e) => onVCpreventivo(e, 'stato')} value={preventivo?.stato} />
                         </div>
                         <div className="flex flex-row">
@@ -821,7 +833,7 @@ export default function CreaPreventivoGeneralInterface() {
                             <InputText label="Note" name="note" onChange={(e) => onVCpreventivo(e, 'note')} value={preventivo?.note} />
                             <InputNumber label="Adulti" name="adulti" onChange={(e) => onVCpreventivo(e, 'adulti')} value={preventivo?.adulti?.toString()} />
                             <InputNumber label="Bambini" name="bambini" onChange={(e) => onVCpreventivo(e, 'bambini')} value={preventivo?.bambini?.toString()} />
-                            <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={formatDate(preventivo?.data_partenza)} />
+                            <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={moment(preventivo?.data_partenza).format('YYYY-MM-DD')} />
                         </div>
 
                         {/* Percentuale Ricarico */}
@@ -845,28 +857,42 @@ export default function CreaPreventivoGeneralInterface() {
                             </div>
                             <div className="input-group-list">
                                 {
-                                    serviziATerra.map((servizio) => (
+                                    serviziATerra.map((servizio, i) => (
                                         <div key={servizio.groupId}>
                                             <div className="flex flex-row justify-between">
                                                 <div className="flex flex-row">
-                                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
-                                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                                    <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                                    <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
-                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
-                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_camere')} value={servizio?.numero_camere?.toString()} label="N. Camere" name="numero_camere" />
-                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
-                                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label={i == 0 ? 'Destinazione' : ''} name="destinazione" options={destinazioniValues} />
+                                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label={i == 0 ? 'Fornitore' : ''} name="fornitore" options={fornitoriValues} />
+                                                    <InputText onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label={i == 0 ? 'Descrizione' : ''} name="descrizione" />
+                                                    <InputDate onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'data')} value={moment(servizio?.data).format('YYYY-MM-DD')} label={i == 0 ? 'Data' : ''} name="data" />
+                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label={i == 0 ? 'N. Notti' : ''} name="numero_notti" />
+                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'numero_camere')} value={servizio?.numero_camere?.toString()} label={i == 0 ? 'N. Camere' : ''} name="numero_camere" />
+                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label={i == 0 ? 'Totale' : ''} name="totale" />
+                                                    <InputSelect onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label={i == 0 ? 'Valuta' : ''} name="valuta" options={['USD', 'EUR']} />
+                                                    <InputNumber onChange={(e) => onVCServizioATerra(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label={i == 0 ? 'Cambio' : ''} name="cambio" />
                                                 </div>
-                                                <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                                    <div className="pr-3">
-                                                        <p>ricarico: {formatNumberItalian(getRicaricoServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                <div className="flex flex-row items-center pt-7 pl-5">
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
+                                                        {i == 0 &&
+                                                            <div className='flex justify-end mr-3'>
+                                                                <p>ricarico:</p>
+                                                            </div>
+                                                        }
+                                                        <div className="w-32 mr-3 flex justify-end">
+                                                            <p>{formatNumberItalian(getRicaricoServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="pr-3">
-                                                        <p>tot eu: {formatNumberItalian(getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
+                                                        {i == 0 &&
+                                                            <div className='flex justify-end mr-3'>
+                                                                <p>tot euro:</p>
+                                                            </div>
+                                                        }
+                                                        <div className="w-32 mr-3 flex justify-end">
+                                                            <p>{formatNumberItalian(getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
                                                         <button
                                                             className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
                                                             onClick={() => rimuoviServizioATerra(servizio.groupId)}
@@ -881,7 +907,7 @@ export default function CreaPreventivoGeneralInterface() {
                                 }
                             </div>
                             <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-11">
-                                <p>somma tot eu: {formatNumberItalian(serviziATerra.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere), 0))}</p>
+                                <p>somma tot euro: {formatNumberItalian(serviziATerra.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere), 0))}</p>
                             </div>
                         </div>
                         {/* Servizi Aggiuntivi */}
@@ -901,28 +927,42 @@ export default function CreaPreventivoGeneralInterface() {
                             </div>
                             <div className="input-group-list">
                                 {
-                                    serviziAggiuntivi.map((servizio) => (
+                                    serviziAggiuntivi.map((servizio, i) => (
                                         <div key={servizio.groupId}>
                                             <div className="flex flex-row justify-between">
                                                 <div className="flex flex-row">
-                                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label="Destinazione" name="destinazione" options={destinazioniValues} />
-                                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                                    <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label="Descrizione" name="descrizione" />
-                                                    <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={formatDate(servizio?.data)} label="Data" name="data" />
-                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label="N. Notti" name="numero_notti" />
-                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_camere')} value={servizio?.numero_camere?.toString()} label="N. Camere" name="numero_camere" />
-                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label="Totale" name="totale" />
-                                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'destinazione')} value={servizio?.destinazione} label={i == 0 ? 'Destinazione' : ''} name="destinazione" options={destinazioniValues} />
+                                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'fornitore')} value={servizio?.fornitore} label={i == 0 ? 'Fornitore' : ''} name="fornitore" options={fornitoriValues} />
+                                                    <InputText onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'descrizione')} value={servizio?.descrizione} label={i == 0 ? 'Descrizione' : ''} name="descrizione" />
+                                                    <InputDate onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'data')} value={moment(servizio?.data).format('YYYY-MM-DD')} label={i == 0 ? 'Data' : ''} name="data" />
+                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_notti')} value={servizio?.numero_notti?.toString()} label={i == 0 ? 'N. Notti' : ''} name="numero_notti" />
+                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'numero_camere')} value={servizio?.numero_camere?.toString()} label={i == 0 ? 'N. Camere' : ''} name="numero_camere" />
+                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'totale')} value={servizio?.totale?.toString()} label={i == 0 ? 'Totale' : ''} name="totale" />
+                                                    <InputSelect onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'valuta')} value={servizio?.valuta} label={i == 0 ? 'Valuta' : ''} name="valuta" options={['USD', 'EUR']} />
+                                                    <InputNumber onChange={(e) => onVCServizioAggiuntivo(e, servizio.groupId, 'cambio')} value={servizio?.cambio?.toString() ?? '1'} label={i == 0 ? 'Cambio' : ''} name="cambio" />
                                                 </div>
-                                                <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                                                    <div className="pr-3">
-                                                        <p>ricarico: {formatNumberItalian(getRicaricoServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                <div className="flex flex-row items-center pt-7 pl-5">
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
+                                                        {i == 0 &&
+                                                            <div className='flex justify-end mr-3'>
+                                                                <p>ricarico:</p>
+                                                            </div>
+                                                        }
+                                                        <div className="w-32 mr-3 flex justify-end">
+                                                            <p>{formatNumberItalian(getRicaricoServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="pr-3">
-                                                        <p>tot eu: {formatNumberItalian(getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
+                                                        {i == 0 &&
+                                                            <div className='flex justify-end mr-3'>
+                                                                <p>tot euro:</p>
+                                                            </div>
+                                                        }
+                                                        <div className="w-32 mr-3 flex justify-end">
+                                                            <p>{formatNumberItalian(getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere))}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
                                                         <button
                                                             className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
                                                             onClick={() => rimuoviServizioAggiuntivo(servizio.groupId)}
@@ -937,7 +977,7 @@ export default function CreaPreventivoGeneralInterface() {
                                 }
                             </div>
                             <div className="tot-euro-of-list flex flex-row items-end justify-end pt-4 pr-11">
-                                <p>somma tot eu: {formatNumberItalian(serviziAggiuntivi.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere), 0))}</p>
+                                <p>somma tot euro: {formatNumberItalian(serviziAggiuntivi.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, preventivo?.percentuale_ricarico, servizio.numero_notti, servizio.numero_camere), 0))}</p>
                             </div>
                         </div>
                         {/* Voli */}
@@ -957,26 +997,33 @@ export default function CreaPreventivoGeneralInterface() {
                             </div>
                             <div className="input-group-list">
                                 {
-                                    voli.map((volo) => (
+                                    voli.map((volo, i) => (
                                         <div key={volo.groupId}>
                                             <div className="flex flex-row justify-between">
                                                 <div className="flex flex-row">
-                                                    <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label="Compagnia" name="compagnia" />
-                                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label="Descrizione" name="descrizione" />
-                                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={formatDate(volo?.data_partenza)} label="Partenza" name="data_partenza" />
-                                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={formatDate(volo?.data_arrivo)} label="Arrivo" name="data_arrivo" />
-                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label="Totale" name="totale" />
-                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'ricarico')} value={volo?.ricarico?.toString()} label="Ricarico" name="ricarico" />
-                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'numero')} value={volo?.numero?.toString()} label="Numero" name="numero" />
-                                                    <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label="Valuta" name="valuta" options={['USD', 'EUR']} />
-                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString() ?? '1'} label="Cambio" name="cambio" />
+                                                    <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} value={volo?.fornitore} label={i == 0 ? 'Fornitore' : ''} name="fornitore" options={fornitoriValues} />
+                                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label={i == 0 ? 'Compagnia' : ''} name="compagnia" />
+                                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label={i == 0 ? 'Descrizione' : ''} name="descrizione" />
+                                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={moment(volo?.data_partenza).format('YYYY-MM-DD')} label={i == 0 ? 'Partenza' : ''} name="data_partenza" />
+                                                    <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={moment(volo?.data_arrivo).format('YYYY-MM-DD')} label={i == 0 ? 'Arrivo' : ''} name="data_arrivo" />
+                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'totale')} value={volo?.totale?.toString()} label={i == 0 ? 'Totale' : ''} name="totale" />
+                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'ricarico')} value={volo?.ricarico?.toString()} label={i == 0 ? 'Ricarico' : ''} name="ricarico" />
+                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'numero')} value={volo?.numero?.toString()} label={i == 0 ? 'Numero' : ''} name="numero" />
+                                                    <InputSelect onChange={(e) => onVCVolo(e, volo.groupId, 'valuta')} value={volo?.valuta} label={i == 0 ? 'Valuta' : ''} name="valuta" options={['USD', 'EUR']} />
+                                                    <InputNumber onChange={(e) => onVCVolo(e, volo.groupId, 'cambio')} value={volo?.cambio?.toString() ?? '1'} label={i == 0 ? 'Cambio' : ''} name="cambio" />
                                                 </div>
-                                                <div className="flex flex-row items-center justify-end pt-10 pl-5">
-                                                    <div className="pr-1">
-                                                        <p>tot eu: {formatNumberItalian(getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero))}</p>
+                                                <div className="flex flex-row items-center pt-7 pl-5">
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
+                                                        {i == 0 &&
+                                                            <div className='flex justify-end mr-3'>
+                                                                <p>tot euro:</p>
+                                                            </div>
+                                                        }
+                                                        <div className="w-60 mr-3 flex justify-end">
+                                                            <p>{formatNumberItalian(getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero))}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
                                                         <button
                                                             className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
                                                             onClick={() => rimuoviVolo(volo.groupId)}
@@ -990,8 +1037,8 @@ export default function CreaPreventivoGeneralInterface() {
                                     ))
                                 }
                             </div>
-                            <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-20">
-                                <p className="pr-2">somma tot eu: {formatNumberItalian(voli.reduce((acc, volo) => acc + getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero), 0))}</p>
+                            <div className="tot-euro-of-list flex flex-row items-end justify-end pt-4 pr-11">
+                                <p>somma tot euro: {formatNumberItalian(voli.reduce((acc, volo) => acc + getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero), 0))}</p>
                             </div>
                         </div>
                         {/* Assicurazioni */}
@@ -1011,22 +1058,27 @@ export default function CreaPreventivoGeneralInterface() {
                             </div>
                             <div className="input-group-list">
                                 {
-                                    assicurazioni.map((assicurazione) => (
+                                    assicurazioni.map((assicurazione, i) => (
                                         <div key={assicurazione.groupId}>
                                             <div className="flex flex-row justify-between">
                                                 <div className="flex flex-row">
-                                                    <InputSelect onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'fornitore')} value={assicurazione?.fornitore} label="Fornitore" name="fornitore" options={fornitoriValues} />
-                                                    <InputText onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'assicurazione')} value={assicurazione?.assicurazione} label="Assicurazione" name="assicurazione" />
-                                                    <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label="Netto" name="netto" />
+                                                    <InputSelect onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'fornitore')} value={assicurazione?.fornitore} label={i == 0 ? 'Fornitore' : ''} name="fornitore" options={fornitoriValues} />
+                                                    <InputText onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'assicurazione')} value={assicurazione?.assicurazione} label={i == 0 ? 'Assicurazione' : ''} name="assicurazione" />
+                                                    <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'netto')} value={assicurazione?.netto?.toString()} label={i == 0 ? 'Netto' : ''} name="netto" />
+                                                    <InputNumber onChange={(e) => onVCAssicurazione(e, assicurazione.groupId, 'ricarico')} value={assicurazione?.ricarico?.toString()} label={i == 0 ? 'Ricarico' : ''} name="ricarico" />
                                                 </div>
-                                                <div className="flex flex-row items-center pt-10 pl-5">
-                                                    <div className="pr-2 flex flex-row items-center">
-                                                        <p>ricarico: {formatNumberItalian(getRicaricoAssicurazione(assicurazione.netto, preventivo?.percentuale_ricarico))}</p>
+                                                <div className="flex flex-row items-center pt-7 pl-5">
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
+                                                        {i == 0 &&
+                                                            <div className='flex justify-end mr-3'>
+                                                                <p>tot euro:</p>
+                                                            </div>
+                                                        }
+                                                        <div className="w-60 mr-3 flex justify-end">
+                                                            <p>{formatNumberItalian(getTotAssicurazione(assicurazione.netto, assicurazione.ricarico))}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="pr-2 flex flex-row items-center">
-                                                        <p>tot: {formatNumberItalian(getTotAssicurazione(assicurazione.netto, preventivo?.percentuale_ricarico))}</p>
-                                                    </div>
-                                                    <div>
+                                                    <div className={`${i > 0 ? 'pb-3' : ''}`}>
                                                         <button
                                                             className="bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full"
                                                             onClick={() => rimuoviAssicurazione(assicurazione.groupId)}
@@ -1040,14 +1092,15 @@ export default function CreaPreventivoGeneralInterface() {
                                     ))
                                 }
                             </div>
-                            <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-10">
-                                <p>somma tot: {formatNumberItalian(assicurazioni.reduce((acc, assicurazione) => acc + getTotAssicurazione(assicurazione.netto, preventivo?.percentuale_ricarico), 0))}</p>
+                            <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-11">
+                                <span>somma tot euro: </span>
+                                <span>{formatNumberItalian(assicurazioni.reduce((acc, assicurazione) => acc + getTotAssicurazione(assicurazione.netto, assicurazione.ricarico), 0))}</span>
                             </div>
 
                         </div>
                         {/* Totale */}
-                        <div className="tot-euro-of-list flex flex-row items-center justify-start pt-4">
-                            <p>somma di tutti i tot: {formatNumberItalian(getSommaTuttiTotEuro(preventivo?.percentuale_ricarico, serviziATerra, serviziAggiuntivi, voli, assicurazioni))}</p>
+                        <div className="tot-euro-of-list flex flex-row items-center justify-end pt-4 pr-11">
+                            <p className='border-t-2 border-gray-300 pt-2'>somma di tutti i tot euro: {formatNumberItalian(getSommaTuttiTotEuro(preventivo?.percentuale_ricarico, serviziATerra, serviziAggiuntivi, voli, assicurazioni))}</p>
                         </div>
                         <div className="flex flex-row items-center justify-center pt-4 pl-5">
                             {!preventivo?.id &&
@@ -1066,7 +1119,7 @@ export default function CreaPreventivoGeneralInterface() {
                                     onClick={submitUpdatePreventivo}
                                 >
                                     Aggiorna preventivo
-                                </button>
+                                </button >
                             }
                         </div >
                     </div >
@@ -1080,7 +1133,6 @@ export default function CreaPreventivoGeneralInterface() {
                         </div>
                     ))
                 }
-
             </div>
         </div>
     );

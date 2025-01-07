@@ -13,17 +13,23 @@ export default function InputNumber(
 
     return (
         <div className="number">
-            <label
-                className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-                htmlFor={label}
+            {label && (
+                <label
+                    className="mb-3 mt-5 block text-xs font-medium text-gray-900"
+                    htmlFor={label}
             >
-                {label}
-            </label>
+                    {label}
+                </label>
+            )}
+            {!label && (
+                <div className="mt-5"></div>
+            )
+            }
             <input
                 id={label}
                 name={name}
                 type="number"
-                className="number block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
+                className="number h-input-height block w-full rounded-md border border-gray-200 py-2 px-3 text-sm outline-2 placeholder:text-gray-500"
                 value={value ?? 0}
                 placeholder={`number`}
                 onChange={onChange}
