@@ -3,15 +3,16 @@ import { Suspense } from 'react';
 import Loading from './loading';
 import Image from 'next/image';
 import './style.css';
+import { CogIcon, DocumentDuplicateIcon, MagnifyingGlassIcon} from '@heroicons/react/24/outline';
 import { SpinnerContextProvider } from '@/app/context/spinner-context';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   // Map of links to display in the side navigation.
   const links = [
-    { name: 'Changelog', href: '/dashboard' },
+    { name: 'Changelog', href: '/dashboard', icon: <DocumentDuplicateIcon className="w-6" /> },
     { name: 'Preventivo', href: '/dashboard/general-interface' },
-    { name: 'Analisi funzionale', href: '/dashboard/functional-analysis' },
-    { name: 'Settings', href: '/dashboard/settings' },
+    { name: 'Analisi funzionale', href: '/dashboard/functional-analysis', icon: <MagnifyingGlassIcon className="w-6" /> },
+    { name: 'Settings', href: '/dashboard/settings', icon: <CogIcon className="w-6" />},
   ];
   return (
     <SpinnerContextProvider>

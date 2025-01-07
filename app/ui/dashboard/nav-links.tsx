@@ -16,6 +16,7 @@ import { usePathname } from 'next/navigation';
 export type NavLink = {
   name: string;
   href: string;
+  icon?: React.ReactNode;
 }
 export default function NavLinks({links}: {links: NavLink[]}) {
 
@@ -36,7 +37,8 @@ export default function NavLinks({links}: {links: NavLink[]}) {
               },
             )}
           >
-            <LinkIcon className="w-6" />
+            {link.icon && link.icon}
+            {!link.icon && <LinkIcon className="w-6" />}
             <p className="hidden md:block">{link.name}</p>
           </Link>
         );

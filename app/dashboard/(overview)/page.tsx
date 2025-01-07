@@ -9,7 +9,7 @@ export default async function ChangelogPage() {
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
       <p className='version-paragraph'>V2.3.0</p>
       <ul>
-        <li>Feat: allow custom success message styles.</li>
+        <li>Feat: add page 'Settings' + draft allow custom success message styles.</li>
         <li>Fix: <i>le date devono poter essere inserite da tastiera.</i></li>
         <li>Fix: <i>anche sulle assicurazioni bisogna aggiungere il campo ricarico come input che inseriamo noi di volta in volta ed il totale sarà dato dal netto + ricarico</i></li>
         <li>Feat: update layout of input groups for preventivo interface.</li>

@@ -12,7 +12,7 @@ ul {
   font-weight: bold;
 }
 
-.spinner-container, .modal-container {
+.spinner-container, .modal-container, .lottie-container {
   position: absolute;
   z-index: 1000;
   top: 22vh;
@@ -29,7 +29,7 @@ ul {
   transition: opacity 0.3s ease;
 }
 
-.spinner-sibling-content.disabled {
+.spinner-sibling-content.disabled, .lottie-container.disabled {
   pointer-events: none; /* Disabilita l'interazione */
   opacity: 0.5; /* Riduce l'opacità */
 }
