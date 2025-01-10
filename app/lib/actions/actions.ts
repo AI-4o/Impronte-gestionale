@@ -260,6 +260,7 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
     assicurazione: a.assicurazione,
     netto: a.netto,
     ricarico: a.ricarico,
+    numero: a.numero
   });
   if (!parsedData.success) {
     return {
@@ -271,8 +272,8 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
   }
   try {
     const result = await sql`
-    INSERT INTO assicurazioni (id_preventivo, id_fornitore, assicurazione, netto, ricarico)
-    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.assicurazione}, ${parsedData.data.netto}, ${parsedData.data.ricarico})
+    INSERT INTO assicurazioni (id_preventivo, id_fornitore, assicurazione, netto, ricarico, numero)
+    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.assicurazione}, ${parsedData.data.netto}, ${parsedData.data.ricarico}, ${parsedData.data.numero})
     RETURNING *;
     `;
     return {values: result.rows[0], success: true, errorsMessage: ''};
@@ -634,6 +635,7 @@ export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<D
     assicurazione: a.assicurazione,
     netto: a.netto,
     ricarico: a.ricarico,
+    numero: a.numero
   });
   if (!parsedData.success) {
     return {
@@ -649,7 +651,8 @@ export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<D
     id_fornitore = ${id_fornitore},
     assicurazione = ${parsedData.data.assicurazione}, 
     netto = ${parsedData.data.netto},
-    ricarico = ${parsedData.data.ricarico}
+    ricarico = ${parsedData.data.ricarico},
+    numero = ${parsedData.data.numero}
     WHERE id = ${a.id}
   `;
     return {

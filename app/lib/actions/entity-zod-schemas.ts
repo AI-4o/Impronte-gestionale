@@ -1,7 +1,10 @@
 import { z } from "zod";
+import valuteValues from "@/app/seed/valute.json";
+import brandValues from "@/app/seed/brands.json";
 
-export const valuteArray = ["EUR", "USD"];
-export const brandArray = ["IWS", "INO", "ISE", "IMS", "BORN"];
+const valuteArray = valuteValues.valute;
+const brandArray = brandValues.brand;
+
 export const ClienteSchema = z.object({
   email: z.string().email(),
   nome: z.string().optional(),
@@ -107,12 +110,14 @@ export const AssicurazioneSchema = z.object({
   assicurazione: z.string(),
   netto: z.number().optional(),
   ricarico: z.number().optional(),
+  numero: z.number().optional()
 });
 export const UpdateAssicurazioneSchema = z.object({
   id_fornitore: z.string().nullable().optional(),
   assicurazione: z.string(),
   netto: z.number().optional(),
   ricarico: z.number().optional(),
+  numero: z.number().optional()
 });
 
 

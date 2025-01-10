@@ -75,7 +75,7 @@ export class ServizioATerraInputGroup {
         public data?: Date,
         public numero_notti?: number,
         public numero_camere?: number,
-        public valuta?: 'EUR' | 'USD',
+        public valuta?: string,
         public totale?: number,
         public cambio?: number,
         public servizio_aggiuntivo?: boolean,
@@ -106,7 +106,7 @@ export class VoloInputGroup {
         public totale?: number,
         public ricarico?: number,
         public numero?: number,
-        public valuta?: 'EUR' | 'USD',
+        public valuta?: string,
         public cambio?: number,
         public id?: string,
     ) { 
@@ -131,13 +131,15 @@ export class AssicurazioneInputGroup {
         public assicurazione?: string,
         public netto?: number,
         public ricarico?: number,
-        public id?: string,
+        public numero?: number,
+        public id?: string
     ) { 
         this.id = id ?? undefined;
         this.fornitore = fornitore ?? undefined;
         this.assicurazione = assicurazione ?? undefined;
         this.netto = netto ?? undefined;
         this.ricarico = ricarico ?? undefined;
+        this.numero = numero ?? undefined;
     }
 }
 export interface Data {

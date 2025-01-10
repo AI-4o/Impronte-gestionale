@@ -75,7 +75,8 @@ const createTablePreventivi = async () => {
          feedback TEXT,
          stato VARCHAR(20) CHECK (stato IN ('da fare', 'in trattativa', 'confermato', 'inviato')),
          data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-         numero_preventivo VARCHAR(255)
+         numero_preventivo VARCHAR(255),
+         UNIQUE (numero_preventivo)
       );
     `;
 }
@@ -127,7 +128,8 @@ const createTableAssicurazioni = async () => {
          id_fornitore UUID REFERENCES fornitori(id),
          assicurazione VARCHAR(255),
          netto FLOAT,
-         ricarico FLOAT
+         ricarico FLOAT,
+         numero INT
       );
     `;
 }

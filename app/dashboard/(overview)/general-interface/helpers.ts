@@ -39,11 +39,11 @@ export const getTotVolo = (totale: number, cambio: number, ricarico: number, num
 }
 
 // ### assicurazioni ###
-export const getTotAssicurazione = (netto: number, ricarico: number) => {
-    if(isNaN(netto) || isNaN(ricarico)) {
+export const getTotAssicurazione = (netto: number, ricarico: number, numero: number) => {
+    if(isNaN(netto) || isNaN(ricarico) || isNaN(numero)) {
         return 0;
     }
-    const result = netto + ricarico;
+    const result = (netto + ricarico) * numero;
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
 }
@@ -53,7 +53,7 @@ export const getSommaTuttiTotEuro = (percentualeRicarico: number, serviziATerra:
     let totServiziATerra = serviziATerra.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere), 0);
     let totServiziAggiuntivi = serviziAggiuntivi.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere), 0);
     let totVoli = voli.reduce((acc, volo) => acc + getTotVolo(volo.totale, volo.cambio, volo.ricarico, volo.numero), 0);
-    let totAssicurazioni = assicurazioni.reduce((acc, assicurazione) => acc + getTotAssicurazione(assicurazione.netto, percentualeRicarico), 0);
+    let totAssicurazioni = assicurazioni.reduce((acc, assicurazione) => acc + getTotAssicurazione(assicurazione.netto, assicurazione.ricarico, assicurazione.numero), 0);
     // se il totale è NaN, settalo a 0
     switch(true) {
         case isNaN(totServiziATerra):

@@ -158,6 +158,7 @@ const getAssicurazioniInputGroup = async (assicurazioni: any[]): Promise<Assicur
       assicurazioni[i]?.assicurazione, 
       assicurazioni[i]?.netto, 
       assicurazioni[i]?.ricarico,
+      assicurazioni[i]?.numero,
       assicurazioni[i]?.id
     );
     res.push(iG);

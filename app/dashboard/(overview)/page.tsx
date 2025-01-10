@@ -1,4 +1,3 @@
-import { lusitana } from '@/app/ui/fonts';
 import './style.css';
 
 export default async function ChangelogPage() {
@@ -7,6 +6,13 @@ export default async function ChangelogPage() {
       <h1 className={`mb-4 text-xl md:text-2xl`}>CHANGELOG</h1>
 
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
+      <p className='version-paragraph'>V2.4.0</p>
+      <ul>
+        <li>Feat: create input-lookup input component, use it in place of input select when there are too many options (e.g.: valute, fornitori).</li>
+        <li>Fix: <i>nelle assicurazioni c'è da aggiungere il n. (come nei voli) e il totale sarà dato da (netto+ricarico)*numero</i></li>
+        <li>Fix: <i>nel cliente la data di nascita "non" deve essere obbligatoria</i></li>
+        <li>Fix: for 'valute' use a general complete list.</li>
+      </ul>
       <p className='version-paragraph'>V2.3.0</p>
       <ul>
         <li>Feat: add page 'Settings' + draft allow custom success message styles.</li>
