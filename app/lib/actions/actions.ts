@@ -7,16 +7,34 @@ import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
 import { Cliente } from "../definitions";
 import * as schemas from "./entity-zod-schemas";
-import { fetchFilteredClienti, fetchFornitoreByName, fetchDestinazioneByName, getFornitoreByName } from "../data";
-import { AssicurazioneInputGroup, ClienteInputGroup, Data, ERRORMESSAGE, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
+import {
+  fetchFilteredClienti,
+  fetchFornitoreByName,
+  fetchDestinazioneByName,
+  getFornitoreByName,
+  fetchAllFornitori,
+  fetchAllBanche,
+  fetchAllDestinazioni,
+} from "../data";
+import {
+  AssicurazioneInputGroup,
+  ClienteInputGroup,
+  Data,
+  ERRORMESSAGE,
+  PreventivoInputGroup,
+  ServizioATerraInputGroup,
+  VoloInputGroup,
+} from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import { formatDate } from "../utils";
 import moment from "moment";
+import path from 'path';
 export type DBResult<A> = {
   success: boolean;
   values?: any; // TODO: successivo refactoring si rende di tipo A | A[] | null
   errors?: Partial<TransformToStringArray<A>>;
   errorsMessage?: string;
-}
+};
+import fs from 'fs';
 
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
@@ -29,9 +47,11 @@ export type State<A> = {
   dbError?: string;
 };
 
-// CREATE 
+// CREATE
 
-export const createCliente = async (c: ClienteInputGroup): Promise<DBResult<ClienteInputGroup>> => {
+export const createCliente = async (
+  c: ClienteInputGroup
+): Promise<DBResult<ClienteInputGroup>> => {
   const parsedData = schemas.ClienteSchema.safeParse({
     email: c.email,
     nome: c.nome,
@@ -74,7 +94,7 @@ export const createCliente = async (c: ClienteInputGroup): Promise<DBResult<Clie
     ${parsedData.data.email}
     )
   `;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       success: false,
@@ -87,7 +107,7 @@ export const createCliente = async (c: ClienteInputGroup): Promise<DBResult<Clie
 export const createPreventivo = async (
   p: PreventivoInputGroup,
   c: ClienteInputGroup,
-  idCliente: string,
+  idCliente: string
 ): Promise<DBResult<PreventivoInputGroup>> => {
   const parsedData = schemas.PreventivoSchema.safeParse({
     id_cliente: idCliente,
@@ -146,7 +166,7 @@ export const createPreventivo = async (
       )
       RETURNING *;
     `;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       success: false,
@@ -155,19 +175,22 @@ export const createPreventivo = async (
     };
   }
 };
-export const createServizioATerra = 
-async (s: ServizioATerraInputGroup, id_preventivo: string, servizio_aggiuntivo: boolean): Promise<DBResult<ServizioATerraInputGroup>> => {
+export const createServizioATerra = async (
+  s: ServizioATerraInputGroup,
+  id_preventivo: string,
+  servizio_aggiuntivo: boolean
+): Promise<DBResult<ServizioATerraInputGroup>> => {
   let id_fornitore: string | null = null;
   let id_destinazione: string | null = null;
-  if(s.fornitore) {
+  if (s.fornitore) {
     const dbResultFornitore = await fetchFornitoreByName(s.fornitore);
-    if(dbResultFornitore.success) {
+    if (dbResultFornitore.success) {
       id_fornitore = dbResultFornitore.values.id;
     }
   }
-  if(s.destinazione) {
+  if (s.destinazione) {
     const dbResultDestinazione = await fetchDestinazioneByName(s.destinazione);
-    if(dbResultDestinazione.success) {
+    if (dbResultDestinazione.success) {
       id_destinazione = dbResultDestinazione.values.id;
     }
   }
@@ -189,7 +212,8 @@ async (s: ServizioATerraInputGroup, id_preventivo: string, servizio_aggiuntivo: 
   if (!parsedData.success) {
     return {
       success: false,
-      errorsMessage: "Failed to Create servizioATerra due to a validation error.",
+      errorsMessage:
+        "Failed to Create servizioATerra due to a validation error.",
       errors: parsedData.error.flatten().fieldErrors,
       values: parsedData.data,
     };
@@ -200,7 +224,7 @@ async (s: ServizioATerraInputGroup, id_preventivo: string, servizio_aggiuntivo: 
     VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.id_destinazione}, ${parsedData.data.descrizione}, ${parsedData.data.data}, ${parsedData.data.numero_notti}, ${parsedData.data.numero_camere}, ${parsedData.data.totale}, ${parsedData.data.valuta}, ${parsedData.data.cambio}, ${parsedData.data.servizio_aggiuntivo})
     RETURNING *;
     `;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       success: false,
@@ -208,9 +232,11 @@ async (s: ServizioATerraInputGroup, id_preventivo: string, servizio_aggiuntivo: 
       values: parsedData.data,
     };
   }
-}
-export const createVolo = 
-async (v: VoloInputGroup, id_preventivo: string): Promise<DBResult<VoloInputGroup>> => {
+};
+export const createVolo = async (
+  v: VoloInputGroup,
+  id_preventivo: string
+): Promise<DBResult<VoloInputGroup>> => {
   const fornitore = await fetchFornitoreByName(v.fornitore);
 
   const parsedData = schemas.VoloSchema.safeParse({
@@ -224,7 +250,7 @@ async (v: VoloInputGroup, id_preventivo: string): Promise<DBResult<VoloInputGrou
     ricarico: v.ricarico,
     numero: v.numero,
     valuta: v.valuta,
-    cambio: v.cambio
+    cambio: v.cambio,
   });
 
   if (!parsedData.success) {
@@ -242,7 +268,7 @@ async (v: VoloInputGroup, id_preventivo: string): Promise<DBResult<VoloInputGrou
     RETURNING *;
     `;
     //console.log('result of createVolo: ', result);
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       success: false,
@@ -250,9 +276,11 @@ async (v: VoloInputGroup, id_preventivo: string): Promise<DBResult<VoloInputGrou
       values: parsedData.data,
     };
   }
-}
-export const createAssicurazione = 
-async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<AssicurazioneInputGroup>> => {
+};
+export const createAssicurazione = async (
+  a: AssicurazioneInputGroup,
+  id_preventivo: string
+): Promise<DBResult<AssicurazioneInputGroup>> => {
   const fornitore = await fetchFornitoreByName(a.fornitore);
   const parsedData = schemas.AssicurazioneSchema.safeParse({
     id_preventivo: id_preventivo,
@@ -260,12 +288,13 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
     assicurazione: a.assicurazione,
     netto: a.netto,
     ricarico: a.ricarico,
-    numero: a.numero
+    numero: a.numero,
   });
   if (!parsedData.success) {
     return {
       success: false,
-      errorsMessage: "Failed to Create Assicurazione due to a validation error.",
+      errorsMessage:
+        "Failed to Create Assicurazione due to a validation error.",
       errors: parsedData.error.flatten().fieldErrors,
       values: parsedData.data,
     };
@@ -276,7 +305,7 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
     VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.assicurazione}, ${parsedData.data.netto}, ${parsedData.data.ricarico}, ${parsedData.data.numero})
     RETURNING *;
     `;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       success: false,
@@ -284,7 +313,7 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
       values: parsedData.data,
     };
   }
-}
+};
 /**
  * Do the following:
  *
@@ -297,99 +326,144 @@ async (a: AssicurazioneInputGroup, id_preventivo: string): Promise<DBResult<Assi
  * @returns
  *
  */
-export async function submitCreatePreventivoGI(data: Data): Promise<DBResult<PreventivoInputGroup>> {
+export async function submitCreatePreventivoGI(
+  data: Data
+): Promise<DBResult<PreventivoInputGroup>> {
   try {
-      let res = {
-        preventivo: null,
-        servizi: [],
-        voli: [],
-        assicurazioni: [],
-        message: '',
-        errorsMessage: ''
-      };
-      const resCreatePreventivo: DBResult<PreventivoInputGroup> = await createPreventivo(
-        data.preventivo,
-        data.cliente,
-        data.cliente.id
-      );
-      let idPreventivo: string | undefined;
+    let res = {
+      preventivo: null,
+      servizi: [],
+      voli: [],
+      assicurazioni: [],
+      message: "",
+      errorsMessage: "",
+    };
+    const resCreatePreventivo: DBResult<PreventivoInputGroup> =
+      await createPreventivo(data.preventivo, data.cliente, data.cliente.id);
+    let idPreventivo: string | undefined;
 
-      // if error in createPreventivo, return error
-      if(!resCreatePreventivo.success) {
-        return resCreatePreventivo;
-      }
-
-      if (resCreatePreventivo.success) {
-        idPreventivo = resCreatePreventivo.values.id;
-        res.preventivo = resCreatePreventivo.values;
-      }
-
-      // create serviziATerra
-      for (const s of data.serviziATerra) {
-        const resCreateServizio = await createServizioATerra(s, idPreventivo, false);
-        if(!resCreateServizio.success) {
-          return resCreateServizio;
-        }
-        res.servizi.push(resCreateServizio);
-      }
-      for(const s of data.serviziAggiuntivi) {
-        const resCreateServizio = await createServizioATerra(s, idPreventivo, true);
-        if(!resCreateServizio.success) {
-          return resCreateServizio;
-        }
-        res.servizi.push(resCreateServizio);
-      }
-      for(const v of data.voli) {
-        const resCreateVolo = await createVolo(v, idPreventivo);
-        if (!resCreateVolo.success) {
-          return resCreateVolo;
-        }
-        res.voli.push(resCreateVolo);
-      }
-      for(const a of data.assicurazioni) {
-        const resCreateAssicurazione = await createAssicurazione(a, idPreventivo);
-        if (!resCreateAssicurazione.success) {
-          return resCreateAssicurazione;
-        }
-        res.assicurazioni.push(resCreateAssicurazione);
-      }
-      return {values: res, success: true, errorsMessage: ''};
-    } catch (error) {
-      return {
-        success: false,
-        errorsMessage: "Database Error in submitCreatePreventivoGI: " + error
-      };
+    // if error in createPreventivo, return error
+    if (!resCreatePreventivo.success) {
+      return resCreatePreventivo;
     }
+
+    if (resCreatePreventivo.success) {
+      idPreventivo = resCreatePreventivo.values.id;
+      res.preventivo = resCreatePreventivo.values;
+    }
+
+    // create serviziATerra
+    for (const s of data.serviziATerra) {
+      const resCreateServizio = await createServizioATerra(
+        s,
+        idPreventivo,
+        false
+      );
+      if (!resCreateServizio.success) {
+        return resCreateServizio;
+      }
+      res.servizi.push(resCreateServizio);
+    }
+    for (const s of data.serviziAggiuntivi) {
+      const resCreateServizio = await createServizioATerra(
+        s,
+        idPreventivo,
+        true
+      );
+      if (!resCreateServizio.success) {
+        return resCreateServizio;
+      }
+      res.servizi.push(resCreateServizio);
+    }
+    for (const v of data.voli) {
+      const resCreateVolo = await createVolo(v, idPreventivo);
+      if (!resCreateVolo.success) {
+        return resCreateVolo;
+      }
+      res.voli.push(resCreateVolo);
+    }
+    for (const a of data.assicurazioni) {
+      const resCreateAssicurazione = await createAssicurazione(a, idPreventivo);
+      if (!resCreateAssicurazione.success) {
+        return resCreateAssicurazione;
+      }
+      res.assicurazioni.push(resCreateAssicurazione);
+    }
+    return { values: res, success: true, errorsMessage: "" };
+  } catch (error) {
+    return {
+      success: false,
+      errorsMessage: "Database Error in submitCreatePreventivoGI: " + error,
+    };
+  }
 }
 
+export const addFundamentalEntity = async (
+  tableName: string,
+  value: string
+): Promise<DBResult<any>> => {
+  /**
+   * destinazioni -> nome
+   * banche -> nome
+   * fornitori -> nome
+   * permettere di aggiungere operatori, tipo cliente, provenienza cliente, brand richiede creazione dell'entity nel db
+   */
+  const parsedData = schemas.FundamentalEntitySchema.safeParse({
+    tableName: tableName,
+    value: value,
+  });
+  if (!parsedData.success) {
+    return {
+      success: false,
+      errorsMessage:
+        "Failed to add Fundamental Entity due to a validation error.",
+      errors: parsedData.error.flatten().fieldErrors,
+      values: parsedData.data,
+    };
+  }
+  try {
+    const query = `INSERT INTO ${parsedData.data.tableName} (nome) VALUES ($1) RETURNING *;`;
+    const result = await sql.query(query, [parsedData.data.value]);
+    return { values: result.rows[0], success: true, errorsMessage: "" };
+  } catch (error) {
+    return {
+      success: false,
+      errorsMessage: "Database Error in addFundamentalEntity: " + error,
+      values: parsedData.data,
+      errors: {},
+    };
+  }
+};
 
 // ## GET DESTINAZIONE BY ID
 export const getDestinazioneById = async (id_destinazione: string) => {
   try {
-    const result = await sql`SELECT * FROM destinazioni WHERE id = ${id_destinazione}`;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    const result =
+      await sql`SELECT * FROM destinazioni WHERE id = ${id_destinazione}`;
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       rowCount: 0,
       rows: [],
       message: ERRORMESSAGE,
-      errorsMessage: error
+      errorsMessage: error,
     };
   }
-}
+};
 export const getFornitoreById = async (id_fornitore: string) => {
   try {
-    const result = await sql`SELECT * FROM fornitori WHERE id = ${id_fornitore}`;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    const result =
+      await sql`SELECT * FROM fornitori WHERE id = ${id_fornitore}`;
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       rowCount: 0,
       rows: [],
       message: ERRORMESSAGE,
-      errorsMessage: error
+      errorsMessage: error,
     };
   }
-}
+};
 
 // ### UPDATE ENTITY ###
 export const updateCliente = async (
@@ -453,7 +527,10 @@ export const updateCliente = async (
     };
   }
 };
-export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: string): Promise<DBResult<PreventivoInputGroup>> => {
+export const updatePreventivo = async (
+  p: PreventivoInputGroup,
+  idCliente: string
+): Promise<DBResult<PreventivoInputGroup>> => {
   const parsedData = schemas.UpdatePreventivoSchema.safeParse({
     id: p.id,
     note: p.note,
@@ -494,7 +571,7 @@ export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: strin
     stato = ${parsedData.data.stato}
     WHERE id = ${p.id}
   `;
-    return {values: result.rows[0], success: true, errorsMessage: ''};
+    return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     return {
       values: parsedData.data,
@@ -504,24 +581,26 @@ export const updatePreventivo = async (p: PreventivoInputGroup, idCliente: strin
   }
 };
 
-export const updateServiziATerra = async (s: ServizioATerraInputGroup): Promise<DBResult<ServizioATerraInputGroup>> => {
+export const updateServiziATerra = async (
+  s: ServizioATerraInputGroup
+): Promise<DBResult<ServizioATerraInputGroup>> => {
   let id_fornitore: string | null = null;
   let id_destinazione: string | null = null;
-  if(s.fornitore) {
+  if (s.fornitore) {
     const fornitore = await getFornitoreByName(s.fornitore);
-    if(fornitore) {
+    if (fornitore) {
       id_fornitore = fornitore.values?.id;
     }
   }
-  if(s.destinazione) {
+  if (s.destinazione) {
     const destinazione = await fetchDestinazioneByName(s.destinazione);
-    if(destinazione) {
+    if (destinazione) {
       id_destinazione = destinazione.values?.id;
     }
   }
   const parsedData = schemas.UpdateServizioATerraSchema.safeParse({
     id_fornitore: id_fornitore,
-    id_destinazione: id_destinazione, 
+    id_destinazione: id_destinazione,
     descrizione: s.descrizione,
     data: s.data,
     numero_notti: s.numero_notti,
@@ -557,21 +636,24 @@ export const updateServiziATerra = async (s: ServizioATerraInputGroup): Promise<
     return {
       values: result.rows[0],
       success: true,
-      errorsMessage: ''
+      errorsMessage: "",
     };
   } catch (error) {
     return {
       values: parsedData.data,
       success: false,
-      errorsMessage: "Database Error: Failed to Update Servizio a Terra: " + error,
+      errorsMessage:
+        "Database Error: Failed to Update Servizio a Terra: " + error,
     };
   }
-} 
-export const updateVoli = async (v: VoloInputGroup): Promise<DBResult<VoloInputGroup>> => {
+};
+export const updateVoli = async (
+  v: VoloInputGroup
+): Promise<DBResult<VoloInputGroup>> => {
   let id_fornitore: string | null = null;
-  if(v.fornitore) {
+  if (v.fornitore) {
     const fornitore = await getFornitoreByName(v.fornitore);
-    if(fornitore) {
+    if (fornitore) {
       id_fornitore = fornitore.values?.id;
     }
   }
@@ -585,7 +667,7 @@ export const updateVoli = async (v: VoloInputGroup): Promise<DBResult<VoloInputG
     ricarico: v.ricarico,
     numero: v.numero,
     valuta: v.valuta,
-    cambio: v.cambio
+    cambio: v.cambio,
   });
   if (!parsedData.success) {
     return {
@@ -613,7 +695,7 @@ export const updateVoli = async (v: VoloInputGroup): Promise<DBResult<VoloInputG
     return {
       values: result.rows[0],
       success: true,
-      errorsMessage: ''
+      errorsMessage: "",
     };
   } catch (error) {
     return {
@@ -621,12 +703,14 @@ export const updateVoli = async (v: VoloInputGroup): Promise<DBResult<VoloInputG
       errorsMessage: "Database Error: Failed to Update Volo: " + error,
     };
   }
-}
-export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<DBResult<AssicurazioneInputGroup>> => {
+};
+export const updateAssicurazioni = async (
+  a: AssicurazioneInputGroup
+): Promise<DBResult<AssicurazioneInputGroup>> => {
   let id_fornitore: string | null = null;
-  if(a.fornitore) {
+  if (a.fornitore) {
     const fornitore = await getFornitoreByName(a.fornitore);
-    if(fornitore) {
+    if (fornitore) {
       id_fornitore = fornitore.values?.id;
     }
   }
@@ -635,7 +719,7 @@ export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<D
     assicurazione: a.assicurazione,
     netto: a.netto,
     ricarico: a.ricarico,
-    numero: a.numero
+    numero: a.numero,
   });
   if (!parsedData.success) {
     return {
@@ -658,16 +742,16 @@ export const updateAssicurazioni = async (a: AssicurazioneInputGroup): Promise<D
     return {
       values: result.rows[0],
       success: true,
-      errorsMessage: ''
+      errorsMessage: "",
     };
   } catch (error) {
     return {
       success: false,
-      errorsMessage: "Database Error: Failed to Update Assicurazione: "+ error,
+      errorsMessage: "Database Error: Failed to Update Assicurazione: " + error,
       errors: {},
     };
   }
-}
+};
 
 export const searchClienti = async (
   c: ClienteInputGroup
@@ -683,7 +767,10 @@ export const searchClienti = async (
   const clientiByIndirizzo = await fetchFilteredClienti(c.indirizzo, 1);
   const clientiByCap = await fetchFilteredClienti(c.cap, 1);
   const clientiByCf = await fetchFilteredClienti(c.cf, 1);
-  const clientiByDataDiNascita = await fetchFilteredClienti(moment(c.data_di_nascita).format('YYYY-MM-DD'), 1);
+  const clientiByDataDiNascita = await fetchFilteredClienti(
+    moment(c.data_di_nascita).format("YYYY-MM-DD"),
+    1
+  );
   const allClienti = [
     ...clientiByNome.values,
     ...clientiByCognome.values,
@@ -699,7 +786,7 @@ export const searchClienti = async (
     ...clientiByDataDiNascita.values,
   ];
 
-/*//console.log(
+  /*//console.log(
     "clientiByNome: ",
     clientiByNome,
     "clientiByCognome: ",
@@ -784,12 +871,28 @@ export const searchClienti = async (
     }
   }
 
-  const intersectedClienti = Array.from(clientiMap.values()).map( c => new ClienteInputGroup(c.nome, c.cognome, c.note, c.citta, c.collegato, c.tipo, c.data_di_nascita, c.tel, c.email, c.provenienza, c.indirizzo, c.cap, c.cf, c.id));
+  const intersectedClienti = Array.from(clientiMap.values()).map(
+    (c) =>
+      new ClienteInputGroup(
+        c.nome,
+        c.cognome,
+        c.note,
+        c.citta,
+        c.collegato,
+        c.tipo,
+        c.data_di_nascita,
+        c.tel,
+        c.email,
+        c.provenienza,
+        c.indirizzo,
+        c.cap,
+        c.cf,
+        c.id
+      )
+  );
   //console.log("intersectedClienti: ", intersectedClienti);
   return intersectedClienti;
 };
-
-
 
 /** AUTHENTICATION */
 export async function authenticate(
@@ -866,38 +969,53 @@ export async function createUser(
 
 // #### DELETE BY ID ####
 export const deleteServizioATerraById = async (id: string): Promise<void> => {
-
   try {
-   await sql.query(
-    `DELETE FROM servizi_a_terra WHERE id = $1`,
-    [id]
-   );
+    await sql.query(`DELETE FROM servizi_a_terra WHERE id = $1`, [id]);
   } catch (error) {
-   console.error('Database Error:', error);
-   throw new Error('Failed to delete servizio a terra by id.');
+    console.error("Database Error:", error);
+    throw new Error("Failed to delete servizio a terra by id.");
   }
- };
- export const deleteVoloById = async (id: string): Promise<void> => {
- 
-   try {
-    await sql.query(
-      `DELETE FROM voli WHERE id = $1`,
-      [id]
-    );
-   } catch (error) {
-     console.error('Database Error:', error);
-     throw new Error('Failed to delete volo by id.');
-   }
- };
- export const deleteAssicurazioneById = async (id: string): Promise<void> => {
- 
-   try {
-     await sql.query(
-      `DELETE FROM assicurazioni WHERE id = $1`,
-      [id]
-    );
-   } catch (error) {
-     console.error('Database Error:', error);
-     throw new Error('Failed to delete assicurazione by id.');
-   }
- };
+};
+export const deleteVoloById = async (id: string): Promise<void> => {
+  try {
+    await sql.query(`DELETE FROM voli WHERE id = $1`, [id]);
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to delete volo by id.");
+  }
+};
+export const deleteAssicurazioneById = async (id: string): Promise<void> => {
+  try {
+    await sql.query(`DELETE FROM assicurazioni WHERE id = $1`, [id]);
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to delete assicurazione by id.");
+  }
+};
+
+export const setOptionsJson = async () => {
+  const fornitori = await fetchAllFornitori();
+  const banche = await fetchAllBanche();
+  const destinazioni = await fetchAllDestinazioni();
+  const writeJsonToFile = (filename: string, data: any) => {
+      fs.writeFileSync(filename, JSON.stringify(data, null, 2), 'utf8');
+  };
+
+  if (fornitori.success) {
+      writeJsonToFile(path.join(process.cwd(), '/app/lib/fundamental-entities-json/fornitori.json'), fornitori.values);
+  } else {
+      console.error('Failed to fetch fornitori:', fornitori.errorsMessage);
+  }
+
+  if (banche.success) {
+      writeJsonToFile(path.join(process.cwd(), '/app/lib/fundamental-entities-json/banche.json'), banche.values);
+  } else {
+      console.error('Failed to fetch banche:', banche.errorsMessage);
+  }
+
+  if (destinazioni.success) {
+      writeJsonToFile(path.join(process.cwd(), '/app/lib/fundamental-entities-json/destinazioni.json'), destinazioni.values);
+  } else {
+      console.error('Failed to fetch destinazioni:', destinazioni.errorsMessage);
+  }
+}

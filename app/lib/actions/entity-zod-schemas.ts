@@ -1,9 +1,16 @@
 import { z } from "zod";
 import valuteValues from "@/app/seed/valute.json";
 import brandValues from "@/app/seed/brands.json";
+import typesValues from "@/app/seed/fondamental-entities-types.json";
 
 const valuteArray = valuteValues.valute;
 const brandArray = brandValues.brand;
+const typesArray = typesValues.types.map(type => type.tableName);
+
+export const FundamentalEntitySchema = z.object({
+  tableName: z.enum(typesArray as [string, ...string[]]),
+  value: z.string().min(1, { message: "Value is required" })
+});
 
 export const ClienteSchema = z.object({
   email: z.string().email(),

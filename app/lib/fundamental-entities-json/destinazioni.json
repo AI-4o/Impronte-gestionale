@@ -1,0 +1,194 @@
+[
+  {
+    "id": "678d844d-00b3-418d-a105-6dabdce71636",
+    "nome": "ALASKA"
+  },
+  {
+    "id": "35643d89-0bc2-4235-87af-e434733bc30d",
+    "nome": "BAJA CALIFORNIA"
+  },
+  {
+    "id": "a38aa869-51fd-4c5d-b322-65ab62273835",
+    "nome": "BALI"
+  },
+  {
+    "id": "1de359d5-09e5-44c0-a144-215732618584",
+    "nome": "BOTSWANA"
+  },
+  {
+    "id": "5d22df95-d8ef-4f53-9328-d2190568996b",
+    "nome": "CAMBOGIA"
+  },
+  {
+    "id": "9f32ed3f-15c4-42a6-9cde-e927e2824aad",
+    "nome": "CANADA"
+  },
+  {
+    "id": "c56e5d22-a869-4ab7-846e-609cc9dab080",
+    "nome": "COLOMBIA"
+  },
+  {
+    "id": "05661c8d-91a1-4c95-8743-e5a25cff3bb8",
+    "nome": "DANIMARCA"
+  },
+  {
+    "id": "ea64d968-ea8f-496c-9785-988d17ac6583",
+    "nome": "EGITTO"
+  },
+  {
+    "id": "4279b853-5386-4da6-a9ec-620eb8335905",
+    "nome": "ETHIOPIA"
+  },
+  {
+    "id": "089cc2af-9d86-4566-95d9-300cf7967d0d",
+    "nome": "FILIPPINE"
+  },
+  {
+    "id": "dbaa147c-f464-4bb2-a8f9-022eea00e2d4",
+    "nome": "FINLANDIA"
+  },
+  {
+    "id": "c8423611-f9ca-4216-abed-992f825c80f0",
+    "nome": "GIAPPONE"
+  },
+  {
+    "id": "7e20a45a-e268-4d17-80f7-b7a166a7e056",
+    "nome": "GIORDANIA"
+  },
+  {
+    "id": "a71404f9-650f-48fe-9a6a-21344ef5c7c8",
+    "nome": "HAWAI"
+  },
+  {
+    "id": "5eb838e5-8e14-4366-9fee-ffee9fffa03d",
+    "nome": "INDIA"
+  },
+  {
+    "id": "fdd1eaf8-b8e3-43ad-8075-c1a1fd138fcc",
+    "nome": "INDONESIA"
+  },
+  {
+    "id": "d06532d0-e2f0-487e-92d6-9a58ca71e0a1",
+    "nome": "IRLANDA"
+  },
+  {
+    "id": "ec418c06-9a0a-42b6-b40f-771ebbab5a18",
+    "nome": "ISLANDA"
+  },
+  {
+    "id": "b20e2220-ed1a-4695-89d0-1b5b26f44101",
+    "nome": "ITALIA"
+  },
+  {
+    "id": "3bfea9b0-aca3-4dff-9a74-7210c0839095",
+    "nome": "KENYA"
+  },
+  {
+    "id": "fff98671-8650-40b9-ada7-721f816691ce",
+    "nome": "LAOS"
+  },
+  {
+    "id": "3aeccaa8-9853-4203-a82d-f1a873835c28",
+    "nome": "LAPPONIA"
+  },
+  {
+    "id": "a2aca5f4-28a6-40ff-bc68-35f1b0380c7e",
+    "nome": "MADAGASCAR"
+  },
+  {
+    "id": "a6e9b271-9d26-4111-8685-618c843d28a4",
+    "nome": "MALDIVE"
+  },
+  {
+    "id": "eab2f6f9-9994-4efd-a188-bc6de052787b",
+    "nome": "MAROCCO"
+  },
+  {
+    "id": "7e3880cb-de63-4231-9cb8-aa4b9b664b46",
+    "nome": "MAURITIUS"
+  },
+  {
+    "id": "c9822f51-093b-4154-9e0f-8fbf5fd2b9b9",
+    "nome": "MOZAMBICO"
+  },
+  {
+    "id": "7e21a3ca-7590-4010-97d5-205586777b7f",
+    "nome": "NAMIBIA"
+  },
+  {
+    "id": "8022eb1c-2256-48d4-8c89-5fd16a632679",
+    "nome": "NORVEGIA"
+  },
+  {
+    "id": "dbd43ad4-c295-4761-a5d2-1cf5f5f5cb60",
+    "nome": "OMAN"
+  },
+  {
+    "id": "16cd226f-9e26-495c-b873-b624603e5113",
+    "nome": "PORTOGALLO"
+  },
+  {
+    "id": "33e48674-5822-4976-8a54-dd3ffb82b693",
+    "nome": "RWANDA"
+  },
+  {
+    "id": "6db5245a-fe14-482c-82b4-87b9150d8954",
+    "nome": "SEYCHELLES"
+  },
+  {
+    "id": "52a733b8-318a-4699-8919-dfa343cb8364",
+    "nome": "SPAGNA"
+  },
+  {
+    "id": "d70e1b79-4e53-42f7-bae4-abca7490aa11",
+    "nome": "SRI LANKA"
+  },
+  {
+    "id": "c39f937c-9f57-4dc7-b2cc-45daae1f9526",
+    "nome": "STATI UNITI"
+  },
+  {
+    "id": "0a8a4d06-2658-40f1-ab9c-805fdcd453ba",
+    "nome": "SUDAFRICA"
+  },
+  {
+    "id": "af080c77-a18e-4ce0-bd8b-06672e759675",
+    "nome": "SUDAMERICA"
+  },
+  {
+    "id": "68b70637-f92b-4f92-a369-c77d3c66006c",
+    "nome": "SVALBARD"
+  },
+  {
+    "id": "80db3932-caf9-4548-9ac1-ab9454aea0c3",
+    "nome": "SVEZIA"
+  },
+  {
+    "id": "5b3c33d5-8499-4b6f-a646-78ae9943025f",
+    "nome": "TANZANIA"
+  },
+  {
+    "id": "8972333c-2d33-4b51-b027-1b2969711489",
+    "nome": "THAILANDIA"
+  },
+  {
+    "id": "7104537a-0ce1-45c8-9e81-3c2bd44a9690",
+    "nome": "TURCHIA"
+  },
+  {
+    "id": "998f5359-fc64-4670-a6e6-e7e8bfbf9881",
+    "nome": "UGANDA"
+  },
+  {
+    "id": "a10db260-c452-470c-88b7-ac08c9f54ebf",
+    "nome": "VIETNAM"
+  },
+  {
+    "id": "892704bb-b0ce-4c3b-8a85-5f4aa2bf7dbc",
+    "nome": "ZAMBIA"
+  },
+  {
+    "id": "91ed08e9-ba68-4d63-b806-5415ef7eb7fc",
+    "nome": "Quel Paese"
+  }
+]

@@ -8,8 +8,8 @@ import InputEmail from "@/app/ui/inputs/input-email";
 import InputDate from "@/app/ui/inputs/input-date";
 import { InputLookup } from "@/app/ui/inputs/input-lookup";
 import { useEffect, useState } from "react";
-import fornitoriData from '@/app/seed/fornitori.json';
-import destinazioniData from '@/app/seed/destinazioni.json';
+import fornitoriData from '@/app/lib/fundamental-entities-json/fornitori.json';
+import destinazioniData from '@/app/lib/fundamental-entities-json/destinazioni.json';
 import valuteValues from '@/app/seed/valute.json';
 import brandValues from "@/app/seed/brands.json";
 import operatoriValues from "@/app/seed/operatori.json";
@@ -30,8 +30,8 @@ export default function CreaPreventivoGeneralInterface() {
 
     // Extract the 'fornitori' and 'destinazioni' arrays from json
     // define the options for the input-selects
-    const fornitoriOptions = fornitoriData.fornitori;
-    const destinazioniOptions = destinazioniData.destinazioni;
+    const fornitoriOptions = fornitoriData.map(fornitore => fornitore.nome);
+    const destinazioniOptions = destinazioniData.map(destinazione => destinazione.nome);
     const provenienzaOptions = [
         'Passaparola',
         'Sito IWS',
@@ -48,7 +48,7 @@ export default function CreaPreventivoGeneralInterface() {
         'inviato'
     ]
     const brandOptions = brandValues.brand;
-    const operatoreOptions = operatoriValues.operatori; 
+    const operatoreOptions = operatoriValues.operatori;
     const valuteOptions = valuteValues.valute;
     // cliente che compare nel form
     const [cliente, setCliente] = useState<ClienteInputGroup>(new ClienteInputGroup());
@@ -95,7 +95,7 @@ export default function CreaPreventivoGeneralInterface() {
             if (name == 'data_di_nascita') {
                 const newDate = new Date(e.target.value);
                 return { ...prevState, data_di_nascita: newDate };
-            } else {               
+            } else {
                 return { ...prevState, [name]: e.target.value };
             }
         });
@@ -128,7 +128,7 @@ export default function CreaPreventivoGeneralInterface() {
                     case 'percentuale_ricarico': p[name] = parseFloat(e.target.value);
                         break;
                 }
-                return {...p};
+                return { ...p };
             }
         });
     }
@@ -165,7 +165,7 @@ export default function CreaPreventivoGeneralInterface() {
                     }
                 }
             }
-            return {...servizio};
+            return { ...servizio };
         }));
     }
 
@@ -201,7 +201,7 @@ export default function CreaPreventivoGeneralInterface() {
                     }
                 }
             }
-            return {...servizio};
+            return { ...servizio };
         }));
     }
 
@@ -239,7 +239,7 @@ export default function CreaPreventivoGeneralInterface() {
                     }
                 }
             }
-            return {...volo};
+            return { ...volo };
         }));
     }
 
@@ -259,7 +259,7 @@ export default function CreaPreventivoGeneralInterface() {
         //console.log('change in a value of a assicurazione <event, id, name>: ', e, id, name);
         setAssicurazioni(assicurazioni.map(assicurazione => {
             if (assicurazione.groupId === id) {
-                switch(name) {
+                switch (name) {
                     case 'netto':
                     case 'ricarico': assicurazione[name] = parseFloat(e.target.value);
                         break;
@@ -267,7 +267,7 @@ export default function CreaPreventivoGeneralInterface() {
                         break;
                     default: assicurazione[name] = e.target.value;
                 }
-            } return {...assicurazione};
+            } return { ...assicurazione };
         }));
     }
 
@@ -336,7 +336,6 @@ export default function CreaPreventivoGeneralInterface() {
             setIsActiveSpinner(true);
             try {
                 const res = await createCliente(cliente);
-                console.log('res: ', res);
                 if (res.success) { // cliente creato con successo
                     setFeedback(() => {
                         return {
@@ -698,16 +697,18 @@ export default function CreaPreventivoGeneralInterface() {
                         <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
                         <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
                         <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
-                        <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={cliente?.data_di_nascita ? moment(cliente?.data_di_nascita).format('YYYY-MM-DD') : ''} />
                         <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCCliente(e, 'indirizzo')} value={cliente?.indirizzo} />
                         <InputText label="CAP" name="cap" onChange={(e) => onVCCliente(e, 'cap')} value={cliente?.cap} />
                         <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
-                        <InputText label="CF" name="cf" onChange={(e) => onVCCliente(e, 'cf')} value={cliente?.cf} />
-                        <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
-                        <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
-                        <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
                     </div>
                     <div className="pb-4">
+                        <div className="flex flex-row">
+                            <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
+                            <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
+                            <InputText label="Collegato" name="collegato" onChange={(e) => onVCCliente(e, 'collegato')} value={cliente?.collegato} />
+                            <InputText label="CF" name="cf" onChange={(e) => onVCCliente(e, 'cf')} value={cliente?.cf} />
+                            <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCCliente(e, 'data_di_nascita')} value={cliente?.data_di_nascita ? moment(cliente?.data_di_nascita).format('YYYY-MM-DD') : ''} />
+                        </div>
                         <InputText textarea label="Note" name="note" onChange={(e) => onVCCliente(e, 'note')} value={cliente?.note} />
                     </div>
                 </div>
@@ -756,16 +757,18 @@ export default function CreaPreventivoGeneralInterface() {
                                             <InputTell label="Telefono" name="tel" onChange={(e) => onVCClienteDaAggiornare(e, 'tel')} value={clienteDaAggiornare?.tel} />
                                             <InputText label="Nome" name="nome" onChange={(e) => onVCClienteDaAggiornare(e, 'nome')} value={clienteDaAggiornare?.nome} />
                                             <InputText label="Cognome" name="cognome" onChange={(e) => onVCClienteDaAggiornare(e, 'cognome')} value={clienteDaAggiornare?.cognome} />
-                                            <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={clienteDaAggiornare?.data_di_nascita ? moment(clienteDaAggiornare?.data_di_nascita).format('YYYY-MM-DD') : ''} />
                                             <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCClienteDaAggiornare(e, 'indirizzo')} value={clienteDaAggiornare?.indirizzo} />
                                             <InputText label="CAP" name="cap" onChange={(e) => onVCClienteDaAggiornare(e, 'cap')} value={clienteDaAggiornare?.cap} />
                                             <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
-                                            <InputText label="CF" name="cf" onChange={(e) => onVCClienteDaAggiornare(e, 'cf')} value={clienteDaAggiornare?.cf} />
-                                            <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
-                                            <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCClienteDaAggiornare(e, 'provenienza')} value={clienteDaAggiornare?.provenienza} />
-                                            <InputText label="Collegato" name="collegato" onChange={(e) => onVCClienteDaAggiornare(e, 'collegato')} value={clienteDaAggiornare?.collegato} />
                                         </div>
                                         <div className="pb-4">
+                                            <div className="flex flex-row">
+                                                <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
+                                                <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCClienteDaAggiornare(e, 'provenienza')} value={clienteDaAggiornare?.provenienza} />
+                                                <InputText label="Collegato" name="collegato" onChange={(e) => onVCClienteDaAggiornare(e, 'collegato')} value={clienteDaAggiornare?.collegato} />
+                                                <InputText label="CF" name="cf" onChange={(e) => onVCClienteDaAggiornare(e, 'cf')} value={clienteDaAggiornare?.cf} />
+                                                <InputDate label="Data di nascita" name="data_di_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'data_di_nascita')} value={clienteDaAggiornare?.data_di_nascita ? moment(clienteDaAggiornare?.data_di_nascita).format('YYYY-MM-DD') : ''} />
+                                            </div>
                                             <InputText textarea label="Note" name="note" onChange={(e) => onVCClienteDaAggiornare(e, 'note')} value={clienteDaAggiornare?.note} />
                                         </div>
                                         <button

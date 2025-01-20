@@ -7,11 +7,13 @@ export default function InputText(
         state, 
         value, 
         onChange,
-        textarea
-    }: InputInterface & {textarea?: boolean} ) {
+        textarea, 
+        minWidth,
+        maxWidth    
+    }: InputInterface & {textarea?: boolean, minWidth?: string, maxWidth?: string} ) {
 
     return (
-        <div>
+        <div style={{ minWidth: minWidth ?? '100px', maxWidth: maxWidth ?? '100%' }}>
             <label
                 className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                 htmlFor={label}

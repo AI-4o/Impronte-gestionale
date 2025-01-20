@@ -1,0 +1,427 @@
+[
+  {
+    "id": "59c702fa-df7f-49e3-a1e5-c29d19b3463c",
+    "nome": "AAA JALALA",
+    "valuta": null
+  },
+  {
+    "id": "8d769f98-cd4c-49e2-a438-17908d05a644",
+    "nome": "ABBEY TRAVEL",
+    "valuta": null
+  },
+  {
+    "id": "f8b22ffe-3135-4c56-88f7-489e70cd5e54",
+    "nome": "ABENTEUR",
+    "valuta": null
+  },
+  {
+    "id": "905b669c-7a23-496a-8d0e-aaaa3febdaa6",
+    "nome": "Acacia Premier Hotel - Kisumu",
+    "valuta": null
+  },
+  {
+    "id": "21bd1b9d-a46b-4736-a2e5-0b046fc142c7",
+    "nome": "ACI BLU TEAM",
+    "valuta": null
+  },
+  {
+    "id": "5e20b96a-5fff-49ec-b018-5d4dd0ae3178",
+    "nome": "ADELPHIA",
+    "valuta": null
+  },
+  {
+    "id": "462df749-6f20-4e77-8aee-e55154097e43",
+    "nome": "ADONIS",
+    "valuta": null
+  },
+  {
+    "id": "9a153c99-abb3-40b9-9b6b-45e83c6d76d5",
+    "nome": "ADVENTURE TRAVEL WEST",
+    "valuta": null
+  },
+  {
+    "id": "6a25015a-5f12-4c8a-9b84-47ac78ba3f72",
+    "nome": "AFRICAN VIEW",
+    "valuta": null
+  },
+  {
+    "id": "bbc105e2-4c94-4956-8619-4d30e95d5951",
+    "nome": "ALL ALASKA TOURS",
+    "valuta": null
+  },
+  {
+    "id": "fd19b0dd-6a05-4ad6-ad01-bf3976046c22",
+    "nome": "ARABICA TOURS",
+    "valuta": null
+  },
+  {
+    "id": "239f19e2-c1a8-4c13-ae80-0a24abd730eb",
+    "nome": "AURORA TRAVEL",
+    "valuta": null
+  },
+  {
+    "id": "d61aa677-5aa2-49ad-bcfa-cf1167520dda",
+    "nome": "BAJAESCAPE",
+    "valuta": null
+  },
+  {
+    "id": "5bb9917d-de5f-44a0-8d9b-f9dd42ffdc1c",
+    "nome": "Best Arctic",
+    "valuta": null
+  },
+  {
+    "id": "39556c9b-f9d8-4e3b-962f-d5a3bb48c483",
+    "nome": "BEYOND WILD",
+    "valuta": null
+  },
+  {
+    "id": "40f861e2-af34-4852-82d7-21027e65d732",
+    "nome": "BOTSWANA FOOTPRINT",
+    "valuta": null
+  },
+  {
+    "id": "17f0698d-c3e5-4624-9b9a-438b99db64ab",
+    "nome": "BUSHWAYS",
+    "valuta": null
+  },
+  {
+    "id": "fc4c4d10-3f24-4d69-a296-72a250a9df78",
+    "nome": "CAT COCOS",
+    "valuta": null
+  },
+  {
+    "id": "60e0c5fa-1976-4619-bbfa-e7b847523068",
+    "nome": "DAHABEYA",
+    "valuta": null
+  },
+  {
+    "id": "b6da46dd-a5dd-4857-8641-0b1be1530ff7",
+    "nome": "DAR ASSIYA",
+    "valuta": null
+  },
+  {
+    "id": "46245b52-2f10-4c6b-97ca-f33da510a090",
+    "nome": "DESTINATION JUNGLE",
+    "valuta": null
+  },
+  {
+    "id": "4af5724d-dd00-4e84-80ad-928f807acbf7",
+    "nome": "EBONY TOURS & SAFARIS",
+    "valuta": null
+  },
+  {
+    "id": "bb55e316-e5f0-4241-8421-c3a74f3b74f9",
+    "nome": "EXPEDIA",
+    "valuta": null
+  },
+  {
+    "id": "29e765d1-37e0-438b-a67a-8fbf45649f69",
+    "nome": "FLEXIBLE AUTOS",
+    "valuta": null
+  },
+  {
+    "id": "a42a88d8-c553-4e2b-9216-a93c8a8620b6",
+    "nome": "FOCUS DANIELE",
+    "valuta": null
+  },
+  {
+    "id": "1b95a4f4-337d-4ca1-b298-06d0971a0e20",
+    "nome": "GAMETRACKERS SAFARIS KENYA",
+    "valuta": null
+  },
+  {
+    "id": "66d6c44e-b8c2-425e-82b7-feeee2d05c09",
+    "nome": "Gracious Whisp Car Rentals",
+    "valuta": null
+  },
+  {
+    "id": "0ed7b7ac-a4b8-4a26-87c5-4f53b8bc4441",
+    "nome": "Havila Voyages",
+    "valuta": null
+  },
+  {
+    "id": "0a68d5a0-4d58-4115-8bf1-ba15ed9e90c8",
+    "nome": "HOTEL BEDS",
+    "valuta": null
+  },
+  {
+    "id": "38e9e987-be12-483b-a611-33b432cc99ed",
+    "nome": "Icelandtravel",
+    "valuta": null
+  },
+  {
+    "id": "af2d67e5-0f35-4572-a3dc-8f7a692464ad",
+    "nome": "JARDIN MAJORELLE",
+    "valuta": null
+  },
+  {
+    "id": "8cddb9bf-f44b-4996-bfd2-c68e73a3bb33",
+    "nome": "JENMANN SAFARIS",
+    "valuta": null
+  },
+  {
+    "id": "1252b085-fde9-44d3-b69e-227f50a2c545",
+    "nome": "JORDAN TOUR",
+    "valuta": null
+  },
+  {
+    "id": "ce4aa5a2-5cce-4094-b960-10914d53427b",
+    "nome": "Kenya Airways",
+    "valuta": null
+  },
+  {
+    "id": "3a0d21f6-01ea-4535-990d-4a14bdf0713b",
+    "nome": "Khaolak Merlin Resort",
+    "valuta": null
+  },
+  {
+    "id": "691baa17-e771-4f93-b36f-d359973277d3",
+    "nome": "KIBOKO",
+    "valuta": null
+  },
+  {
+    "id": "c7e7fc0e-b078-4258-b958-e721ce7be1df",
+    "nome": "LAKE TANA TOUR",
+    "valuta": null
+  },
+  {
+    "id": "20e3aab3-80f9-44de-b679-65351ab94251",
+    "nome": "Lazy Bear Lodge - Churchill",
+    "valuta": null
+  },
+  {
+    "id": "ad439ad9-b063-4891-b90c-1a003b6b39b3",
+    "nome": "MARINA MOAMBICO",
+    "valuta": null
+  },
+  {
+    "id": "eb909921-e2dd-4b67-9937-56976ac75b36",
+    "nome": "MAROC EXPERIENCE - MARIKA",
+    "valuta": null
+  },
+  {
+    "id": "1449c131-de74-4a2e-bdd6-19414270751c",
+    "nome": "MEMPHIS TOUR EGYPT",
+    "valuta": null
+  },
+  {
+    "id": "7ff82879-c9c3-4a7f-a9e3-f249ec47d15a",
+    "nome": "NAMIBIA TRACKS & TRAILS - ALBERTO",
+    "valuta": null
+  },
+  {
+    "id": "08ac017d-76b3-4deb-b6ee-c899c9b09646",
+    "nome": "NAMIBIA TRAVEL CONNECTION - AGOSTINELLA",
+    "valuta": null
+  },
+  {
+    "id": "3ef971b8-923f-4d1d-83da-e691e8e40a6e",
+    "nome": "Nellim Wilderness Hotels & Safaris Oy",
+    "valuta": null
+  },
+  {
+    "id": "3e92407d-455f-4ad1-aa2d-7aba6909cadf",
+    "nome": "NEPTUNE",
+    "valuta": null
+  },
+  {
+    "id": "5ba98a28-9359-4485-81bd-2e6f28f852fb",
+    "nome": "OMAN EXPERT",
+    "valuta": null
+  },
+  {
+    "id": "4e86627a-d8e6-4804-b10d-4710848f0a9d",
+    "nome": "OPENTOUR SUDAFRICA",
+    "valuta": null
+  },
+  {
+    "id": "ba1d3865-ee86-4ec4-8629-042d7f4ea580",
+    "nome": "PAOLA SAFARIS KENYA",
+    "valuta": null
+  },
+  {
+    "id": "d3f178b9-669a-44be-b403-72edda6326b3",
+    "nome": "RATEHAWK",
+    "valuta": null
+  },
+  {
+    "id": "fc287894-e2cb-4902-9aa7-f4eee640a5c0",
+    "nome": "RHINO SAFARIS",
+    "valuta": null
+  },
+  {
+    "id": "0a71aebe-6f7a-40cd-a3a9-ab6c4cf74dc6",
+    "nome": "SAFARI DESTINATION",
+    "valuta": null
+  },
+  {
+    "id": "4d761070-5d69-4f04-9706-17d4c3c5db75",
+    "nome": "Safari Journeys Zambia",
+    "valuta": null
+  },
+  {
+    "id": "ca4f9ea0-1b1b-477e-b83f-074fe98cc5ac",
+    "nome": "Sail Norway",
+    "valuta": null
+  },
+  {
+    "id": "1596309a-0659-4c07-8557-e4298ef83604",
+    "nome": "Sawa Sawa",
+    "valuta": null
+  },
+  {
+    "id": "bd8d9ecf-3686-4bf0-b500-f1dcbceec62b",
+    "nome": "SIAM DRAGON TOUR",
+    "valuta": null
+  },
+  {
+    "id": "e8fea89c-cfd6-4755-84dd-a27acc2c089a",
+    "nome": "SUNWAY SAFARIS",
+    "valuta": null
+  },
+  {
+    "id": "84ffd8ab-e0d4-4164-a0f0-abd91645e100",
+    "nome": "SUNWORLD SAFARIS",
+    "valuta": null
+  },
+  {
+    "id": "8f588993-ada6-4ab0-9758-ffc0476d436f",
+    "nome": "Tanqua Travel",
+    "valuta": null
+  },
+  {
+    "id": "f6eb7e02-c731-4c51-8846-8cb26c82ee1a",
+    "nome": "TERRA INDOCINA",
+    "valuta": null
+  },
+  {
+    "id": "5d09abba-ac96-401e-a645-9f976a63893f",
+    "nome": "TERRANOVA SCANDINAVIA",
+    "valuta": null
+  },
+  {
+    "id": "2555cb06-35e5-4d84-8f1a-d0deb7508934",
+    "nome": "THAI UNIKA",
+    "valuta": null
+  },
+  {
+    "id": "5a76edd4-a649-49db-bc65-066d7af85c35",
+    "nome": "THE NET GIAPPONE",
+    "valuta": null
+  },
+  {
+    "id": "d690f2bd-ace5-4ade-92e6-252b56b625c1",
+    "nome": "THE SANDS AT NOMAD BY BEACH SAND SUN LTD",
+    "valuta": null
+  },
+  {
+    "id": "2c1da11c-adf6-4d25-ab7f-247e1a0621dd",
+    "nome": "VABBINFARU MALDIVE",
+    "valuta": null
+  },
+  {
+    "id": "b9d2f1b0-6104-4dd6-b6d3-9f1b1bf733d5",
+    "nome": "VOS Scandinavia",
+    "valuta": null
+  },
+  {
+    "id": "24e9ced6-1911-4a99-8421-600ba4a79fc9",
+    "nome": "Wilderness Safaris Saariselka Oy (Northern Lights Village)",
+    "valuta": null
+  },
+  {
+    "id": "ab396122-94ca-4a56-9443-0919052aa854",
+    "nome": "Essential Destination - Coastal",
+    "valuta": null
+  },
+  {
+    "id": "2510c68a-9e1b-4041-b9a4-8c9de1bfecf7",
+    "nome": "Aegyptus Intertravel",
+    "valuta": null
+  },
+  {
+    "id": "aefbce50-a185-4a0c-bd59-4e9d8b64c920",
+    "nome": "VARIE",
+    "valuta": null
+  },
+  {
+    "id": "6e819833-cfc4-4224-b152-4f1d752c9ace",
+    "nome": "MOLA MOLA SAFARIS CC",
+    "valuta": null
+  },
+  {
+    "id": "0c87cfab-8569-42c5-8391-a2c076f4c743",
+    "nome": "i4t",
+    "valuta": null
+  },
+  {
+    "id": "3606ab52-7fb3-4297-aaae-d3b555de8571",
+    "nome": "KGOWE TRAVEL ADVENTURE - BOTSWANA",
+    "valuta": null
+  },
+  {
+    "id": "4503402f-02ef-4bae-9199-98365fc9c20a",
+    "nome": "TEPANEE BEACH RESORT-MALAPASCUA",
+    "valuta": null
+  },
+  {
+    "id": "15b40617-62dc-445e-b806-957bcec3f455",
+    "nome": "ANDILANA LODGE",
+    "valuta": null
+  },
+  {
+    "id": "2e96011f-6ce8-4427-af3d-cb9caf01e011",
+    "nome": "MONARCH TOUR",
+    "valuta": null
+  },
+  {
+    "id": "ac5fd3e6-4deb-424d-a6d0-f469612e6016",
+    "nome": "VIAGGI MADE IN TOUR",
+    "valuta": null
+  },
+  {
+    "id": "8d0ff85f-8e09-490e-9d2a-2bcd850dc150",
+    "nome": "Big luca",
+    "valuta": null
+  },
+  {
+    "id": "3088fd14-b47a-48a0-87e0-099394ea8e0a",
+    "nome": "Big lucaa",
+    "valuta": null
+  },
+  {
+    "id": "7e60b384-7586-439b-8f16-9483a0da8f06",
+    "nome": "pezza",
+    "valuta": null
+  },
+  {
+    "id": "cc6c77d4-8970-48c3-af37-f5897918ac33",
+    "nome": "pipino il breve",
+    "valuta": null
+  },
+  {
+    "id": "6392caf4-1936-4532-b9fa-3be16b643221",
+    "nome": "pipino il breveeeee",
+    "valuta": null
+  },
+  {
+    "id": "df2d094a-f5ae-44bb-8b78-f934fe951634",
+    "nome": "pipino il brev",
+    "valuta": null
+  },
+  {
+    "id": "6443f0e2-6af2-4243-b0c9-814e3cdf2e15",
+    "nome": "ciccio",
+    "valuta": null
+  },
+  {
+    "id": "93cdb491-c171-4000-afaf-f3bf9bb46e8d",
+    "nome": "polnareff",
+    "valuta": null
+  },
+  {
+    "id": "6fa45d39-459c-4ead-aebb-acb04d6ab93e",
+    "nome": "fornitore esempio",
+    "valuta": null
+  }
+]

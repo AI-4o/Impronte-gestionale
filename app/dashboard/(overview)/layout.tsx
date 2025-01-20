@@ -2,18 +2,21 @@ import SideNav from '@/app/ui/dashboard/sidenav';
 import { Suspense } from 'react';
 import Loading from './loading';
 import Image from 'next/image';
-import './style.css';
-import { CogIcon, DocumentDuplicateIcon, MagnifyingGlassIcon} from '@heroicons/react/24/outline';
+import { CogIcon, DocumentDuplicateIcon, MagnifyingGlassIcon, PlusIcon} from '@heroicons/react/24/outline';
 import { SpinnerContextProvider } from '@/app/context/spinner-context';
+import { setOptionsJson } from '@/app/lib/actions/actions';
+import './style.css';
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children }: { children: React.ReactNode }) {
   // Map of links to display in the side navigation.
   const links = [
     { name: 'Changelog', href: '/dashboard', icon: <DocumentDuplicateIcon className="w-6" /> },
     { name: 'Preventivo', href: '/dashboard/general-interface' },
+    { name: 'Aggiungi', href: '/dashboard/aggiungi', icon: <PlusIcon className="w-6" />},
     { name: 'Analisi funzionale', href: '/dashboard/functional-analysis', icon: <MagnifyingGlassIcon className="w-6" /> },
-    { name: 'Settings', href: '/dashboard/settings', icon: <CogIcon className="w-6" />},
+    { name: 'Settings', href: '/dashboard/settings', icon: <CogIcon className="w-6" />}
   ];
+
   return (
     <SpinnerContextProvider>
       <div className="flex h-screen flex-col">

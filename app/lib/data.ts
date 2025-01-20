@@ -1051,3 +1051,35 @@ export const getNumberOfPreventivi = async (): Promise<DBResult<number> > => {
     };
   }
 }
+
+// #### FETCH ALL ####
+
+export const fetchAllFornitori = async (): Promise<DBResult<Fornitore[]> > => {
+  try {
+    const fornitori = await sql<Fornitore>`SELECT * FROM fornitori`;
+    return {values: fornitori.rows, success: true, errorsMessage: ''};
+  } catch (error) {
+    console.error('Database Error:', error);
+    return {success: false, errorsMessage: error};
+  }
+}
+
+export const fetchAllBanche = async (): Promise<DBResult<Banca[]> > => {
+  try {
+    const banche = await sql<Banca>`SELECT * FROM banche`;
+    return {values: banche.rows, success: true, errorsMessage: ''};
+  } catch (error) {
+    console.error('Database Error:', error);
+    return {success: false, errorsMessage: error};
+  }
+}
+
+export const fetchAllDestinazioni = async (): Promise<DBResult<Destinazione[]> > => {
+  try {
+    const destinazioni = await sql<Destinazione>`SELECT * FROM destinazioni`;
+    return {values: destinazioni.rows, success: true, errorsMessage: ''};
+  } catch (error) {
+    console.error('Database Error:', error);
+    return {success: false, errorsMessage: error};
+  }
+}

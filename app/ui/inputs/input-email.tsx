@@ -6,11 +6,13 @@ export default function InputEmail(
         name, 
         state, 
         value, 
-        onChange 
-    }: InputInterface) {
+        onChange,
+        minWidth,
+        maxWidth 
+    }: InputInterface & {minWidth?: string, maxWidth?: string}) {
 
     return (
-        <div>
+        <div style={{ minWidth: minWidth ?? '50px', maxWidth: maxWidth ?? '100%' }}>
             <label
                 className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                 htmlFor={label}

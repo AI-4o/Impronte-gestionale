@@ -7,7 +7,8 @@ export default function InputSelect({
     state,
     value,
     onChange
-}: InputInterface & { options: string[] }) {
+}: InputInterface & { options: string[] | {name: string, value: string}[] }) {
+    
     
     return (
         <div className="select">
@@ -29,8 +30,8 @@ export default function InputSelect({
                         
                     </ option>
                     {options.map((option, index) => (
-                        <option key={index} value={option}>
-                            {option}
+                        <option key={index} value={option.value?? option}>
+                            {option.name ?? option}
                         </ option>
                     ))}
                 </select>

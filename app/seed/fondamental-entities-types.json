@@ -1,0 +1,8 @@
+{
+  "types": [
+    { "name": "fornitore", "tableName": "fornitori" },
+    { "name": "banca", "tableName": "banche" },
+    { "name": "destinazione", "tableName": "destinazioni" }
+
+  ]
+}
