@@ -2,9 +2,8 @@ import SideNav from '@/app/ui/dashboard/sidenav';
 import { Suspense } from 'react';
 import Loading from './loading';
 import Image from 'next/image';
-import { CogIcon, DocumentDuplicateIcon, MagnifyingGlassIcon, PlusIcon} from '@heroicons/react/24/outline';
+import { CogIcon, DocumentDuplicateIcon, MagnifyingGlassIcon, PlusIcon, TableCellsIcon} from '@heroicons/react/24/outline';
 import { SpinnerContextProvider } from '@/app/context/spinner-context';
-import { setOptionsJson } from '@/app/lib/actions/actions';
 import './style.css';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
@@ -12,6 +11,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   const links = [
     { name: 'Changelog', href: '/dashboard', icon: <DocumentDuplicateIcon className="w-6" /> },
     { name: 'Preventivo', href: '/dashboard/general-interface' },
+    { name: 'DataTable', href: '/dashboard/data-table', icon: <TableCellsIcon className="w-6" /> },
     { name: 'Aggiungi', href: '/dashboard/aggiungi', icon: <PlusIcon className="w-6" />},
     { name: 'Analisi funzionale', href: '/dashboard/functional-analysis', icon: <MagnifyingGlassIcon className="w-6" /> },
     { name: 'Settings', href: '/dashboard/settings', icon: <CogIcon className="w-6" />}

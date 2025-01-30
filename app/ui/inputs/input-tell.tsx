@@ -34,7 +34,7 @@ export default function InputTell({
                     onChange={onChange}
                 />
                 <p className="mt-2 text-sm text-red-600 hidden peer-invalid:block">
-                    Please enter a valid international phone number.
+                    Inserisci un numero di telefono con formato internazionale valido.
                 </p>
             </div>
             <div id="tel-error" aria-live="polite" aria-atomic="true">

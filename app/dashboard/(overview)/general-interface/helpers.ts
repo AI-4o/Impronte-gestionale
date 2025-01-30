@@ -92,3 +92,8 @@ export const formatNumberItalian = (numero: number): string => {
         maximumFractionDigits: 2
     }).format(numero);
 }
+
+export const isValidTel = (tel: string): boolean => {
+    const telRegex = /^\+[1-9]\d{1,14}$/;
+    return telRegex.test(tel);
+}

@@ -24,17 +24,19 @@ import {
   PreventivoInputGroup,
   ServizioATerraInputGroup,
   VoloInputGroup,
+  PreventivoAlClienteInputGroup,
+  PreventivoAlClienteRow,
 } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import { formatDate } from "../utils";
 import moment from "moment";
-import path from 'path';
+import path from "path";
 export type DBResult<A> = {
   success: boolean;
   values?: any; // TODO: successivo refactoring si rende di tipo A | A[] | null
   errors?: Partial<TransformToStringArray<A>>;
   errorsMessage?: string;
 };
-import fs from 'fs';
+import fs from "fs";
 
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
@@ -314,6 +316,99 @@ export const createAssicurazione = async (
     };
   }
 };
+
+
+
+export const createPreventivoAlCliente = async (
+  p: PreventivoAlClienteInputGroup,
+  id_preventivo: string
+): Promise<DBResult<PreventivoAlClienteInputGroup>> => {
+  const parsedData = schemas.PreventivoAlClienteSchema.safeParse({
+    id_preventivo: id_preventivo,
+    descrizione_viaggio: p.descrizione_viaggio,
+  });
+
+  if (!parsedData.success) {
+    return {
+      success: false,
+      errorsMessage:
+        "Failed to create PreventivoAlCliente due to a validation error.",
+      errors: parsedData.error.flatten().fieldErrors,
+      values: parsedData.data,
+    };
+  }
+  try {
+    const preventivoResult = await sql`
+    INSERT INTO preventivi_al_cliente (id_preventivo, descrizione_viaggio)
+    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.descrizione_viaggio})
+    RETURNING *;
+    `;
+
+    // creazione delle righe 
+    const rowFirstTypePromises = p.righePrimoTipo.map(row => 
+      createPreventivoAlClienteRow(row, true, preventivoResult.rows[0].id)
+    );
+    const rowSecondTypePromises = p.righeSecondoTipo.map(row => 
+      createPreventivoAlClienteRow(row, false, preventivoResult.rows[0].id)
+    );
+
+    const rowResults = await Promise.all(rowFirstTypePromises.concat(rowSecondTypePromises))
+    .then(results => ({values: [preventivoResult.rows[0]].concat(results), success: true, errorsMessage: ""}))
+    .catch(error => {
+      return {
+        success: false,
+        errorsMessage: "Database Error in createPreventivoAlClienteRow: " + error,
+        values: preventivoResult.rows[0],
+      };
+    });
+    return rowResults;
+  } catch (error) {
+    return {
+      success: false,
+      errorsMessage: "Database Error in createPreventivoAlCliente: " + error,
+      values: parsedData.data,
+    };
+  }
+};
+
+export const createPreventivoAlClienteRow = async (
+  p: PreventivoAlClienteRow,
+  senzaAssicurazione: boolean,
+  id_preventivo_al_cliente: string
+): Promise<DBResult<PreventivoAlClienteRow>> => {
+  const parsedData = schemas.PreventivoAlClienteRowSchema.safeParse({
+    id_preventivo_al_cliente: id_preventivo_al_cliente,
+    senza_assicurazione: senzaAssicurazione,
+    destinazione: p.destinazione,
+    descrizione: p.descrizione,
+    individuale: p.individuale,
+    numero: p.numero,
+  });
+  if (!parsedData.success) {
+    return {
+      success: false,
+      errorsMessage:
+        "Failed to create PreventivoAlClienteRow due to a validation error.",
+      errors: parsedData.error.flatten().fieldErrors,
+      values: parsedData.data,
+    };
+  }
+  try {
+    const result = await sql`
+    INSERT INTO preventivi_al_cliente_row (id_preventivo_al_cliente, senza_assicurazione, destinazione, descrizione, individuale, numero)
+    VALUES (${parsedData.data.id_preventivo_al_cliente}, ${parsedData.data.senza_assicurazione}, ${parsedData.data.destinazione}, ${parsedData.data.descrizione}, ${parsedData.data.individuale}, ${parsedData.data.numero})
+    RETURNING *;
+    `;
+    return { values: result.rows[0], success: true, errorsMessage: "" };
+  } catch (error) {
+    return {
+      success: false,
+      errorsMessage: "Database Error in createPreventivoAlClienteRow: " + error,
+      values: parsedData.data,
+    };
+  }
+};
+
 /**
  * Do the following:
  *
@@ -346,50 +441,26 @@ export async function submitCreatePreventivoGI(
     if (!resCreatePreventivo.success) {
       return resCreatePreventivo;
     }
-
-    if (resCreatePreventivo.success) {
+    else {
       idPreventivo = resCreatePreventivo.values.id;
       res.preventivo = resCreatePreventivo.values;
     }
-
     // create serviziATerra
-    for (const s of data.serviziATerra) {
-      const resCreateServizio = await createServizioATerra(
-        s,
-        idPreventivo,
-        false
-      );
-      if (!resCreateServizio.success) {
-        return resCreateServizio;
-      }
-      res.servizi.push(resCreateServizio);
-    }
-    for (const s of data.serviziAggiuntivi) {
-      const resCreateServizio = await createServizioATerra(
-        s,
-        idPreventivo,
-        true
-      );
-      if (!resCreateServizio.success) {
-        return resCreateServizio;
-      }
-      res.servizi.push(resCreateServizio);
-    }
-    for (const v of data.voli) {
-      const resCreateVolo = await createVolo(v, idPreventivo);
-      if (!resCreateVolo.success) {
-        return resCreateVolo;
-      }
-      res.voli.push(resCreateVolo);
-    }
-    for (const a of data.assicurazioni) {
-      const resCreateAssicurazione = await createAssicurazione(a, idPreventivo);
-      if (!resCreateAssicurazione.success) {
-        return resCreateAssicurazione;
-      }
-      res.assicurazioni.push(resCreateAssicurazione);
-    }
-    return { values: res, success: true, errorsMessage: "" };
+    const serviziATerraPromises = data.serviziATerra.map(s => createServizioATerra(s, idPreventivo, false))
+    const serviziAggiuntiviPromises = data.serviziAggiuntivi.map(s => createServizioATerra(s, idPreventivo, true))
+    const voliPromises = data.voli.map(v => createVolo(v, idPreventivo))
+    const assicurazioniPromises = data.assicurazioni.map(a => createAssicurazione(a, idPreventivo))
+    const preventivoAlClientePromises = data.preventivoAlCliente ? [createPreventivoAlCliente(data.preventivoAlCliente, idPreventivo)] : []
+    const results = await Promise.all([...serviziATerraPromises, ...serviziAggiuntiviPromises, ...voliPromises, ...assicurazioniPromises, ...preventivoAlClientePromises])
+    .then(results => ({values: results, success: true, errorsMessage: ""}))
+    .catch(error => {
+      return {
+        success: false,
+        errorsMessage: "Database Error in submitCreatePreventivoGI: " + error,
+        values: res,
+      };
+    });
+    return results;
   } catch (error) {
     return {
       success: false,
@@ -998,24 +1069,42 @@ export const setOptionsJson = async () => {
   const banche = await fetchAllBanche();
   const destinazioni = await fetchAllDestinazioni();
   const writeJsonToFile = (filename: string, data: any) => {
-      fs.writeFileSync(filename, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(filename, JSON.stringify(data, null, 2), "utf8");
   };
 
   if (fornitori.success) {
-      writeJsonToFile(path.join(process.cwd(), '/app/lib/fundamental-entities-json/fornitori.json'), fornitori.values);
+    writeJsonToFile(
+      path.join(
+        process.cwd(),
+        "/app/lib/fundamental-entities-json/fornitori.json"
+      ),
+      fornitori.values
+    );
   } else {
-      console.error('Failed to fetch fornitori:', fornitori.errorsMessage);
+    console.error("Failed to fetch fornitori:", fornitori.errorsMessage);
   }
 
   if (banche.success) {
-      writeJsonToFile(path.join(process.cwd(), '/app/lib/fundamental-entities-json/banche.json'), banche.values);
+    writeJsonToFile(
+      path.join(
+        process.cwd(),
+        "/app/lib/fundamental-entities-json/banche.json"
+      ),
+      banche.values
+    );
   } else {
-      console.error('Failed to fetch banche:', banche.errorsMessage);
+    console.error("Failed to fetch banche:", banche.errorsMessage);
   }
 
   if (destinazioni.success) {
-      writeJsonToFile(path.join(process.cwd(), '/app/lib/fundamental-entities-json/destinazioni.json'), destinazioni.values);
+    writeJsonToFile(
+      path.join(
+        process.cwd(),
+        "/app/lib/fundamental-entities-json/destinazioni.json"
+      ),
+      destinazioni.values
+    );
   } else {
-      console.error('Failed to fetch destinazioni:', destinazioni.errorsMessage);
+    console.error("Failed to fetch destinazioni:", destinazioni.errorsMessage);
   }
-}
+};

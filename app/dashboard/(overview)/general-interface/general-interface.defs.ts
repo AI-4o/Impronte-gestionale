@@ -34,7 +34,6 @@ export class ClienteInputGroup {
 }
 // preventivo cliente interface
 export class PreventivoInputGroup {
-
     constructor(
         public numero_preventivo?: string,
         public percentuale_ricarico?: number,
@@ -142,6 +141,35 @@ export class AssicurazioneInputGroup {
         this.numero = numero ?? undefined;
     }
 }
+
+// preventivo mostrare cliente interface
+export class PreventivoAlClienteRow {
+    constructor(
+        public groupId: number,
+        public destinazione?: string,
+        public descrizione?: string,
+        public individuale?: number,
+        public numero?: number,
+        public id?: string,
+    ) { 
+        this.id = id ?? undefined;
+        this.destinazione = destinazione ?? undefined;
+        this.descrizione = descrizione ?? undefined;
+        this.individuale = individuale ?? undefined;
+        this.numero = numero ?? undefined;
+    }
+}
+export class PreventivoAlClienteInputGroup {
+    constructor(
+        public descrizione_viaggio?: string,
+        public righePrimoTipo?: PreventivoAlClienteRow[],
+        public righeSecondoTipo?: PreventivoAlClienteRow[],
+    ) { 
+        this.descrizione_viaggio = descrizione_viaggio ?? undefined;
+        this.righePrimoTipo = righePrimoTipo ?? undefined;
+        this.righeSecondoTipo = righeSecondoTipo ?? undefined;
+    }
+}
 export interface Data {
     cliente?: ClienteInputGroup;
     preventivo?: PreventivoInputGroup;
@@ -149,6 +177,7 @@ export interface Data {
     serviziAggiuntivi?: ServizioATerraInputGroup[];
     voli?: VoloInputGroup[];
     assicurazioni?: AssicurazioneInputGroup[];
+    preventivoAlCliente?: PreventivoAlClienteInputGroup;
 }
 export type Feedback = {
     message: React.ReactNode;

@@ -423,5 +423,10 @@
     "id": "6fa45d39-459c-4ead-aebb-acb04d6ab93e",
     "nome": "fornitore esempio",
     "valuta": null
+  },
+  {
+    "id": "f3d6b4b9-323b-44fe-8c28-59dbda235f6e",
+    "nome": "fornitore aggiunto 1",
+    "valuta": null
   }
 ]

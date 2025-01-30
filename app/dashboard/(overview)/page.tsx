@@ -6,24 +6,31 @@ export default async function ChangelogPage() {
       <h1 className={`mb-4 text-xl md:text-2xl`}>CHANGELOG</h1>
 
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
+
+      <p className='version-paragraph'>v2.5.0</p>
+      <ul>
+        <li>Feat: add first sketch of data table about preventivi.</li>
+        <li>Feat: add <i>preventivo cliente section</i> to preventivo interface with: create, and get crud operations.</li>
+        <li>Feat: add keyboard shortcuts to navigate the app, as described in page 'functional analysis'.</li>
+      </ul>
       <p className='version-paragraph'>V2.4.0</p>
       <ul>
         <li>Feat: create input-lookup input component, use it in place of input select when there are too many options (e.g.: valute, fornitori).</li>
-        <li>Fix: <i>nelle assicurazioni c'è da aggiungere il n. (come nei voli) e il totale sarà dato da (netto+ricarico)*numero</i></li>
-        <li>Fix: <i>nel cliente la data di nascita "non" deve essere obbligatoria</i></li>
+        <li>Fix: <i>nelle assicurazioni c'è da aggiungere il n. (come nei voli) e il totale sarà dato da (netto+ricarico)*numero.</i></li>
+        <li>Fix: <i>nel cliente la data di nascita "non" deve essere obbligatoria.</i></li>
         <li>Fix: for 'valute' use a general complete list.</li>
       </ul>
       <p className='version-paragraph'>V2.3.0</p>
       <ul>
         <li>Feat: add page 'Settings' + draft allow custom success message styles.</li>
         <li>Fix: <i>le date devono poter essere inserite da tastiera.</i></li>
-        <li>Fix: <i>anche sulle assicurazioni bisogna aggiungere il campo ricarico come input che inseriamo noi di volta in volta ed il totale sarà dato dal netto + ricarico</i></li>
+        <li>Fix: <i>anche sulle assicurazioni bisogna aggiungere il campo ricarico come input che inseriamo noi di volta in volta ed il totale sarà dato dal netto + ricarico.</i></li>
         <li>Feat: update layout of input groups for preventivo interface.</li>
         <li>Feat: add spinner to manifest the loading state of the app.</li>
         <li>Feat: add logo.</li>
         <li>Fix: <i>la percentuale di ricarico che noi inseriamo deve essere memorizzata per ogni preventivo (ho provato a fare una variazione e la percentuale di ricarico ogni volta 
-          che si apre il preventivo torna ad essere uno, invece deve essere quella da noi inserita per quel preventivo specifico)</i></li>
-        <li>Fix: <i>in fase di variazione di preventivo cliccando sul tasto aggiorna non succede niente e la variazione non viene memorizzata</i></li>
+          che si apre il preventivo torna ad essere uno, invece deve essere quella da noi inserita per quel preventivo specifico).</i></li>
+        <li>Fix: <i>in fase di variazione di preventivo cliccando sul tasto aggiorna non succede niente e la variazione non viene memorizzata.</i></li>
       </ul>
       <p className='version-paragraph'>V2.2.0</p>
       <ul>

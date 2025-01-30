@@ -13,8 +13,9 @@ import {
   Partecipante,
   ServizioATerra,
   Volo,
-  PreventivoMostrareCliente,
-  Banca
+  PreventivoAlClienteRow,
+  Banca,
+  PreventivoAlCliente
 } from './definitions';
 import { ClienteInputGroup, PreventivoInputGroup } from '../dashboard/(overview)/general-interface/general-interface.defs';
 import { DBResult } from './actions/actions';
@@ -204,10 +205,10 @@ export const fetchFilteredAssicurazioni = async (
 export const fetchFilteredPreventiviMostrareCliente = async (
   query: string,
   currentPage: number,
-): Promise<DBResult<PreventivoMostrareCliente>> => {
+): Promise<DBResult<PreventivoAlClienteRow>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const preventiviMostrareCliente = await sql<PreventivoMostrareCliente>`
+    const preventiviMostrareCliente = await sql<PreventivoAlClienteRow>`
       SELECT * FROM preventivi_mostrare_clienti 
       WHERE 
         descrizione ILIKE ${`%${query}%`} OR
@@ -816,9 +817,9 @@ export const fetchPagamentoAssicurazioneById = async (id: string): Promise<DBRes
     };
   }
 };
-export const fetchPreventivoMostrareClienteById = async (id: string): Promise<DBResult<PreventivoMostrareCliente> > => {
+export const fetchPreventivoMostrareClienteById = async (id: string): Promise<DBResult<PreventivoAlClienteRow> > => {
   try {
-    const preventivoMostrareCliente = await sql<PreventivoMostrareCliente>`
+    const preventivoMostrareCliente = await sql<PreventivoAlClienteRow>`
       SELECT * FROM preventivo_mostrare_cliente
       WHERE id = ${id}
     `;
@@ -1078,6 +1079,87 @@ export const fetchAllDestinazioni = async (): Promise<DBResult<Destinazione[]> >
   try {
     const destinazioni = await sql<Destinazione>`SELECT * FROM destinazioni`;
     return {values: destinazioni.rows, success: true, errorsMessage: ''};
+  } catch (error) {
+    console.error('Database Error:', error);
+    return {success: false, errorsMessage: error};
+  }
+}
+
+export const fetchAllPreventiviWithCliente = async (): Promise<DBResult<(Preventivo & { cliente: Cliente })[]>> => {
+  try {
+    const preventivi = await sql`
+      SELECT 
+        p.*,
+        c.id as cliente_id,
+        c.nome as cliente_nome,
+        c.cognome as cliente_cognome,
+        c.tel as cliente_tel,
+        c.email as cliente_email,
+        c.tipo as cliente_tipo,
+        c.provenienza as cliente_provenienza,
+        c.collegato as cliente_collegato,
+        c.citta as cliente_citta,
+        c.note as cliente_note,
+        c.indirizzo as cliente_indirizzo,
+        c.CAP as cliente_cap,
+        c.CF as cliente_cf,
+        c.data_di_nascita as cliente_data_di_nascita
+      FROM preventivi p
+      LEFT JOIN clienti c ON p.id_cliente = c.id
+      ORDER BY p.data DESC
+    `;
+
+    const preventiviWithCliente = preventivi.rows.map(row => {
+      const cliente: Cliente = {
+        id: row.cliente_id,
+        nome: row.cliente_nome,
+        cognome: row.cliente_cognome,
+        tel: row.cliente_tel,
+        email: row.cliente_email,
+        tipo: row.cliente_tipo,
+        provenienza: row.cliente_provenienza,
+        collegato: row.cliente_collegato,
+        citta: row.cliente_citta,
+        note: row.cliente_note,
+        indirizzo: row.cliente_indirizzo,
+        cap: row.cliente_cap,
+        cf: row.cliente_cf,
+        data_di_nascita: row.cliente_data_di_nascita
+      };
+
+      // Remove cliente_ prefixed fields and create the preventivo object
+      const preventivo = Object.fromEntries(
+        Object.entries(row).filter(([key]) => !key.startsWith('cliente_'))
+      ) as Preventivo;
+
+      return {
+        ...preventivo,
+        cliente
+      };
+    });
+
+    return {values: preventiviWithCliente, success: true, errorsMessage: ''};
+  } catch (error) {
+    console.error('Database Error:', error);
+    return {success: false, errorsMessage: error};
+  }
+}
+
+export const fetchPreventivoAlClienteByPreventivoId = async (idPreventivo: string): Promise<DBResult<PreventivoAlCliente[]> > => {
+  try {
+    const preventivoAlClienteQR = await sql<PreventivoAlCliente>`
+      SELECT * FROM preventivi_al_cliente
+      WHERE id_preventivo = ${idPreventivo}
+    `;
+    const id = preventivoAlClienteQR.rows[0].id;
+    const preventivoAlClienteRowQR = await sql<PreventivoAlClienteRow>`
+      SELECT * FROM preventivi_al_cliente_row
+      WHERE id_preventivo_al_cliente = ${id}
+    `;
+    const preventivoAlCliente = preventivoAlClienteQR.rows[0];
+    preventivoAlCliente.righePrimoTipo = preventivoAlClienteRowQR.rows.filter(row => row.senza_assicurazione === true);
+    preventivoAlCliente.righeSecondoTipo = preventivoAlClienteRowQR.rows.filter(row => row.senza_assicurazione === false);
+    return {values: preventivoAlCliente, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
     return {success: false, errorsMessage: error};

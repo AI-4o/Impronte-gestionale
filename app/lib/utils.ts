@@ -68,3 +68,14 @@ export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
+
+export const flattenObject = (obj: any, prefix = ''): Array<{ nome: string, valore: any }> => {
+  return Object.entries(obj).reduce((acc: Array<{ nome: string, valore: any }>, [key, value]) => {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+          // Se il valore è un oggetto (ma non un array), ricorsione
+          return [...acc, ...flattenObject(value, prefix + key + '.')];
+      }
+      // Altrimenti aggiungi la coppia nome-valore
+      return [...acc, { nome: prefix + key, valore: value }];
+  }, []);
+};

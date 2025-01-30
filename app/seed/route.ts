@@ -133,18 +133,27 @@ const createTableAssicurazioni = async () => {
       );
     `;
 }
-const createTablePreventiviMostrareClienti = async () => {
+const createTablePreventiviAlCliente = async () => {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
-      CREATE TABLE IF NOT EXISTS preventivi_mostrare_clienti (
+      CREATE TABLE IF NOT EXISTS preventivi_al_cliente (
          id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_destinazione UUID REFERENCES destinazioni(id),
+         id_preventivo UUID REFERENCES preventivi(id),
+         descrizione_viaggio TEXT
+      );
+    `;
+}
+const createTablePreventiviAlClienteRow = async () => {
+  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await client.sql`
+      CREATE TABLE IF NOT EXISTS preventivi_al_cliente_row (
+         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+         id_preventivo_al_cliente UUID NOT NULL REFERENCES preventivi_al_cliente(id),
+         senza_assicurazione BOOLEAN,
+         destinazione VARCHAR(255),
          descrizione TEXT,
-         tipo VARCHAR(50) CHECK (tipo IN ('destinazione', 'volo', 'assicurazione')),
-         costo_individuale FLOAT,
-         importo_vendita FLOAT,
-         totale FLOAT
+         individuale FLOAT,
+         numero INT
       );
     `;
 }
@@ -228,6 +237,7 @@ const createTablePratiche = async () => {
       );
     `;
 }
+
 const seedDestinazioni = async () => {
   for (const nome of destinazioni.destinazioni) {
     await client.sql`
@@ -271,7 +281,8 @@ const deleteTables = async () => {
   await client.sql`DROP TABLE IF EXISTS pagamenti_servizi_a_terra CASCADE`;
   await client.sql`DROP TABLE IF EXISTS incassi_partecipanti CASCADE`;
   await client.sql`DROP TABLE IF EXISTS partecipanti CASCADE`;
-  await client.sql`DROP TABLE IF EXISTS preventivo_mostrare_cliente CASCADE`;
+  await client.sql`DROP TABLE IF EXISTS preventivi_al_cliente CASCADE`;
+  await client.sql`DROP TABLE IF EXISTS preventivi_mostrare_cliente CASCADE`;
   await client.sql`DROP TABLE IF EXISTS assicurazioni CASCADE`;
   await client.sql`DROP TABLE IF EXISTS voli CASCADE`;
   await client.sql`DROP TABLE IF EXISTS servizi_a_terra CASCADE`;
@@ -291,7 +302,8 @@ const createTables = async () => {
   await createTableServiziATerra();
   await createTableVoli();
   await createTableAssicurazioni();
-  await createTablePreventiviMostrareClienti();
+  await createTablePreventiviAlCliente();
+  await createTablePreventiviAlClienteRow();
   await createTablePartecipanti();
   await createTableIncassiPartecipanti();
   await createTablePagamentiServiziATerra();

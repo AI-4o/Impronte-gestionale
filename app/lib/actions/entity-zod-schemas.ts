@@ -128,14 +128,17 @@ export const UpdateAssicurazioneSchema = z.object({
 });
 
 
-export const PreventivoMostrareClienteSchema = z.object({
-  id_destinazione: z.string(),
+export const PreventivoAlClienteSchema = z.object({
   id_preventivo: z.string(),
-  descrizione: z.string().nullable().optional(),
-  tipo: z.enum(["destinazione", "volo", "assicurazione"]).optional(),
-  costo_individuale: z.number().optional(),
-  importo_vendita: z.number().optional(),
-  totale: z.number().optional(),
+  descrizione_viaggio: z.string(),
+});
+export const PreventivoAlClienteRowSchema = z.object({
+  id_preventivo_al_cliente: z.string(),
+  senza_assicurazione: z.boolean(),
+  destinazione: z.string().optional(),
+  descrizione: z.string().optional(),
+  individuale: z.number().optional(),
+  numero: z.number().optional(),
 });
 export const PartecipanteSchema = z.object({
   id_preventivo: z.string(),

@@ -90,14 +90,19 @@ export interface Assicurazione extends Entity{
   netto?: number;
   ricarico?: number;
 }
-export interface PreventivoMostrareCliente extends Entity{
+export interface PreventivoAlClienteRow extends Entity{
   id_preventivo: string;
   id_destinazione: string;
+  senza_assicurazione?: boolean;
   descrizione?: string;
-  tipo?: string;
-  costo_individuale?: number;
-  importo_vendita?: number;
-  totale?: number;
+  individuale?: number;
+  numero?: number;
+}
+export interface PreventivoAlCliente extends Entity{
+  id_preventivo: string;
+  descrizione_viaggio?: string;
+  righePrimoTipo: PreventivoAlClienteRow[]; // senza assicurazione
+  righeSecondoTipo: PreventivoAlClienteRow[]; // con assicurazione
 }
 export interface Partecipante extends Entity{
   id_preventivo: string;

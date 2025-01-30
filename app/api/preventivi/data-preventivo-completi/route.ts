@@ -3,12 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   AssicurazioneInputGroup,
   Data,
+  PreventivoAlClienteInputGroup,
+  PreventivoAlClienteRow,
   PreventivoInputGroup,
   ServizioATerraInputGroup,
   VoloInputGroup,
 } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import { DBResult, getDestinazioneById, getFornitoreById } from "@/app/lib/actions/actions";
-import { fetchServiziATerraByPreventivoId, fetchServiziAggiuntiviByPreventivoId, fetchVoliByPreventivoId, fetchAssicurazioniByPreventivoId } from "@/app/lib/data";
+import { fetchServiziATerraByPreventivoId, fetchServiziAggiuntiviByPreventivoId, fetchVoliByPreventivoId, fetchAssicurazioniByPreventivoId, fetchPreventivoAlClienteByPreventivoId } from "@/app/lib/data";
+import { PreventivoAlCliente } from "@/app/lib/definitions";
 
 export async function POST(request: NextRequest) {
     let res: DBResult<Data> = {
@@ -29,15 +32,16 @@ export async function POST(request: NextRequest) {
 
     // dato id preventivo vogliamo -> serviziATerra, serviziAggiuntivi, voli, assicurazioni
 
-    const serviziATerra = await fetchServiziATerraByPreventivoId(preventivoId);
-    const serviziAggiuntivi = await fetchServiziAggiuntiviByPreventivoId(
-      preventivoId
-    );
-    const voli = await fetchVoliByPreventivoId(preventivoId);
-    const assicurazioni = await fetchAssicurazioniByPreventivoId(preventivoId);
+    const [serviziATerra, serviziAggiuntivi, voli, assicurazioni, preventivoAlCliente] = await Promise.all([
+      fetchServiziATerraByPreventivoId(preventivoId),
+      fetchServiziAggiuntiviByPreventivoId(preventivoId),
+      fetchVoliByPreventivoId(preventivoId),
+      fetchAssicurazioniByPreventivoId(preventivoId),
+      fetchPreventivoAlClienteByPreventivoId(preventivoId)
+    ]);
 
     // if any of the fetching fails, return the error
-    if(!serviziATerra.success || !serviziAggiuntivi.success || !voli.success || !assicurazioni.success) {
+    if(!serviziATerra.success || !serviziAggiuntivi.success || !voli.success || !assicurazioni.success || !preventivoAlCliente.success) {
       [serviziATerra, serviziAggiuntivi, voli, assicurazioni].forEach(s => {
         if(!s.success) {
           res.errorsMessage += s.errorsMessage + "\n";
@@ -48,20 +52,20 @@ export async function POST(request: NextRequest) {
     else { // if all fetching succeed
 
     // ### trasformare dati nei rispettivi inputGroups ###
-    console.log('serviziATerra: ', serviziATerra);
-    console.log('serviziAggiuntivi: ', serviziAggiuntivi);
-    console.log('voli: ', voli);
-    console.log('assicurazioni: ', assicurazioni);
-    const serviziATerraInputGroup = await getServiziATerraInputGroup(serviziATerra.values as any[]);
-    const serviziAggiuntiviInputGroup = await getServiziATerraInputGroup(serviziAggiuntivi.values as any[]);
-    const voliInputGroup = await getVoliInputGroup(voli.values as any[]);
-    const assicurazioniInputGroup = await getAssicurazioniInputGroup(assicurazioni.values as any[]);
+    const [serviziATerraInputGroup, serviziAggiuntiviInputGroup, voliInputGroup, assicurazioniInputGroup, preventivoAlClienteInputGroup] = await Promise.all([
+      getServiziATerraInputGroup(serviziATerra.values as any[]),
+      getServiziATerraInputGroup(serviziAggiuntivi.values as any[]),
+      getVoliInputGroup(voli.values as any[]),
+      getAssicurazioniInputGroup(assicurazioni.values as any[]),
+      getPreventivoAlClienteInputGroup(preventivoAlCliente.values as PreventivoAlCliente)
+    ]);
 
     res.values.preventivo = p;
     res.values.serviziATerra = serviziATerraInputGroup;
     res.values.serviziAggiuntivi = serviziAggiuntiviInputGroup;
     res.values.voli = voliInputGroup;
     res.values.assicurazioni = assicurazioniInputGroup;
+    res.values.preventivoAlCliente = preventivoAlClienteInputGroup;
     res.success = true;
     console.log("Dato restituito dall'API route di get-data-preventivo-completi: ", res);
     return NextResponse.json(res);
@@ -108,7 +112,6 @@ const getServiziATerraInputGroup = async (serviziATerra: any[]): Promise<Servizi
   }
   return res;
 }
-
 const getVoliInputGroup = async (voli: any[]): Promise<VoloInputGroup[]> => {
     const res: VoloInputGroup[] = [];
     for (let i = 0; i < voli.length; i++) {
@@ -139,7 +142,6 @@ const getVoliInputGroup = async (voli: any[]): Promise<VoloInputGroup[]> => {
   }
   return res;
 }
-
 const getAssicurazioniInputGroup = async (assicurazioni: any[]): Promise<AssicurazioneInputGroup[]> => {
   const res: AssicurazioneInputGroup[] = [];
   for (let i = 0; i < assicurazioni.length; i++) {
@@ -163,5 +165,13 @@ const getAssicurazioniInputGroup = async (assicurazioni: any[]): Promise<Assicur
     );
     res.push(iG);
   }
+  return res;
+}
+const getPreventivoAlClienteInputGroup = async (preventivoAlCliente: PreventivoAlCliente): Promise<PreventivoAlClienteInputGroup> => {
+  const res: PreventivoAlClienteInputGroup = new PreventivoAlClienteInputGroup(
+    preventivoAlCliente.descrizione_viaggio,
+    preventivoAlCliente.righePrimoTipo.map((row, i) => new PreventivoAlClienteRow(i, row.id_destinazione, row.descrizione, row.individuale, row.numero)),
+    preventivoAlCliente.righeSecondoTipo.map((row, i) => new PreventivoAlClienteRow(i, row.id_destinazione, row.descrizione, row.individuale, row.numero))
+  );
   return res;
 }
