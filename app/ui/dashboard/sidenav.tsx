@@ -1,11 +1,12 @@
+
 import Link from 'next/link';
 import NavLinks from '@/app/ui/dashboard/nav-links';
 import SignOut from './signout';
 import { lusitana } from '../fonts';
 import { NavLink } from './nav-links';
 import './sidenav.styles.css';
-export default function SideNav({links}: {links: NavLink[]}) {
 
+export default function SideNav({links}: {links: NavLink[]}) {
   return (
     <div className="flex h-full flex-col px-3 py-4 md:px-2 sidenav">
       <Link

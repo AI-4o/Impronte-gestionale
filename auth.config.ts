@@ -17,8 +17,7 @@ export const authConfig = {
       }
       return true;
     },
-    async redirect({ url, baseUrl }) {
-      //console.log('redirect', url, baseUrl);
+    async redirect({ url, baseUrl }) {// set where the logged in user will be redirected
       return `${baseUrl}/dashboard`;
     },
   },

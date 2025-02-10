@@ -164,7 +164,9 @@ export class PreventivoAlClienteInputGroup {
         public descrizione_viaggio?: string,
         public righePrimoTipo?: PreventivoAlClienteRow[],
         public righeSecondoTipo?: PreventivoAlClienteRow[],
+        public id?: string,
     ) { 
+        this.id = id ?? undefined;
         this.descrizione_viaggio = descrizione_viaggio ?? undefined;
         this.righePrimoTipo = righePrimoTipo ?? undefined;
         this.righeSecondoTipo = righeSecondoTipo ?? undefined;
@@ -178,11 +180,6 @@ export interface Data {
     voli?: VoloInputGroup[];
     assicurazioni?: AssicurazioneInputGroup[];
     preventivoAlCliente?: PreventivoAlClienteInputGroup;
-}
-export type Feedback = {
-    message: React.ReactNode;
-    type: 'success' | 'error';
-    errorsMessage?: string;
 }
 export const SUCCESSMESSAGE =  "Operazione effettuata con successo 🥳"
 export const ERRORMESSAGE = "Operazione fallita 😢"

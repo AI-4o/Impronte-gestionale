@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, ReactNode } from "react";
-import Spinner from "../ui/spinner/spinner";
+import Spinner from "../ui/table/spinner/spinner";
 import '../dashboard/(overview)/style.css';
 
 // Definizione del tipo di contesto
@@ -27,7 +27,6 @@ export const SpinnerContextProvider = ({ children }: { children: ReactNode }) =>
 
   // Funzione per gestire eventi dal figlio
   const setIsActiveSpinner = (active: boolean) => {
-    console.log("Evento ricevuto:", active);
     setActive(active); // Esempio di gestione del dato ricevuto
   };
 

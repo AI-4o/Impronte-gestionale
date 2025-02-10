@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { CogIcon, DocumentDuplicateIcon, MagnifyingGlassIcon, PlusIcon, TableCellsIcon} from '@heroicons/react/24/outline';
 import { SpinnerContextProvider } from '@/app/context/spinner-context';
 import './style.css';
-
+import { SessionProvider } from 'next-auth/react';
 export default async function Layout({ children }: { children: React.ReactNode }) {
   // Map of links to display in the side navigation.
   const links = [
@@ -19,6 +19,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   return (
     <SpinnerContextProvider>
+      <SessionProvider>
       <div className="flex h-screen flex-col">
         <div className='m-2 pb-8 logo-container'>
           <Image className='sidenav__logo' src="https://www.iwsafari.com/sites/default/files/verde.jpg" alt="logo" width={257} height={100} />
@@ -30,6 +31,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           </Suspense>
         </div>
       </div>
+      </SessionProvider>
     </SpinnerContextProvider>
   );
 }

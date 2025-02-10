@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { sql } from "@vercel/postgres";
-import { signIn } from "../../../auth";
+import { signIn, signOut } from "../../../auth";
 import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
 import { Cliente } from "../definitions";
@@ -70,6 +70,7 @@ export const createCliente = async (
     tel: c.tel,
   });
   if (!parsedData.success) {
+    console.error("Failed to create cliente due to a validation error.");
     return {
       success: false,
       errorsMessage: "Failed to create cliente due to a validation error.",
@@ -98,6 +99,7 @@ export const createCliente = async (
   `;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in createCliente: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in createCliente: " + error,
@@ -127,6 +129,7 @@ export const createPreventivo = async (
     stato: p.stato,
   });
   if (!parsedData.success) {
+    console.error("Failed to Create Preventivo due to a validation error.");
     return {
       success: false,
       errorsMessage: "Failed to Create Preventivo due to a validation error.",
@@ -170,6 +173,7 @@ export const createPreventivo = async (
     `;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in createPreventivo: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in createPreventivo: " + error,
@@ -212,6 +216,7 @@ export const createServizioATerra = async (
   });
 
   if (!parsedData.success) {
+    console.error("Failed to Create servizioATerra due to a validation error.");
     return {
       success: false,
       errorsMessage:
@@ -228,6 +233,7 @@ export const createServizioATerra = async (
     `;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in createServizioATerra: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in createServizioATerra: " + error,
@@ -256,6 +262,7 @@ export const createVolo = async (
   });
 
   if (!parsedData.success) {
+    console.error("Failed to Create Volo due to a validation error.");
     return {
       success: false,
       errorsMessage: "Failed to Create Volo due to a validation error.",
@@ -272,6 +279,7 @@ export const createVolo = async (
     //console.log('result of createVolo: ', result);
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in Create Volo: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in Create Volo: " + error,
@@ -293,6 +301,7 @@ export const createAssicurazione = async (
     numero: a.numero,
   });
   if (!parsedData.success) {
+    console.error("Failed to Create Assicurazione due to a validation error.");
     return {
       success: false,
       errorsMessage:
@@ -309,6 +318,7 @@ export const createAssicurazione = async (
     `;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in createAssicurazione: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in createAssicurazione: " + error,
@@ -329,6 +339,7 @@ export const createPreventivoAlCliente = async (
   });
 
   if (!parsedData.success) {
+    console.error("Failed to create PreventivoAlCliente due to a validation error.");
     return {
       success: false,
       errorsMessage:
@@ -355,6 +366,7 @@ export const createPreventivoAlCliente = async (
     const rowResults = await Promise.all(rowFirstTypePromises.concat(rowSecondTypePromises))
     .then(results => ({values: [preventivoResult.rows[0]].concat(results), success: true, errorsMessage: ""}))
     .catch(error => {
+      console.error("Database Error in createPreventivoAlClienteRow: " + error);
       return {
         success: false,
         errorsMessage: "Database Error in createPreventivoAlClienteRow: " + error,
@@ -363,6 +375,7 @@ export const createPreventivoAlCliente = async (
     });
     return rowResults;
   } catch (error) {
+    console.error("Database Error in createPreventivoAlCliente: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in createPreventivoAlCliente: " + error,
@@ -385,6 +398,7 @@ export const createPreventivoAlClienteRow = async (
     numero: p.numero,
   });
   if (!parsedData.success) {
+    console.error("Failed to create PreventivoAlClienteRow due to a validation error.");
     return {
       success: false,
       errorsMessage:
@@ -401,6 +415,7 @@ export const createPreventivoAlClienteRow = async (
     `;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in createPreventivoAlClienteRow: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in createPreventivoAlClienteRow: " + error,
@@ -454,6 +469,7 @@ export async function submitCreatePreventivoGI(
     const results = await Promise.all([...serviziATerraPromises, ...serviziAggiuntiviPromises, ...voliPromises, ...assicurazioniPromises, ...preventivoAlClientePromises])
     .then(results => ({values: results, success: true, errorsMessage: ""}))
     .catch(error => {
+      console.error("Database Error in submitCreatePreventivoGI: " + error);
       return {
         success: false,
         errorsMessage: "Database Error in submitCreatePreventivoGI: " + error,
@@ -462,6 +478,7 @@ export async function submitCreatePreventivoGI(
     });
     return results;
   } catch (error) {
+    console.error("Database Error in submitCreatePreventivoGI: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in submitCreatePreventivoGI: " + error,
@@ -484,6 +501,7 @@ export const addFundamentalEntity = async (
     value: value,
   });
   if (!parsedData.success) {
+    console.error("Failed to add Fundamental Entity due to a validation error.");
     return {
       success: false,
       errorsMessage:
@@ -497,6 +515,7 @@ export const addFundamentalEntity = async (
     const result = await sql.query(query, [parsedData.data.value]);
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in addFundamentalEntity: " + error);
     return {
       success: false,
       errorsMessage: "Database Error in addFundamentalEntity: " + error,
@@ -513,6 +532,7 @@ export const getDestinazioneById = async (id_destinazione: string) => {
       await sql`SELECT * FROM destinazioni WHERE id = ${id_destinazione}`;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in getDestinazioneById: " + error);
     return {
       rowCount: 0,
       rows: [],
@@ -527,6 +547,7 @@ export const getFornitoreById = async (id_fornitore: string) => {
       await sql`SELECT * FROM fornitori WHERE id = ${id_fornitore}`;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error in getFornitoreById: " + error);
     return {
       rowCount: 0,
       rows: [],
@@ -558,6 +579,7 @@ export const updateCliente = async (
     cf: c.cf,
   });
   if (!parsedData.success) {
+    console.error("Failed to Update Cliente due to a validation error.");
     return {
       success: false,
       errorsMessage: "Failed to Update Cliente due to a validation error.",
@@ -590,6 +612,7 @@ export const updateCliente = async (
       errorsMessage: "",
     };
   } catch (error) {
+    console.error("Database Error: Failed to Update Cliente: " + error);
     return {
       success: false,
       errorsMessage: "Database Error: Failed to Update Cliente: " + error,
@@ -618,6 +641,7 @@ export const updatePreventivo = async (
     stato: p.stato,
   });
   if (!parsedData.success) {
+    console.error("Failed to Update Preventivo due to a validation error.");
     return {
       success: false,
       errorsMessage: "Failed to Update Preventivo due to a validation error.",
@@ -644,6 +668,7 @@ export const updatePreventivo = async (
   `;
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
+    console.error("Database Error: Failed to Update Preventivo: " + error);
     return {
       values: parsedData.data,
       success: false,
@@ -682,6 +707,7 @@ export const updateServiziATerra = async (
     servizio_aggiuntivo: s.servizio_aggiuntivo,
   });
   if (!parsedData.success) {
+    console.error("Failed to Update Servizio a Terra due to a validation error.");
     return {
       values: parsedData.data,
       success: false,
@@ -741,6 +767,7 @@ export const updateVoli = async (
     cambio: v.cambio,
   });
   if (!parsedData.success) {
+    console.error("Failed to Update Volo due to a validation error.");
     return {
       values: parsedData.data,
       success: false,
@@ -769,6 +796,7 @@ export const updateVoli = async (
       errorsMessage: "",
     };
   } catch (error) {
+    console.error("Database Error: Failed to Update Volo: " + error);
     return {
       success: false,
       errorsMessage: "Database Error: Failed to Update Volo: " + error,
@@ -793,6 +821,7 @@ export const updateAssicurazioni = async (
     numero: a.numero,
   });
   if (!parsedData.success) {
+    console.error("Failed to Update Assicurazione due to a validation error.");
     return {
       values: parsedData.data,
       success: false,
@@ -816,10 +845,95 @@ export const updateAssicurazioni = async (
       errorsMessage: "",
     };
   } catch (error) {
+    console.error("Database Error: Failed to Update Assicurazione: " + error);
     return {
       success: false,
       errorsMessage: "Database Error: Failed to Update Assicurazione: " + error,
       errors: {},
+    };
+  }
+};
+
+export const updatePreventivoAlClienteDescrizione = async (
+  p: PreventivoAlClienteInputGroup
+): Promise<DBResult<PreventivoAlClienteInputGroup>> => {
+  const parsedData = schemas.UpdatePreventivoAlClienteSchema.safeParse({
+    id: p.id,
+    descrizione_viaggio: p.descrizione_viaggio,
+  });
+  if (!parsedData.success) {
+    console.error("Failed to Update Preventivo Al Cliente due to a validation error.");
+    return {
+      success: false,
+      errorsMessage: "Failed to Update Preventivo Al Cliente due to a validation error.",
+      errors: parsedData.error.flatten().fieldErrors,
+      values: parsedData.data,
+    };
+  }
+  try {
+    const result = await sql`
+    UPDATE preventivi_al_cliente SET 
+    descrizione_viaggio = ${parsedData.data.descrizione_viaggio}
+    WHERE id = ${p.id}
+  `;
+    return {
+      success: true,
+      values: result.rows[0],
+      errorsMessage: "",
+    };
+  } catch (error) {
+    console.error("Database Error: Failed to Update Preventivo Al Cliente: " + error);
+    return {
+      success: false,
+      errorsMessage: "Database Error: Failed to Update Preventivo Al Cliente: " + error,
+    };
+  }
+};
+
+export const updatePreventivoAlClienteRow = async (
+  p: PreventivoAlClienteRow,
+  senza_assicurazione: boolean,
+  id_preventivo_al_cliente: string
+): Promise<DBResult<PreventivoAlClienteRow>> => {
+  const parsedData = schemas.UpdatePreventivoAlClienteRowSchema.safeParse({
+    id: p.id,
+    id_preventivo_al_cliente: id_preventivo_al_cliente,
+    senza_assicurazione: senza_assicurazione,
+    destinazione: p.destinazione,
+    descrizione: p.descrizione,
+    individuale: p.individuale,
+    numero: p.numero,
+  });
+  if (!parsedData.success) {
+    console.error("Failed to Update Preventivo Al Cliente Row due to a validation error.");
+    return {
+      success: false,
+      errorsMessage: "Failed to Update Preventivo Al Cliente Row due to a validation error.",
+      errors: parsedData.error.flatten().fieldErrors,
+      values: parsedData.data,
+    };
+  }
+  try {
+    const result = await sql`
+    UPDATE preventivi_al_cliente_row SET 
+    id_preventivo_al_cliente = ${id_preventivo_al_cliente},
+    senza_assicurazione = ${senza_assicurazione},
+    destinazione = ${parsedData.data.destinazione},
+    descrizione = ${parsedData.data.descrizione},
+    individuale = ${parsedData.data.individuale},
+    numero = ${parsedData.data.numero}
+    WHERE id = ${p.id}
+    `;
+    return {
+      success: true,
+      values: result.rows[0],
+      errorsMessage: "",
+    };
+  } catch (error) {
+    console.error("Database Error: Failed to Update Preventivo Al Cliente Row: " + error);
+    return {
+      success: false,
+      errorsMessage: "Database Error: Failed to Update Preventivo Al Cliente Row: " + error,
     };
   }
 };
@@ -986,6 +1100,10 @@ export async function authenticate(
   }
 }
 
+export async function _signOut() {
+  await signOut();
+}
+
 export async function createUser(
   prevState: State<{ name?: string[]; email?: string[]; password?: string[] }>,
   formData: FormData
@@ -1011,6 +1129,7 @@ export async function createUser(
     });
 
   if (!parsedData.success) {
+    console.error("Failed to Create User due to a validation error.");
     return {
       ...prevState,
       errors: parsedData.error.flatten().fieldErrors,
@@ -1030,6 +1149,7 @@ export async function createUser(
       message: "User created successfully",
     };
   } catch (error) {
+    console.error("Database Error: Failed to Create User: " + error);
     return {
       ...prevState,
       message: "Database Error: Failed to Create User.",
@@ -1063,7 +1183,14 @@ export const deleteAssicurazioneById = async (id: string): Promise<void> => {
     throw new Error("Failed to delete assicurazione by id.");
   }
 };
-
+export const deletePreventivoAlClienteRowById = async (id: string): Promise<void> => {
+  try {
+    await sql.query(`DELETE FROM preventivi_al_cliente_row WHERE id = $1`, [id]);
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to delete preventivo al cliente row by id.");
+  }
+};
 export const setOptionsJson = async () => {
   const fornitori = await fetchAllFornitori();
   const banche = await fetchAllBanche();

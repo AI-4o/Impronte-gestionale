@@ -13,16 +13,14 @@ import destinazioniData from '@/app/lib/fundamental-entities-json/destinazioni.j
 import valuteValues from '@/app/seed/valute.json';
 import brandValues from "@/app/seed/brands.json";
 import operatoriValues from "@/app/seed/operatori.json";
-import { ClienteInputGroup, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup, Data, SUCCESSMESSAGE, Feedback, PreventivoAlClienteRow, PreventivoAlClienteInputGroup } from "./general-interface.defs";
+import { ClienteInputGroup, PreventivoInputGroup, ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup, Data, PreventivoAlClienteRow, PreventivoAlClienteInputGroup } from "./general-interface.defs";
 import { formatDate, isValidEmail } from "@/app/lib/utils";
 import { createCliente, DBResult, updateCliente } from "@/app/lib/actions/actions";
-import Modal from "@/app/ui/modal";
-import { CompleteUpdatePreventivoFeedback } from "@/app/api/preventivi/update/route";
-import { getTotServizio, getRicaricoServizio, getTotVolo, getTotAssicurazione, formatDateToString, getSommaTuttiTotEuro, validationErrorsToString, numberToExcelFormat, formatNumberItalian, isValidTel } from "./helpers";
+import { getTotServizio, getRicaricoServizio, getTotVolo, getTotAssicurazione, formatDateToString, getSommaTuttiTotEuro, validationErrorsToString, numberToExcelFormat, formatNumberItalian, isValidTel, dataErrors } from "./helpers";
 import { useSpinnerContext } from '@/app/context/spinner-context';
 import { useDebouncedCallback } from 'use-debounce';
 import moment from 'moment';
-import { PreventivoAlCliente } from '@/app/lib/definitions';
+import Feedback from '@/app/ui/feedback/feedback';
 
 
 export default function CreaPreventivoGeneralInterface() {
@@ -107,7 +105,6 @@ export default function CreaPreventivoGeneralInterface() {
 
     // gestione show form per creare preventivo
     const [showFormPreventivo, setShowFormPreventivo] = useState<boolean>(false);
-
 
 
     // gestione preventivo
@@ -272,7 +269,6 @@ export default function CreaPreventivoGeneralInterface() {
         }));
     }
 
-
     // gestione preventivo mostrare cliente
     const [preventivoAlCliente, setPreventivoAlCliente] = useState<PreventivoAlClienteInputGroup>(
         new PreventivoAlClienteInputGroup(undefined, [], [])
@@ -316,11 +312,8 @@ export default function CreaPreventivoGeneralInterface() {
         });
     }
 
-
     // feedbacks del form
-    const [feedback, setFeedback] = useState<Feedback>({ message: <></>, type: 'error' });
-    const [showFeedback, setShowFeedback] = useState<boolean>(false);
-
+    const [feedback, setFeedback] = useState<{success: true} | null>(null);
     // errors list
     const [errorsList, setErrorsList] = useState<string[]>([]);
 
@@ -386,16 +379,10 @@ export default function CreaPreventivoGeneralInterface() {
             try {
                 const res = await createCliente(cliente);
                 if (res.success) { // cliente creato con successo
-                    setFeedback(() => {
-                        return {
-                            message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                            type: 'success'
-                        }
-                    });
                     const clienti = await fetchClientiCorrispondenti();
                     setClientiTrovati(clienti);
                     setIsActiveSpinner(false);
-                    setShowFeedback(true);
+                    showOperationSuccessfull();
                 } else { // TODO: mostrare errori in modo più esplicito -> mostrare errori validazione, mostrare tipo di errore (db o altro)
                     setErrorsList(['Errore nella creazione del cliente: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
                 }
@@ -426,15 +413,9 @@ export default function CreaPreventivoGeneralInterface() {
             try {
                 const res = await updateCliente(c, c.id);
                 if (res.success) {
-                    setFeedback(() => {
-                        return {
-                            message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                            type: 'success'
-                        }
-                    });
                     setCliente(c);
                     setShowClientiTrovati(false);
-                    setShowFeedback(true);
+                    showOperationSuccessfull();
                 } else {
                     setErrorsList(['Errore nell\'aggiornamento del cliente: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
                 }
@@ -497,6 +478,7 @@ export default function CreaPreventivoGeneralInterface() {
                 setServiziAggiuntivi(() => []);
                 setVoli(() => []);
                 setAssicurazioni(() => []);
+                setPreventivoAlCliente(() => new PreventivoAlClienteInputGroup(undefined, [], []));
                 setShowFormPreventivo(true);
             } else {
                 setErrorsList([
@@ -522,17 +504,7 @@ export default function CreaPreventivoGeneralInterface() {
             assicurazioni: assicurazioni,
             preventivoAlCliente: preventivoAlCliente
         }
-        console.log('THE DATA IS: ', data);
-        const errors = [];
-        if (!data.preventivo.operatore) {
-            errors.push('\'Operatore\' è un campo da inserire.\n');
-        }
-        if (!data.preventivo.brand) {
-            errors.push('\'Brand\' è un campo da inserire.\n');
-        }
-        if (!data.preventivo.stato) {
-            errors.push('\'Stato\' è un campo da inserire.\n');
-        }
+        const errors = dataErrors(data);
         if (errors.length == 0) { // all required fields are filled -> CALL API
             setIsActiveSpinner(true);
             try {
@@ -543,23 +515,9 @@ export default function CreaPreventivoGeneralInterface() {
                     },
                     body: JSON.stringify(data),
                 });
-                if (response.ok) { // no errori nella chiamata all'API
-                    const res = await response.json();
-                    if (res.success) { // preventivo creato con successo
-                        setFeedback(() => {
-                            return {
-                                message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                                type: 'success'
-                            }
-                        });
-                        setShowFeedback(true);
-                        setShowFormPreventivo(false);
-                    } else { // preventivo non creato -> mostra errori
-                        setErrorsList(['Errore nella creazione del preventivo: ', res.errorsMessage + '\n', validationErrorsToString(res.errors)]);
-                    }
-                } else { // errore nella chiamata all'API
-                    setErrorsList(['Errore nella chiamata: ', response.statusText]);
-                }
+                await response.json();
+                showOperationSuccessfull();
+                setShowFormPreventivo(false);
             } catch (error) {
                 setErrorsList(['Errore nella chiamata: ' + error.toString()]);
             }
@@ -575,7 +533,6 @@ export default function CreaPreventivoGeneralInterface() {
         setIsActiveSpinner(true);
         const data = await fetchDataPreventivoDaAggiornare(p);
         data.preventivo.numero_preventivo = numberToExcelFormat(parseInt(data.preventivo.numero_preventivo));
-        console.log('data ricevuti in form aggiorna preventivo: ', data);
         if (data) {
             setCliente(c);
             setPreventivo(data.preventivo);
@@ -583,6 +540,7 @@ export default function CreaPreventivoGeneralInterface() {
             setServiziAggiuntivi(data.serviziAggiuntivi);
             setVoli(data.voli);
             setAssicurazioni(data.assicurazioni);
+            setPreventivoAlCliente(data.preventivoAlCliente);
             setShowFormPreventivo(true);
         }
         setIsActiveSpinner(false);
@@ -597,84 +555,41 @@ export default function CreaPreventivoGeneralInterface() {
             serviziAggiuntivi: serviziAggiuntivi,
             voli: voli,
             assicurazioni: assicurazioni,
+            preventivoAlCliente: preventivoAlCliente
         }
-        setIsActiveSpinner(true);
-        try {
-            const response = await fetch('/api/preventivi/update', {
-                method: 'POST',
-                headers: {
+        const errors = dataErrors(data);
+        if (errors.length == 0) { // all required fields are filled -> CALL API
+            setIsActiveSpinner(true);
+            try {
+                await fetch('/api/preventivi/update', {
+                    method: 'POST',
+                    headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
-            });
-
-            // creazione del feedback
-            let errorsMessage: string[] = [];
-            console.log('response: ', response);
-
-            if (response.ok) {
-                const res: CompleteUpdatePreventivoFeedback = await response.json();
-
-                if (!res.feedbackPreventivo.success) {
-                    errorsMessage[0] = 'errore in aggiornamento preventivo: '
-                        + res.feedbackPreventivo.errorsMessage + '\n';
-                    if (res.feedbackPreventivo?.errors) {
-                        errorsMessage[0] += Object.entries(res.feedbackPreventivo?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                    }
-                }
-                if (res.feedbackServiziATerra && !res.feedbackServiziATerra.success) {
-                    errorsMessage[1] = 'errore in aggiornamento servizi a terra: '
-                        + res.feedbackServiziATerra.errorsMessage + '\n';
-                    if (res.feedbackServiziATerra?.errors) {
-                        errorsMessage[1] += Object.entries(res.feedbackServiziATerra?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                    }
-                }
-                if (res.feedbackServiziAggiuntivi && !res.feedbackServiziAggiuntivi.success) {
-                    errorsMessage[2] = 'errore in aggiornamento servizi aggiuntivi: '
-                        + res.feedbackServiziAggiuntivi.errorsMessage + '\n'
-                    if (res.feedbackServiziAggiuntivi?.errors) {
-                        errorsMessage[2] += Object.entries(res.feedbackServiziAggiuntivi?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                    }
-                }
-                if (res.feedbackVoli && !res.feedbackVoli.success) {
-                    errorsMessage[3] = 'errore in aggiornamento voli: '
-                        + res.feedbackVoli.errorsMessage + '\n';
-                    if (res.feedbackVoli?.errors) {
-                        errorsMessage[3] += Object.entries(res.feedbackVoli?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                    }
-                }
-                if (res.feedbackAssicurazioni && !res.feedbackAssicurazioni.success) {
-                    errorsMessage[4] = 'errore in aggiornamento assicurazioni: '
-                        + res.feedbackAssicurazioni.errorsMessage + '\n';
-                    if (res.feedbackAssicurazioni?.errors) {
-                        errorsMessage[4] += Object.entries(res.feedbackAssicurazioni?.errors).map(([key, value]) => `\n${key}: ${value}\n`).join('\n');
-                    }
-                }
-                if (errorsMessage.length == 0) {
-                    setFeedback(() => {
-                        return {
-                            message: getFeedbackBody({ message: SUCCESSMESSAGE, type: 'success' }),
-                            type: 'success'
-                        }
-                    });
-                    setShowFeedback(true);
-                    setErrorsList([]);
-                } else {
-                    setErrorsList(errorsMessage);
-                }
-            } else {
-                setErrorsList(['Errore nella response: ' + response.statusText + '\n']);
+                    body: JSON.stringify(data),
+                });
+                showOperationSuccessfull();
+                setShowFormPreventivo(false);
+            } catch (error) {
+                setErrorsList(['Errore nella chiamata: ' + error.toString()]);
             }
-        } catch (error) {
-            setErrorsList(['Errore nella chiamata: ' + error.toString()
-            ]);
-        }
-        finally {
-            setIsActiveSpinner(false);
+            finally {
+                setIsActiveSpinner(false);
+            }
+        } else {
+            setErrorsList(errors);
         }
     }
 
-
+    const showOperationSuccessfull = () => {
+        setTimeout(() => {
+            setFeedback({success: true});
+        }, 200);
+        setTimeout(() => {
+            setErrorsList([]);
+            setFeedback(null);
+        }, 2200);
+    }
     // gestione lista preventivi di un cliente
     useEffect(() => {
         console.log('the cliente state is: ', cliente);
@@ -706,7 +621,6 @@ export default function CreaPreventivoGeneralInterface() {
         console.log('the assicurazioni state is: ', assicurazioni);
         setErrorsList([]);
     }, [assicurazioni]);
-
     useEffect(() => {
         if (showFormPreventivo) { setShowPreventiviClienteList(false); setShowClientiTrovati(false); }
         setErrorsList([]);
@@ -736,12 +650,9 @@ export default function CreaPreventivoGeneralInterface() {
     }, [preventivoAlCliente]);
     return (
         <div className='flex flex-col'>
-            <div className="modal-container">
-                <Modal showModal={showFeedback}  body={feedback.message} timeout={1500} />
-            </div>
+            {feedback && <Feedback<any> result={feedback}/>}
             <div className="general-interface-container">
                 <h1 className={`mb-4 text-xl md:text-2xl`}>GENERAL INTERFACE PREVENTIVO</h1>
-
                 {/* Cliente */}
                 <div>
                     <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
@@ -868,7 +779,6 @@ export default function CreaPreventivoGeneralInterface() {
                         </div>
                     }
                 </div>
-
                 {/* CREA/AGGIORNA PREVENTIVO */}
                 {showFormPreventivo && <div>
                     {/* preventivo */}
@@ -1163,7 +1073,6 @@ export default function CreaPreventivoGeneralInterface() {
                             <p className='border-t-2 border-gray-300 pt-2'>somma di tutti i tot euro: {formatNumberItalian(getSommaTuttiTotEuro(preventivo?.percentuale_ricarico, serviziATerra, serviziAggiuntivi, voli, assicurazioni))}</p>
                         </div>
                     </div>
-
                     {/* preventivo mostrare cliente */}
                     <div id="preventivo-mostrare-cliente">
                         <div className="flex flex-col">
@@ -1183,7 +1092,7 @@ export default function CreaPreventivoGeneralInterface() {
                                 <div className="flex flex-col gap-4">
                                     {
                                         (['righePrimoTipo', 'righeSecondoTipo'] as ('righePrimoTipo' | 'righeSecondoTipo')[]).map((t, i) => {
-                                            return <>
+                                            return <div key={i}>
                                                 {/* gruppo righe tipo t */}
                                                 <div className="flex flex-row items-center justify-start">
                                                     <p className="pt-4">{t == 'righePrimoTipo' ? 'Totale senza assicurazione' : 'Totale con assicurazione'}</p>
@@ -1259,7 +1168,7 @@ export default function CreaPreventivoGeneralInterface() {
                                                         )}</p>
                                                     </div>
                                                 </div>
-                                            </>
+                                            </div>
                                         }
                                         )
                                     }
@@ -1270,54 +1179,46 @@ export default function CreaPreventivoGeneralInterface() {
                                         <p>{formatNumberItalian(
                                             (preventivoAlCliente?.['righePrimoTipo']?.reduce((acc, row) => acc + (row.individuale * row.numero), 0) || 0) +
                                             (preventivoAlCliente?.['righeSecondoTipo']?.reduce((acc, row) => acc + (row.individuale * row.numero), 0) || 0)
-                                            )}</p>
+                                        )}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                            {!preventivo?.id &&
-                                <button
-                                    className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
-                                    type="button"
-                                    onClick={submitCreatePreventivo}
-                                >
-                                    Crea preventivo
-                                </button>
-                            }
-                            {preventivo?.id &&
-                                <button
-                                    className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
-                                    type="button"
-                                    onClick={submitUpdatePreventivo}
-                                >
-                                    Aggiorna preventivo
-                                </button >
-                            }
-                        </div >
+                        {!preventivo?.id &&
+                            <button
+                                className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                                type="button"
+                                onClick={submitCreatePreventivo}
+                            >
+                                Crea preventivo
+                            </button>
+                        }
+                        {preventivo?.id &&
+                            <button
+                                className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                                type="button"
+                                onClick={submitUpdatePreventivo}
+                            >
+                                Aggiorna preventivo
+                            </button >
+                        }
+                    </div >
                 </div>
                 }
-
                 {/* ERRORS */}
                 {
                     errorsList.length > 0 &&
-                    errorsList.map((error, index) => (
-                        <div key={index} className={`flex flex-row items-center justify-center py-4 pl-5 text-red-500`}>
-                            <p>{index + 1}. {error}</p>
-                        </div>
-                    ))
+                    <ol>
+                        {
+                            errorsList.map((error, index) => (
+                                <li key={index} className={`flex flex-row items-center justify-center py-4 pl-5 text-red-500`}>{error}</li>
+                            ))
+                        }
+                    </ol>
                 }
             </div>
         </div>
     );
-}
-
-const getFeedbackBody = (feedback: Feedback) => {
-    return (
-        <div className={`flex flex-row items-center justify-center pt-4 pl-5 ${feedback.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-            <p>{feedback.message}</p>
-            <p>{feedback?.errorsMessage}</p>
-        </div>
-    )
 }

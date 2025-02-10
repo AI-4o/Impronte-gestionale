@@ -28,13 +28,12 @@ export default async function Page() {
             )
         );
     }
-    console.log(preventiviForTable);
     return (
         <div>
             <h1>DataTable</h1>
             {
                 preventivi.success &&
-                <Table data={preventiviForTable} minWidths={[50, 50, 50, 200, 200, 200, 150, 150, 150, 150]} />
+                <Table data={preventiviForTable} minWidths={[50, 50, 50, 300, 100, 200, 150, 150, 150, 150]} />
             }
             {!preventivi.success && <div>Error fetching data</div>}
         </div>

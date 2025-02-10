@@ -1145,7 +1145,7 @@ export const fetchAllPreventiviWithCliente = async (): Promise<DBResult<(Prevent
   }
 }
 
-export const fetchPreventivoAlClienteByPreventivoId = async (idPreventivo: string): Promise<DBResult<PreventivoAlCliente[]> > => {
+export const fetchPreventivoAlClienteByPreventivoId = async (idPreventivo: string): Promise<DBResult<PreventivoAlCliente> > => {
   try {
     const preventivoAlClienteQR = await sql<PreventivoAlCliente>`
       SELECT * FROM preventivi_al_cliente

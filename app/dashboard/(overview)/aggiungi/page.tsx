@@ -20,8 +20,6 @@ export default function AggiungiPage() {
     ];
     const [newEntity, setNewEntity] = useState<{tableName?: string, value?: string}>(null);
     const onSelectedOption = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        console.log(e);
-        
         setNewEntity(val => ({ ...val, tableName: e.target.value }));
     }
     const onValueChange =  (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +37,6 @@ export default function AggiungiPage() {
         setTimeout(() => {
             setFeedback(result);
         }, 200);
-        console.log(result);
         await setOptionsJson();
         if(result.success) {
             setTimeout(() => {
@@ -56,7 +53,7 @@ export default function AggiungiPage() {
     return (
         <div>
             <h1 className={`mb-4 text-xl md:text-2xl`}>AGGIUNGI</h1>
-            <p>Usando il form di sotto è possibile aggiungere nuove entità al database.</p>
+            <p>Usando il form di sotto e' possibile aggiungere nuove entita' al database.</p>
             <div className="flex align-center">
                 <InputSelect
                     label="tipo entity"

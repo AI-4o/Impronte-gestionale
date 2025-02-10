@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       errorsMessage: ""
     };
     const p: PreventivoInputGroup = await request.json();
-    console.log("Dato ricevuto nell'API route di get-data-preventivo-completi:", p);
+    "Dato ricevuto nell'API route di get-data-preventivo-completi:"
     const preventivoId = p.id;
 
     // dato id preventivo vogliamo -> serviziATerra, serviziAggiuntivi, voli, assicurazioni
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     res.values.assicurazioni = assicurazioniInputGroup;
     res.values.preventivoAlCliente = preventivoAlClienteInputGroup;
     res.success = true;
-    console.log("Dato restituito dall'API route di get-data-preventivo-completi: ", res);
+    console.log("Dato restituito dall'API route di get-data-preventivo-completi: ", res)
     return NextResponse.json(res);
     }
 }
@@ -170,8 +170,9 @@ const getAssicurazioniInputGroup = async (assicurazioni: any[]): Promise<Assicur
 const getPreventivoAlClienteInputGroup = async (preventivoAlCliente: PreventivoAlCliente): Promise<PreventivoAlClienteInputGroup> => {
   const res: PreventivoAlClienteInputGroup = new PreventivoAlClienteInputGroup(
     preventivoAlCliente.descrizione_viaggio,
-    preventivoAlCliente.righePrimoTipo.map((row, i) => new PreventivoAlClienteRow(i, row.id_destinazione, row.descrizione, row.individuale, row.numero)),
-    preventivoAlCliente.righeSecondoTipo.map((row, i) => new PreventivoAlClienteRow(i, row.id_destinazione, row.descrizione, row.individuale, row.numero))
+    preventivoAlCliente.righePrimoTipo.map((row, i) => new PreventivoAlClienteRow(i, row.destinazione, row.descrizione, row.individuale, row.numero, row.id)),
+    preventivoAlCliente.righeSecondoTipo.map((row, i) => new PreventivoAlClienteRow(i, row.destinazione, row.descrizione, row.individuale, row.numero, row.id)),
+    preventivoAlCliente.id
   );
   return res;
 }

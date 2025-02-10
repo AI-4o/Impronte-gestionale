@@ -1,4 +1,4 @@
-import { ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup } from "./general-interface.defs";
+import { ServizioATerraInputGroup, VoloInputGroup, AssicurazioneInputGroup, Data } from "./general-interface.defs";
 
 // ### servizi a terra e servizi aggiuntivi ###
 export const getTotServizio = (totale: number, cambio: number, percentualeRicarico: number, numeroNotti?: number, numeroCamere?: number) => {
@@ -27,8 +27,6 @@ export const getTotVolo = (totale: number, cambio: number, ricarico: number, num
     if (isNaN(totale) || isNaN(cambio) || isNaN(ricarico) || isNaN(numero) || cambio === 0) {
         return 0;
     }
-    console.log('getTotVolo: ','totale: ', totale, 'cambio: ', cambio, 'ricarico: ', ricarico, 'numero: ', numero, 'result: ', numero * (totale / cambio + ricarico));
-    
     const result = numero * (totale / cambio + ricarico);
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
@@ -43,7 +41,6 @@ export const getTotAssicurazione = (netto: number, ricarico: number, numero: num
     // Truncate the result to two decimal places
     return Math.trunc(result * 100) / 100;
 }
-
 
 export const getSommaTuttiTotEuro = (percentualeRicarico: number, serviziATerra: ServizioATerraInputGroup[], serviziAggiuntivi: ServizioATerraInputGroup[], voli: VoloInputGroup[], assicurazioni: AssicurazioneInputGroup[]) => {
     let totServiziATerra = serviziATerra.reduce((acc, servizio) => acc + getTotServizio(servizio.totale, servizio.cambio, percentualeRicarico, servizio.numero_notti, servizio.numero_camere), 0);
@@ -96,4 +93,23 @@ export const formatNumberItalian = (numero: number): string => {
 export const isValidTel = (tel: string): boolean => {
     const telRegex = /^\+[1-9]\d{1,14}$/;
     return telRegex.test(tel);
+}
+
+/**
+ * Controlla se tutti i campi obbligatori sono presenti nell'oggetto data del preventivo da inviare al server.
+ * @param data 
+ * @returns array di stringhe corrispondenti ai campi errati.
+ */
+export const dataErrors = (data: Data): string[] => {
+    const errors = [];
+    if (!data.preventivo.operatore) {
+        errors.push('\'Operatore\' è un campo da inserire.\n');
+    }
+    if (!data.preventivo.brand) {
+        errors.push('\'Brand\' è un campo da inserire.\n');
+    }
+    if (!data.preventivo.stato) {
+        errors.push('\'Stato\' è un campo da inserire.\n');
+    }
+    return errors;
 }
