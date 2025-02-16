@@ -112,9 +112,6 @@ const updateServiziATerraPreventivo = async (d: Data): Promise<boolean> => {
       if (!feedbackServiziATerraDBResult.success) {
         return false;
       }
-      if (i === d.serviziATerra.length - 1) {
-        return true;
-      }
     }
   }
 };
@@ -160,9 +157,6 @@ const updateServiziAggiuntiviPreventivo = async (d: Data) => {
         if (!feedbackServizioAggiuntivo.success) {
           return false;
         }
-        if (i === d.serviziAggiuntivi.length - 1) {
-          return true;
-        }
       } else {
         return false;
       }
@@ -175,9 +169,6 @@ const updateServiziAggiuntiviPreventivo = async (d: Data) => {
       );
       if (!feedbackServizioAggiuntivoDBResult.success) {
         return false;
-      }
-      if (i === d.serviziAggiuntivi.length - 1) {
-        return true;
       }
     }
   }
@@ -246,6 +237,8 @@ const updateAssicurazioniPreventivo = async (d: Data) => {
     await deleteAssicurazioneById(id);
   }
   for (let i = 0; i < d.assicurazioni.length; i++) {
+    console.log("d.assicurazioni[i]: qwerty", d.assicurazioni[i]);
+
     if (d.assicurazioni[i].id) {
       const assicurazioneDBResult = await fetchAssicurazioneById(
         d.assicurazioni[i].id
@@ -257,9 +250,10 @@ const updateAssicurazioniPreventivo = async (d: Data) => {
         if (!feedbackAssicurazione.success) {
           return false;
         }
-        return true;
       }
     } else {
+      console.log("assicurazioni[i]: ", d.assicurazioni[i]);
+      
       const feedbackAssicurazione = await createAssicurazione(
         d.assicurazioni[i],
         d.preventivo.id
@@ -267,7 +261,6 @@ const updateAssicurazioniPreventivo = async (d: Data) => {
       if (!feedbackAssicurazione.success) {
         return false;
       }
-      return true;
     }
   }
 };
@@ -360,5 +353,4 @@ const updatePreventivoAlCliente = async (d: Data) => {
     console.error("Errore nell'aggiornare il preventivo al cliente: ", error);
     return false;
   }
-  return true;
 };

@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 import {
   Cliente,
   Preventivo,
@@ -19,6 +19,12 @@ import {
 } from './definitions';
 import { ClienteInputGroup, PreventivoInputGroup } from '../dashboard/(overview)/general-interface/general-interface.defs';
 import { DBResult } from './actions/actions';
+const pool = new Pool({
+  connectionString: process.env.POSTGRESS_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 const ITEMS_PER_PAGE = 50;
 
@@ -32,25 +38,26 @@ fetchFilteredClienti = async (
   //console.log("fetchFilteredClienti", query, currentPage);
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const clienti = await sql<Cliente>`
-      SELECT * FROM clienti 
+    const clienti = await pool.query<Cliente>(
+      `SELECT * FROM clienti 
       WHERE 
-        nome ILIKE ${`%${query}%`} OR 
-        cognome ILIKE ${`%${query}%`} OR 
-        tel ILIKE ${`%${query}%`} OR 
-        email ILIKE ${`%${query}%`} OR 
-        tipo ILIKE ${`%${query}%`} OR 
-        provenienza ILIKE ${`%${query}%`} OR 
-        collegato ILIKE ${`%${query}%`} OR 
-        citta ILIKE ${`%${query}%`} OR 
-        note ILIKE ${`%${query}%`} OR 
-        indirizzo ILIKE ${`%${query}%`} OR 
-        CAP ILIKE ${`%${query}%`} OR 
-        CF ILIKE ${`%${query}%`} OR 
-        data_di_nascita::text ILIKE ${`%${query}%`}
+        nome ILIKE $1 OR 
+        cognome ILIKE $1 OR 
+        tel ILIKE $1 OR 
+        email ILIKE $1 OR 
+        tipo ILIKE $1 OR 
+        provenienza ILIKE $1 OR 
+        collegato ILIKE $1 OR 
+        citta ILIKE $1 OR 
+        note ILIKE $1 OR 
+        indirizzo ILIKE $1 OR 
+        CAP ILIKE $1 OR 
+        CF ILIKE $1 OR 
+        data_di_nascita::text ILIKE $1
       ORDER BY nome ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     
     return {values: clienti.rows, success: true, errorsMessage: ''};
   } catch (error) {
@@ -67,13 +74,13 @@ export const fetchFilteredDestinazioni = async (
 ): Promise<DBResult<Destinazione>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const destinazioni = await sql<Destinazione>`
-      SELECT * FROM destinazioni 
-      WHERE 
-        nome ILIKE ${`%${query}%`}
+    const destinazioni = await pool.query<Destinazione>(
+      `SELECT * FROM destinazioni 
+      WHERE nome ILIKE $1
       ORDER BY nome ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: destinazioni.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -89,14 +96,13 @@ export const fetchFilteredFornitori = async (
 ): Promise<DBResult<Fornitore>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const fornitori = await sql<Fornitore>`
-      SELECT * FROM fornitori 
-      WHERE 
-        nome ILIKE ${`%${query}%`} OR
-        valuta ILIKE ${`%${query}%`}
+    const fornitori = await pool.query<Fornitore>(
+      `SELECT * FROM fornitori 
+      WHERE nome ILIKE $1 OR valuta ILIKE $1
       ORDER BY nome ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: fornitori.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -112,20 +118,21 @@ export const fetchFilteredPreventivi = async (
 ): Promise<DBResult<Preventivo>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const preventivi = await sql<Preventivo>`
-      SELECT * FROM preventivi 
+    const preventivi = await pool.query<Preventivo>(
+      `SELECT * FROM preventivi 
       WHERE 
-        email ILIKE ${`%${query}%`} OR
-        numero_di_telefono ILIKE ${`%${query}%`} OR
-        note ILIKE ${`%${query}%`} OR
-        riferimento ILIKE ${`%${query}%`} OR
-        operatore ILIKE ${`%${query}%`} OR
-        feedback ILIKE ${`%${query}%`} OR
-        stato ILIKE ${`%${query}%`} OR
-        numero_preventivo ILIKE ${`%${query}%`}
+        email ILIKE $1 OR
+        numero_di_telefono ILIKE $1 OR
+        note ILIKE $1 OR
+        riferimento ILIKE $1 OR
+        operatore ILIKE $1 OR
+        feedback ILIKE $1 OR
+        stato ILIKE $1 OR
+        numero_preventivo ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: preventivi.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -141,13 +148,13 @@ export const fetchFilteredServiziATerra = async (
 ): Promise<DBResult<ServizioATerra>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const serviziATerra = await sql<ServizioATerra>`
-      SELECT * FROM servizi_a_terra 
-      WHERE 
-        descrizione ILIKE ${`%${query}%`}
+    const serviziATerra = await pool.query<ServizioATerra>(
+      `SELECT * FROM servizi_a_terra 
+      WHERE descrizione ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: serviziATerra.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -163,14 +170,13 @@ export const fetchFilteredVoli = async (
 ): Promise<DBResult<Volo>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const voli = await sql<Volo>`
-      SELECT * FROM voli 
-      WHERE 
-        compagnia_aerea ILIKE ${`%${query}%`} OR
-        descrizione ILIKE ${`%${query}%`}
+    const voli = await pool.query<Volo>(
+      `SELECT * FROM voli 
+      WHERE compagnia_aerea ILIKE $1 OR descrizione ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: voli.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -186,13 +192,13 @@ export const fetchFilteredAssicurazioni = async (
 ): Promise<DBResult<Assicurazione>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const assicurazioni = await sql<Assicurazione>`
-      SELECT * FROM assicurazioni 
-      WHERE 
-        assicurazione ILIKE ${`%${query}%`}
+    const assicurazioni = await pool.query<Assicurazione>(
+      `SELECT * FROM assicurazioni 
+      WHERE assicurazione ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: assicurazioni.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -208,14 +214,13 @@ export const fetchFilteredPreventiviMostrareCliente = async (
 ): Promise<DBResult<PreventivoAlClienteRow>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const preventiviMostrareCliente = await sql<PreventivoAlClienteRow>`
-      SELECT * FROM preventivi_mostrare_clienti 
-      WHERE 
-        descrizione ILIKE ${`%${query}%`} OR
-        tipo ILIKE ${`%${query}%`}
+    const preventiviMostrareCliente = await pool.query<PreventivoAlClienteRow>(
+      `SELECT * FROM preventivi_mostrare_clienti 
+      WHERE descrizione ILIKE $1 OR tipo ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: preventiviMostrareCliente.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -231,14 +236,13 @@ export const fetchFilteredPartecipanti = async (
 ): Promise<DBResult<Partecipante>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const partecipanti = await sql<Partecipante>`
-      SELECT * FROM partecipanti 
-      WHERE 
-        nome ILIKE ${`%${query}%`} OR
-        cognome ILIKE ${`%${query}%`}
+    const partecipanti = await pool.query<Partecipante>(
+      `SELECT * FROM partecipanti 
+      WHERE nome ILIKE $1 OR cognome ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: partecipanti.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -254,17 +258,18 @@ export const fetchFilteredIncassiPartecipanti = async (
 ): Promise<DBResult<IncassoPartecipante>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const incassiPartecipanti = await sql<IncassoPartecipante>`
-      SELECT * FROM incassi_partecipanti 
+    const incassiPartecipanti = await pool.query<IncassoPartecipante>(
+      `SELECT * FROM incassi_partecipanti 
       WHERE 
-        id_partecipante::text ILIKE ${`%${query}%`} OR
-        id_banca::text ILIKE ${`%${query}%`} OR
-        importo::text ILIKE ${`%${query}%`} OR
-        data_scadenza::text ILIKE ${`%${query}%`} OR
-        data_incasso::text ILIKE ${`%${query}%`}
+        id_partecipante::text ILIKE $1 OR
+        id_banca::text ILIKE $1 OR
+        importo::text ILIKE $1 OR
+        data_scadenza::text ILIKE $1 OR
+        data_incasso::text ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: incassiPartecipanti.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -280,17 +285,18 @@ export const fetchFilteredPagamentiServiziATerra = async (
 ): Promise<DBResult<PagamentoServizioATerra>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const pagamentiServiziATerra = await sql<PagamentoServizioATerra>`
-      SELECT * FROM pagamenti_servizi_a_terra 
+    const pagamentiServiziATerra = await pool.query<PagamentoServizioATerra>(
+      `SELECT * FROM pagamenti_servizi_a_terra 
       WHERE 
-        id_servizio_a_terra::text ILIKE ${`%${query}%`} OR
-        id_banca::text ILIKE ${`%${query}%`} OR
-        importo::text ILIKE ${`%${query}%`} OR
-        data_scadenza::text ILIKE ${`%${query}%`} OR
-        data_incasso::text ILIKE ${`%${query}%`}
+        id_servizio_a_terra::text ILIKE $1 OR
+        id_banca::text ILIKE $1 OR
+        importo::text ILIKE $1 OR
+        data_scadenza::text ILIKE $1 OR
+        data_incasso::text ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: pagamentiServiziATerra.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -306,17 +312,18 @@ export const fetchFilteredPagamentiVoli = async (
 ): Promise<DBResult<PagamentoVolo>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const pagamentiVoli = await sql<PagamentoVolo>`
-      SELECT * FROM pagamenti_voli 
+    const pagamentiVoli = await pool.query<PagamentoVolo>(
+      `SELECT * FROM pagamenti_voli 
       WHERE 
-        id_volo::text ILIKE ${`%${query}%`} OR
-        id_banca::text ILIKE ${`%${query}%`} OR
-        importo::text ILIKE ${`%${query}%`} OR
-        data_scadenza::text ILIKE ${`%${query}%`} OR
-        data_incasso::text ILIKE ${`%${query}%`}
+        id_volo::text ILIKE $1 OR
+        id_banca::text ILIKE $1 OR
+        importo::text ILIKE $1 OR
+        data_scadenza::text ILIKE $1 OR
+        data_incasso::text ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: pagamentiVoli.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -332,17 +339,18 @@ export const fetchFilteredPagamentiAssicurazioni = async (
 ): Promise<DBResult<PagamentoAssicurazione>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const pagamentiAssicurazioni = await sql<PagamentoAssicurazione>`
-      SELECT * FROM pagamenti_assicurazioni 
+    const pagamentiAssicurazioni = await pool.query<PagamentoAssicurazione>(
+      `SELECT * FROM pagamenti_assicurazioni 
       WHERE 
-        id_assicurazione::text ILIKE ${`%${query}%`} OR
-        id_banca::text ILIKE ${`%${query}%`} OR
-        importo::text ILIKE ${`%${query}%`} OR
-        data_scadenza::text ILIKE ${`%${query}%`} OR
-        data_incasso::text ILIKE ${`%${query}%`}
+        id_assicurazione::text ILIKE $1 OR
+        id_banca::text ILIKE $1 OR
+        importo::text ILIKE $1 OR
+        data_scadenza::text ILIKE $1 OR
+        data_incasso::text ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: pagamentiAssicurazioni.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -358,20 +366,21 @@ export const fetchFilteredPratiche = async (
 ): Promise<DBResult<Pratica>> => {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const pratiche = await sql<Pratica>`
-      SELECT * FROM pratiche 
+    const pratiche = await pool.query<Pratica>(
+      `SELECT * FROM pratiche 
       WHERE 
-        id_cliente::text ILIKE ${`%${query}%`} OR
-        id_preventivo::text ILIKE ${`%${query}%`} OR
-        data_conferma::text ILIKE ${`%${query}%`} OR
-        data_partenza::text ILIKE ${`%${query}%`} OR
-        data_rientro::text ILIKE ${`%${query}%`} OR
-        note::text ILIKE ${`%${query}%`} OR
-        numero_passeggeri::text ILIKE ${`%${query}%`} OR
-        totale::text ILIKE ${`%${query}%`}
+        id_cliente::text ILIKE $1 OR
+        id_preventivo::text ILIKE $1 OR
+        data_conferma::text ILIKE $1 OR
+        data_partenza::text ILIKE $1 OR
+        data_rientro::text ILIKE $1 OR
+        note::text ILIKE $1 OR
+        numero_passeggeri::text ILIKE $1 OR
+        totale::text ILIKE $1
       ORDER BY id ASC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+      LIMIT $2 OFFSET $3`,
+      [`%${query}%`, ITEMS_PER_PAGE, offset]
+    );
     return {values: pratiche.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -385,23 +394,12 @@ export const fetchFilteredPratiche = async (
 // #### PAGINATION ####
 export async function fetchClientiPages(query: string): Promise<number> {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM clienti
-    WHERE
-      nome ILIKE ${`%${query}%`} OR
-      cognome ILIKE ${`%${query}%`} OR
-      tel ILIKE ${`%${query}%`} OR
-      email ILIKE ${`%${query}%`} OR
-      tipo ILIKE ${`%${query}%`} OR
-      provenienza ILIKE ${`%${query}%`} OR
-      collegato ILIKE ${`%${query}%`} OR
-      citta ILIKE ${`%${query}%`} OR
-      note ILIKE ${`%${query}%`} OR
-      indirizzo ILIKE ${`%${query}%`} OR
-      CAP ILIKE ${`%${query}%`} OR
-      CF ILIKE ${`%${query}%`} OR
-      data_di_nascita::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM clienti
+      WHERE nome ILIKE $1 OR cognome ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -412,11 +410,12 @@ export async function fetchClientiPages(query: string): Promise<number> {
 }
 export async function fetchDestinazioniPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM destinazioni
-    WHERE
-      nome ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM destinazioni
+      WHERE nome ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -427,12 +426,12 @@ export async function fetchDestinazioniPages(query: string) {
 }
 export async function fetchFornitoriPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM fornitori
-    WHERE
-      nome ILIKE ${`%${query}%`} OR
-      valuta ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM fornitori
+      WHERE nome ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -443,17 +442,12 @@ export async function fetchFornitoriPages(query: string) {
 }
 export async function fetchPratichePages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM pratiche
-    WHERE
-      id::text ILIKE ${`%${query}%`} OR
-      data_conferma::text ILIKE ${`%${query}%`} OR
-      data_partenza::text ILIKE ${`%${query}%`} OR
-      data_rientro::text ILIKE ${`%${query}%`} OR
-      numero_passeggeri::text ILIKE ${`%${query}%`} OR
-      totale::text ILIKE ${`%${query}%`} OR
-      note ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM pratiche
+      WHERE numero ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -464,23 +458,12 @@ export async function fetchPratichePages(query: string) {
 }
 export async function fetchPreventiviPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM preventivi
-    WHERE
-      email ILIKE ${`%${query}%`} OR
-      numero_di_telefono::text ILIKE ${`%${query}%`} OR
-      note ILIKE ${`%${query}%`} OR
-      adulti::text ILIKE ${`%${query}%`} OR
-      bambini::text ILIKE ${`%${query}%`} OR
-      riferimento ILIKE ${`%${query}%`} OR
-      data_partenza::text ILIKE ${`%${query}%`} OR
-      operatore ILIKE ${`%${query}%`} OR
-      feedback ILIKE ${`%${query}%`} OR
-      stato ILIKE ${`%${query}%`} OR
-      data::text ILIKE ${`%${query}%`} OR
-      numero_preventivo ILIKE ${`%${query}%`} OR
-      confermato::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM preventivi
+      WHERE numero_preventivo ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -491,17 +474,12 @@ export async function fetchPreventiviPages(query: string) {
 }
 export async function fetchServiziATerraPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM servizi_a_terra
-    WHERE
-      data::text ILIKE ${`%${query}%`} OR
-      numero_notti::text ILIKE ${`%${query}%`} OR
-      totale::text ILIKE ${`%${query}%`} OR
-      valuta ILIKE ${`%${query}%`} OR
-      cambio::text ILIKE ${`%${query}%`} OR
-      ricarico::text ILIKE ${`%${query}%`} OR
-      servizio_aggiuntivo::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM servizi_a_terra
+      WHERE descrizione ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -512,18 +490,12 @@ export async function fetchServiziATerraPages(query: string) {
 }
 export async function fetchVoliPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM voli
-    WHERE
-      compagnia_aerea ILIKE ${`%${query}%`} OR
-      descrizione ILIKE ${`%${query}%`} OR
-      data_partenza::text ILIKE ${`%${query}%`} OR
-      data_arrivo::text ILIKE ${`%${query}%`} OR
-      totale::text ILIKE ${`%${query}%`} OR
-      valuta ILIKE ${`%${query}%`} OR
-      cambio::text ILIKE ${`%${query}%`} OR
-      ricarico::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM voli
+      WHERE descrizione ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -534,13 +506,12 @@ export async function fetchVoliPages(query: string) {
 }
 export async function fetchAssicurazioniPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM assicurazioni
-    WHERE
-      assicurazione ILIKE ${`%${query}%`} OR
-      netto::text ILIKE ${`%${query}%`} OR
-      ricarico::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM assicurazioni
+      WHERE assicurazione ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -551,16 +522,12 @@ export async function fetchAssicurazioniPages(query: string) {
 }
 export async function fetchPagamentiAssicurazioniPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM pagamenti_assicurazioni
-    WHERE
-      id::text ILIKE ${`%${query}%`} OR
-      id_assicurazione::text ILIKE ${`%${query}%`} OR
-      banca ILIKE ${`%${query}%`} OR
-      importo::text ILIKE ${`%${query}%`} OR
-      data_scadenza::text ILIKE ${`%${query}%`} OR
-      data_incasso::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM pagamenti_assicurazioni
+      WHERE numero ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -571,15 +538,12 @@ export async function fetchPagamentiAssicurazioniPages(query: string) {
 }
 export async function fetchPreventiviClientiPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM preventivi_mostrare_clienti
-    WHERE
-      descrizione ILIKE ${`%${query}%`} OR
-      tipo ILIKE ${`%${query}%`} OR
-      costo_individuale::text ILIKE ${`%${query}%`} OR
-      importo_vendita::text ILIKE ${`%${query}%`} OR
-      totale::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM preventivi_mostrare_clienti
+      WHERE descrizione ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -590,14 +554,12 @@ export async function fetchPreventiviClientiPages(query: string) {
 }
 export async function fetchPartecipantiPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM partecipanti
-    WHERE
-      id_preventivo::text ILIKE ${`%${query}%`} OR
-      nome ILIKE ${`%${query}%`} OR
-      cognome ILIKE ${`%${query}%`} OR
-      tot_quota::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM partecipanti
+      WHERE nome ILIKE $1 OR cognome ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -608,15 +570,12 @@ export async function fetchPartecipantiPages(query: string) {
 }
 export async function fetchIncassiPartecipantiPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM incassi_partecipanti
-    WHERE
-      id_partecipante::text ILIKE ${`%${query}%`} OR
-      id_banca::text ILIKE ${`%${query}%`} OR
-      importo::text ILIKE ${`%${query}%`} OR
-      data_scadenza::text ILIKE ${`%${query}%`} OR
-      data_incasso::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM incassi_partecipanti
+      WHERE numero ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -627,16 +586,12 @@ export async function fetchIncassiPartecipantiPages(query: string) {
 }
 export async function fetchPagamentiServiziATerraPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM pagamenti_servizi_a_terra
-    WHERE
-      id::text ILIKE ${`%${query}%`} OR
-      id_servizio_a_terra::text ILIKE ${`%${query}%`} OR
-      id_banca ILIKE ${`%${query}%`} OR
-      importo::text ILIKE ${`%${query}%`} OR
-      data_scadenza::text ILIKE ${`%${query}%`} OR
-      data_incasso::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM pagamenti_servizi_a_terra
+      WHERE numero ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -647,16 +602,12 @@ export async function fetchPagamentiServiziATerraPages(query: string) {
 }
 export async function fetchPagamentiVoliPages(query: string) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM pagamenti_voli
-    WHERE
-      id::text ILIKE ${`%${query}%`} OR
-      id_volo::text ILIKE ${`%${query}%`} OR
-      banca ILIKE ${`%${query}%`} OR
-      importo::text ILIKE ${`%${query}%`} OR
-      data_scadenza::text ILIKE ${`%${query}%`} OR
-      data_incasso::text ILIKE ${`%${query}%`}
-  `;
+    const count = await pool.query(
+      `SELECT COUNT(*)
+      FROM pagamenti_voli
+      WHERE numero ILIKE $1`,
+      [`%${query}%`]
+    );
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -669,10 +620,11 @@ export async function fetchPagamentiVoliPages(query: string) {
 // #### FETCH BY ID ####
 export const fetchClienteById = async (id: string): Promise<DBResult<Cliente> > => {
   try {
-    const cliente = await sql<Cliente>`
-      SELECT * FROM clienti
-      WHERE id = ${id}
-    `;
+    const cliente = await pool.query<Cliente>(
+      `SELECT * FROM clienti
+      WHERE id = $1`,
+      [id]
+    );
     return {values: cliente.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -684,10 +636,11 @@ export const fetchClienteById = async (id: string): Promise<DBResult<Cliente> > 
 };
 export const fetchDestinazioneById = async (id: string): Promise<DBResult<Destinazione> > => {
   try {
-    const destinazione = await sql<Destinazione>`
-      SELECT * FROM destinazioni
-      WHERE id = ${id}
-    `;
+    const destinazione = await pool.query<Destinazione>(
+      `SELECT * FROM destinazioni
+      WHERE id = $1`,
+      [id]
+    );
     return {values: destinazione.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -699,10 +652,11 @@ export const fetchDestinazioneById = async (id: string): Promise<DBResult<Destin
 };
 export const fetchFornitoreById = async (id: string): Promise<DBResult<Fornitore> > => {
   try {
-    const fornitore = await sql<Fornitore>`
-      SELECT * FROM fornitori
-      WHERE id = ${id}
-    `;
+    const fornitore = await pool.query<Fornitore>(
+      `SELECT * FROM fornitori
+      WHERE id = $1`,
+      [id]
+    );
     return {values: fornitore.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -714,10 +668,11 @@ export const fetchFornitoreById = async (id: string): Promise<DBResult<Fornitore
 };
 export const fetchPraticaById = async (id: string): Promise<DBResult<Pratica> > => {
   try {
-    const pratica = await sql<Pratica>`
-      SELECT * FROM pratiche
-      WHERE id = ${id}
-    `;
+    const pratica = await pool.query<Pratica>(
+      `SELECT * FROM pratiche
+      WHERE id = $1`,
+      [id]
+    );
     return {values: pratica.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -729,10 +684,11 @@ export const fetchPraticaById = async (id: string): Promise<DBResult<Pratica> > 
 };
 export const fetchPreventivoById = async (id: string): Promise<DBResult<Preventivo> > => {
   try {
-    const preventivo = await sql<Preventivo>`
-      SELECT * FROM preventivi
-      WHERE id = ${id}
-    `;
+    const preventivo = await pool.query<Preventivo>(
+      `SELECT * FROM preventivi
+      WHERE id = $1`,
+      [id]
+    );
     return {values: preventivo.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -744,10 +700,11 @@ export const fetchPreventivoById = async (id: string): Promise<DBResult<Preventi
 };
 export const fetchIncassoPartecipanteById = async (id: string): Promise<DBResult<IncassoPartecipante> > => {
   try {
-    const incassoPartecipante = await sql<IncassoPartecipante>`
-      SELECT * FROM incassi_partecipanti
-      WHERE id = ${id}
-    `;
+    const incassoPartecipante = await pool.query<IncassoPartecipante>(
+      `SELECT * FROM incassi_partecipanti
+      WHERE id = $1`,
+      [id]
+    );
     return {values: incassoPartecipante.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -759,10 +716,11 @@ export const fetchIncassoPartecipanteById = async (id: string): Promise<DBResult
 };
 export const fetchPagamentoServizioATerraById = async (id: string): Promise<DBResult<PagamentoServizioATerra> > => {
   try {
-    const pagamentoServizioATerra = await sql<PagamentoServizioATerra>`
-      SELECT * FROM pagamenti_servizi_a_terra
-      WHERE id = ${id}
-    `;
+    const pagamentoServizioATerra = await pool.query<PagamentoServizioATerra>(
+      `SELECT * FROM pagamenti_servizi_a_terra
+      WHERE id = $1`,
+      [id]
+    );
     return {values: pagamentoServizioATerra.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -774,10 +732,11 @@ export const fetchPagamentoServizioATerraById = async (id: string): Promise<DBRe
 };
 export const fetchPagamentoVoloById = async (id: string): Promise<DBResult<PagamentoVolo> > => {
   try {
-    const pagamentoVolo = await sql<PagamentoVolo>`
-      SELECT * FROM pagamenti_voli
-      WHERE id = ${id}
-    `;
+    const pagamentoVolo = await pool.query<PagamentoVolo>(
+      `SELECT * FROM pagamenti_voli
+      WHERE id = $1`,
+      [id]
+    );
     return {values: pagamentoVolo.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -789,10 +748,11 @@ export const fetchPagamentoVoloById = async (id: string): Promise<DBResult<Pagam
 };
 export const fetchBancaById = async (id: string): Promise<DBResult<Banca> > => {
   try {
-    const banca = await sql<Banca>`
-      SELECT * FROM banche
-      WHERE id = ${id}
-    `;
+    const banca = await pool.query<Banca>(
+      `SELECT * FROM banche
+      WHERE id = $1`,
+      [id]
+    );
     return {values: banca.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -804,10 +764,11 @@ export const fetchBancaById = async (id: string): Promise<DBResult<Banca> > => {
 };
 export const fetchPagamentoAssicurazioneById = async (id: string): Promise<DBResult<PagamentoAssicurazione> > => {
   try {
-    const pagamentoAssicurazione = await sql<PagamentoAssicurazione>`
-      SELECT * FROM pagamenti_assicurazioni
-      WHERE id = ${id}
-    `;
+    const pagamentoAssicurazione = await pool.query<PagamentoAssicurazione>(
+      `SELECT * FROM pagamenti_assicurazioni
+      WHERE id = $1`,
+      [id]
+    );
     return {values: pagamentoAssicurazione.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -819,10 +780,11 @@ export const fetchPagamentoAssicurazioneById = async (id: string): Promise<DBRes
 };
 export const fetchPreventivoMostrareClienteById = async (id: string): Promise<DBResult<PreventivoAlClienteRow> > => {
   try {
-    const preventivoMostrareCliente = await sql<PreventivoAlClienteRow>`
-      SELECT * FROM preventivo_mostrare_cliente
-      WHERE id = ${id}
-    `;
+    const preventivoMostrareCliente = await pool.query<PreventivoAlClienteRow>(
+      `SELECT * FROM preventivo_mostrare_cliente
+      WHERE id = $1`,
+      [id]
+    );
     return {values: preventivoMostrareCliente.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -834,10 +796,11 @@ export const fetchPreventivoMostrareClienteById = async (id: string): Promise<DB
 };
 export const fetchPartecipanteById = async (id: string): Promise<DBResult<Partecipante> > => {
   try {
-    const partecipante = await sql<Partecipante>`
-      SELECT * FROM partecipanti
-      WHERE id = ${id}
-    `;
+    const partecipante = await pool.query<Partecipante>(
+      `SELECT * FROM partecipanti
+      WHERE id = $1`,
+      [id]
+    );
     return {values: partecipante.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -849,10 +812,11 @@ export const fetchPartecipanteById = async (id: string): Promise<DBResult<Partec
 };
 export const fetchServizioATerraById = async (id: string): Promise<DBResult<ServizioATerra> > => {
   try {
-    const servizioATerra = await sql<ServizioATerra>`
-      SELECT * FROM servizi_a_terra
-      WHERE id = ${id}
-    `;
+    const servizioATerra = await pool.query<ServizioATerra>(
+      `SELECT * FROM servizi_a_terra
+      WHERE id = $1`,
+      [id]
+    );
     return {values: servizioATerra.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -864,10 +828,11 @@ export const fetchServizioATerraById = async (id: string): Promise<DBResult<Serv
 };
 export const fetchVoloById = async (id: string): Promise<DBResult<Volo> > => {
   try {
-    const volo = await sql<Volo>`
+    const volo = await pool.query<Volo>(`
       SELECT * FROM voli
-      WHERE id = ${id}
-    `;
+      WHERE id = $1`,
+      [id]
+    );
     return {values: volo.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -879,10 +844,11 @@ export const fetchVoloById = async (id: string): Promise<DBResult<Volo> > => {
 };
 export const fetchAssicurazioneById = async (id: string): Promise<DBResult<Assicurazione> > => {
   try {
-    const assicurazione = await sql<Assicurazione>`
-      SELECT * FROM assicurazioni
-      WHERE id = ${id}
-    `;
+    const assicurazione = await pool.query<Assicurazione>(
+      `SELECT * FROM assicurazioni
+      WHERE id = $1`,
+      [id]
+    );
     return {values: assicurazione.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -896,10 +862,11 @@ export const fetchAssicurazioneById = async (id: string): Promise<DBResult<Assic
 // #### FETCH BY DEPENDENCY ####
 export const fetchPreventiviByIdCliente = async (idCliente: string): Promise<DBResult<PreventivoInputGroup[]> > => {
   try {
-    const preventivo = await sql<Preventivo>`
-      SELECT * FROM preventivi
-      WHERE id_cliente = ${idCliente}
-    `;
+    const preventivo = await pool.query<Preventivo>(
+      `SELECT * FROM preventivi
+      WHERE id_cliente = $1`,
+      [idCliente]
+    );
     return {
       values: preventivo.rows.map(p => new PreventivoInputGroup(p.numero_preventivo, p.percentuale_ricarico, p.brand, p.riferimento, p.operatore, p.feedback, p.note, p.adulti, p.bambini, p.data_partenza, p.data, p.stato as 'da fare' | 'in trattativa' | 'confermato' | 'inviato', p.id)),
       success: true,
@@ -915,10 +882,11 @@ export const fetchPreventiviByIdCliente = async (idCliente: string): Promise<DBR
 };
 export const fetchDestinazioneByName = async (name: string): Promise<DBResult<Destinazione> > => {
   try {
-    const destinazione = await sql<Destinazione>`
-      SELECT * FROM destinazioni
-      WHERE nome = ${name}
-    `;
+    const destinazione = await pool.query<Destinazione>(
+      `SELECT * FROM destinazioni
+      WHERE nome = $1`,
+      [name]
+    );
     return {values: destinazione.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -930,10 +898,11 @@ export const fetchDestinazioneByName = async (name: string): Promise<DBResult<De
 };
 export const fetchFornitoreByName = async (name: string): Promise<DBResult<Fornitore> > => {
   try {
-    const fornitore = await sql<Fornitore>`
-      SELECT * FROM fornitori
-      WHERE nome = ${name}
-    `;
+    const fornitore = await pool.query<Fornitore>(
+      `SELECT * FROM fornitori
+      WHERE nome = $1`,
+      [name]
+    );
     return {values: fornitore.rows[0], success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -945,10 +914,11 @@ export const fetchFornitoreByName = async (name: string): Promise<DBResult<Forni
 };
 export const getFornitoreByName = async (name: string): Promise<DBResult<Fornitore> > => {
       try {
-        const fornitore = await sql<Fornitore>`
-          SELECT * FROM fornitori
-          WHERE nome = ${name}
-        `;
+        const fornitore = await pool.query<Fornitore>(
+          `SELECT * FROM fornitori
+          WHERE nome = $1`,
+          [name]
+        );
         return {values: fornitore.rows[0], success: true, errorsMessage: ''};
       } catch (error) {
         console.error('Database Error:', error);
@@ -963,10 +933,11 @@ export const getFornitoreByName = async (name: string): Promise<DBResult<Fornito
 
 export const fetchServiziATerraByPreventivoId = async (idPreventivo: string): Promise<DBResult<ServizioATerra[]> > => {
   try {
-    const serviziATerra = await sql<ServizioATerra>`
-      SELECT * FROM servizi_a_terra
-      WHERE id_preventivo = ${idPreventivo} AND servizio_aggiuntivo = false
-    `;
+    const serviziATerra = await pool.query<ServizioATerra>(
+      `SELECT * FROM servizi_a_terra
+      WHERE id_preventivo = $1 AND servizio_aggiuntivo = false`,
+      [idPreventivo]
+    );
     return {
       values: serviziATerra.rows,
       success: true,
@@ -982,10 +953,11 @@ export const fetchServiziATerraByPreventivoId = async (idPreventivo: string): Pr
 }
 export const fetchServiziAggiuntiviByPreventivoId = async (idPreventivo: string): Promise<DBResult<ServizioATerra[]> > => {
   try {
-    const serviziAggiuntivi = await sql<ServizioATerra>`
-      SELECT * FROM servizi_a_terra
-      WHERE id_preventivo = ${idPreventivo} AND servizio_aggiuntivo = true
-    `;    
+    const serviziAggiuntivi = await pool.query<ServizioATerra>(
+      `SELECT * FROM servizi_a_terra
+      WHERE id_preventivo = $1 AND servizio_aggiuntivo = true`,
+      [idPreventivo]
+    );    
     return {
       values: serviziAggiuntivi.rows,
       success: true,
@@ -1001,10 +973,11 @@ export const fetchServiziAggiuntiviByPreventivoId = async (idPreventivo: string)
 }
 export const fetchVoliByPreventivoId = async (idPreventivo: string): Promise<DBResult<Volo[]> > => {
   try {
-    const voli = await sql<Volo>`
-      SELECT * FROM voli
-      WHERE id_preventivo = ${idPreventivo}
-    `;
+    const voli = await pool.query<Volo>(
+      `SELECT * FROM voli
+      WHERE id_preventivo = $1`,
+      [idPreventivo]
+    );
     return {
       values: voli.rows,
       success: true,
@@ -1020,10 +993,11 @@ export const fetchVoliByPreventivoId = async (idPreventivo: string): Promise<DBR
 }
 export const fetchAssicurazioniByPreventivoId = async (idPreventivo: string): Promise<DBResult<Assicurazione[]> > => {
   try {
-    const assicurazioni = await sql<Assicurazione>`
-      SELECT * FROM assicurazioni
-      WHERE id_preventivo = ${idPreventivo}
-    `;
+    const assicurazioni = await pool.query<Assicurazione>(
+      `SELECT * FROM assicurazioni
+      WHERE id_preventivo = $1`,
+      [idPreventivo]
+    );
     return {
       values: assicurazioni.rows,
       success: true,
@@ -1040,9 +1014,9 @@ export const fetchAssicurazioniByPreventivoId = async (idPreventivo: string): Pr
 
 export const getNumberOfPreventivi = async (): Promise<DBResult<number> > => {
   try {
-    const preventivi = await sql`
-      SELECT COUNT(*) FROM preventivi;
-    `;
+    const preventivi = await pool.query(
+      `SELECT COUNT(*) FROM preventivi;`
+    );
     return {values: preventivi.rows[0].count, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -1057,7 +1031,7 @@ export const getNumberOfPreventivi = async (): Promise<DBResult<number> > => {
 
 export const fetchAllFornitori = async (): Promise<DBResult<Fornitore[]> > => {
   try {
-    const fornitori = await sql<Fornitore>`SELECT * FROM fornitori`;
+    const fornitori = await pool.query<Fornitore>(`SELECT * FROM fornitori`);
     return {values: fornitori.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -1067,7 +1041,7 @@ export const fetchAllFornitori = async (): Promise<DBResult<Fornitore[]> > => {
 
 export const fetchAllBanche = async (): Promise<DBResult<Banca[]> > => {
   try {
-    const banche = await sql<Banca>`SELECT * FROM banche`;
+    const banche = await pool.query<Banca>(`SELECT * FROM banche`);
     return {values: banche.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -1077,7 +1051,7 @@ export const fetchAllBanche = async (): Promise<DBResult<Banca[]> > => {
 
 export const fetchAllDestinazioni = async (): Promise<DBResult<Destinazione[]> > => {
   try {
-    const destinazioni = await sql<Destinazione>`SELECT * FROM destinazioni`;
+    const destinazioni = await pool.query<Destinazione>(`SELECT * FROM destinazioni`);
     return {values: destinazioni.rows, success: true, errorsMessage: ''};
   } catch (error) {
     console.error('Database Error:', error);
@@ -1087,7 +1061,7 @@ export const fetchAllDestinazioni = async (): Promise<DBResult<Destinazione[]> >
 
 export const fetchAllPreventiviWithCliente = async (): Promise<DBResult<(Preventivo & { cliente: Cliente })[]>> => {
   try {
-    const preventivi = await sql`
+    const preventivi = await pool.query(`
       SELECT 
         p.*,
         c.id as cliente_id,
@@ -1107,7 +1081,7 @@ export const fetchAllPreventiviWithCliente = async (): Promise<DBResult<(Prevent
       FROM preventivi p
       LEFT JOIN clienti c ON p.id_cliente = c.id
       ORDER BY p.data DESC
-    `;
+    `);
 
     const preventiviWithCliente = preventivi.rows.map(row => {
       const cliente: Cliente = {
@@ -1130,7 +1104,7 @@ export const fetchAllPreventiviWithCliente = async (): Promise<DBResult<(Prevent
       // Remove cliente_ prefixed fields and create the preventivo object
       const preventivo = Object.fromEntries(
         Object.entries(row).filter(([key]) => !key.startsWith('cliente_'))
-      ) as Preventivo;
+      ) as unknown as Preventivo;
 
       return {
         ...preventivo,
@@ -1147,15 +1121,17 @@ export const fetchAllPreventiviWithCliente = async (): Promise<DBResult<(Prevent
 
 export const fetchPreventivoAlClienteByPreventivoId = async (idPreventivo: string): Promise<DBResult<PreventivoAlCliente> > => {
   try {
-    const preventivoAlClienteQR = await sql<PreventivoAlCliente>`
-      SELECT * FROM preventivi_al_cliente
-      WHERE id_preventivo = ${idPreventivo}
-    `;
+    const preventivoAlClienteQR = await pool.query<PreventivoAlCliente>(
+      `SELECT * FROM preventivi_al_cliente
+      WHERE id_preventivo = $1`,
+      [idPreventivo]
+    );
     const id = preventivoAlClienteQR.rows[0].id;
-    const preventivoAlClienteRowQR = await sql<PreventivoAlClienteRow>`
-      SELECT * FROM preventivi_al_cliente_row
-      WHERE id_preventivo_al_cliente = ${id}
-    `;
+    const preventivoAlClienteRowQR = await pool.query<PreventivoAlClienteRow>(
+      `SELECT * FROM preventivi_al_cliente_row
+      WHERE id_preventivo_al_cliente = $1`,
+      [id]
+    );
     const preventivoAlCliente = preventivoAlClienteQR.rows[0];
     preventivoAlCliente.righePrimoTipo = preventivoAlClienteRowQR.rows.filter(row => row.senza_assicurazione === true);
     preventivoAlCliente.righeSecondoTipo = preventivoAlClienteRowQR.rows.filter(row => row.senza_assicurazione === false);

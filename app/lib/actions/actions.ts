@@ -1,7 +1,7 @@
 "use server"; // IMPORTANTE: server actions devono essere precedute da 'use server' altrimenti bisogna dichiararlo per ciascuna!!
 
 import { z } from "zod";
-import { sql } from "@vercel/postgres";
+import { Pool } from "pg";
 import { signIn, signOut } from "../../../auth";
 import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
@@ -28,15 +28,29 @@ import {
   PreventivoAlClienteRow,
 } from "@/app/dashboard/(overview)/general-interface/general-interface.defs";
 import { formatDate } from "../utils";
-import moment from "moment";
 import path from "path";
+import fs from "fs";
+
+// Add this helper function at the top level, after the imports
+const sanitizeString = (str: string): string => {
+  if (!str) return str;
+  return str.replace(/[\uFFFD\uD800-\uDFFF\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F\u0080-\u009F\u2000-\u2FFF]/g, '')
+    .replace(/[\u0080-\u009F\u00A0-\u00FF]/g, ''); // Remove additional non-UTF8 characters
+};
+
+const pool = new Pool({
+  connectionString: process.env.POSTGRESS_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
 export type DBResult<A> = {
   success: boolean;
   values?: any; // TODO: successivo refactoring si rende di tipo A | A[] | null
   errors?: Partial<TransformToStringArray<A>>;
   errorsMessage?: string;
 };
-import fs from "fs";
 
 // Utility type to transform properties into string[]
 export type TransformToStringArray<T> = {
@@ -48,6 +62,8 @@ export type State<A> = {
   errors?: Partial<TransformToStringArray<A>>;
   dbError?: string;
 };
+
+
 
 // CREATE
 
@@ -79,24 +95,28 @@ export const createCliente = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     INSERT INTO clienti (nome, cognome, note, tipo, data_di_nascita, indirizzo, CAP, citta, CF, collegato, provenienza, tel, email)
-    VALUES (
-    ${parsedData.data.nome}, 
-    ${parsedData.data.cognome}, 
-    ${parsedData.data.note}, 
-    ${parsedData.data.tipo}, 
-    ${parsedData.data.data_di_nascita}, 
-    ${parsedData.data.indirizzo}, 
-    ${parsedData.data.cap}, 
-    ${parsedData.data.citta},
-    ${parsedData.data.cf},
-    ${parsedData.data.collegato},
-    ${parsedData.data.provenienza},
-    ${parsedData.data.tel},
-    ${parsedData.data.email}
-    )
-  `;
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    RETURNING *
+`,
+      [
+        parsedData.data.nome,
+        parsedData.data.cognome,
+        parsedData.data.note,
+        parsedData.data.tipo,
+        parsedData.data.data_di_nascita,
+        parsedData.data.indirizzo,
+        parsedData.data.cap,
+        parsedData.data.citta,
+        parsedData.data.cf,
+        parsedData.data.collegato,
+        parsedData.data.provenienza,
+        parsedData.data.tel,
+        parsedData.data.email,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in createCliente: " + error);
@@ -108,6 +128,7 @@ export const createCliente = async (
     };
   }
 };
+
 export const createPreventivo = async (
   p: PreventivoInputGroup,
   c: ClienteInputGroup,
@@ -138,39 +159,28 @@ export const createPreventivo = async (
     };
   }
   try {
-    const result = await sql`
-      INSERT INTO preventivi (
-        id_cliente, 
-        note, 
-        percentuale_ricarico,
-        riferimento, 
-        operatore, 
-        brand,
-        feedback, 
-        adulti, 
-        bambini, 
-        data_partenza, 
-        data, 
-        numero_preventivo, 
-        stato
-      )
-      VALUES (
-        ${parsedData.data.id_cliente}, 
-        ${parsedData.data.note}, 
-        ${parsedData.data.percentuale_ricarico},
-        ${parsedData.data.riferimento}, 
-        ${parsedData.data.operatore}, 
-        ${parsedData.data.brand},
-        ${parsedData.data.feedback}, 
-        ${parsedData.data.adulti}, 
-        ${parsedData.data.bambini}, 
-        ${parsedData.data.data_partenza}, 
-        ${parsedData.data.data}, 
-        ${parsedData.data.numero_preventivo}, 
-        ${parsedData.data.stato}
-      )
-      RETURNING *;
-    `;
+    const result = await pool.query(
+      `
+    INSERT INTO preventivi (id_cliente, data, note, percentuale_ricarico, brand, riferimento, operatore, feedback, adulti, bambini, data_partenza, numero_preventivo, stato)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    RETURNING *
+`,
+      [
+        parsedData.data.id_cliente,
+        parsedData.data.data,
+        parsedData.data.note,
+        parsedData.data.percentuale_ricarico,
+        parsedData.data.brand,
+        parsedData.data.riferimento,
+        parsedData.data.operatore,
+        parsedData.data.feedback,
+        parsedData.data.adulti,
+        parsedData.data.bambini,
+        parsedData.data.data_partenza,
+        parsedData.data.numero_preventivo,
+        parsedData.data.stato,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in createPreventivo: " + error);
@@ -181,6 +191,7 @@ export const createPreventivo = async (
     };
   }
 };
+
 export const createServizioATerra = async (
   s: ServizioATerraInputGroup,
   id_preventivo: string,
@@ -205,7 +216,7 @@ export const createServizioATerra = async (
     id_preventivo: id_preventivo,
     id_fornitore: id_fornitore,
     id_destinazione: id_destinazione,
-    descrizione: s.descrizione,
+    descrizione: sanitizeString(s.descrizione),
     data: s.data,
     numero_notti: s.numero_notti,
     numero_camere: s.numero_camere,
@@ -226,11 +237,26 @@ export const createServizioATerra = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     INSERT INTO servizi_a_terra (id_preventivo, id_fornitore, id_destinazione, descrizione, data, numero_notti, numero_camere, totale, valuta, cambio, servizio_aggiuntivo)
-    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.id_destinazione}, ${parsedData.data.descrizione}, ${parsedData.data.data}, ${parsedData.data.numero_notti}, ${parsedData.data.numero_camere}, ${parsedData.data.totale}, ${parsedData.data.valuta}, ${parsedData.data.cambio}, ${parsedData.data.servizio_aggiuntivo})
-    RETURNING *;
-    `;
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING *
+`,
+      [
+        parsedData.data.id_preventivo,
+        parsedData.data.id_fornitore,
+        parsedData.data.id_destinazione,
+        parsedData.data.descrizione,
+        parsedData.data.data,
+        parsedData.data.numero_notti,
+        parsedData.data.numero_camere,
+        parsedData.data.totale,
+        parsedData.data.valuta,
+        parsedData.data.cambio,
+        parsedData.data.servizio_aggiuntivo,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in createServizioATerra: " + error);
@@ -241,6 +267,7 @@ export const createServizioATerra = async (
     };
   }
 };
+
 export const createVolo = async (
   v: VoloInputGroup,
   id_preventivo: string
@@ -250,7 +277,7 @@ export const createVolo = async (
   const parsedData = schemas.VoloSchema.safeParse({
     id_preventivo: id_preventivo,
     id_fornitore: fornitore.values?.id,
-    compagnia_aerea: v.compagnia,
+    compagnia_aerea: v.compagnia_aerea,
     descrizione: v.descrizione,
     data_partenza: v.data_partenza,
     data_arrivo: v.data_arrivo,
@@ -271,12 +298,26 @@ export const createVolo = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     INSERT INTO voli (id_preventivo, id_fornitore, compagnia_aerea, descrizione, data_partenza, data_arrivo, totale, ricarico, numero, valuta, cambio)
-    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.compagnia_aerea}, ${parsedData.data.descrizione}, ${parsedData.data.data_partenza}, ${parsedData.data.data_arrivo}, ${parsedData.data.totale}, ${parsedData.data.ricarico}, ${parsedData.data.numero}, ${parsedData.data.valuta}, ${parsedData.data.cambio})
-    RETURNING *;
-    `;
-    //console.log('result of createVolo: ', result);
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING *
+`,
+      [
+        parsedData.data.id_preventivo,
+        parsedData.data.id_fornitore,
+        parsedData.data.compagnia_aerea,
+        parsedData.data.descrizione,
+        parsedData.data.data_partenza,
+        parsedData.data.data_arrivo,
+        parsedData.data.totale,
+        parsedData.data.ricarico,
+        parsedData.data.numero,
+        parsedData.data.valuta,
+        parsedData.data.cambio,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in Create Volo: " + error);
@@ -287,6 +328,7 @@ export const createVolo = async (
     };
   }
 };
+
 export const createAssicurazione = async (
   a: AssicurazioneInputGroup,
   id_preventivo: string
@@ -295,7 +337,7 @@ export const createAssicurazione = async (
   const parsedData = schemas.AssicurazioneSchema.safeParse({
     id_preventivo: id_preventivo,
     id_fornitore: fornitore.values?.id,
-    assicurazione: a.assicurazione,
+    assicurazione: sanitizeString(a.assicurazione),
     netto: a.netto,
     ricarico: a.ricarico,
     numero: a.numero,
@@ -310,12 +352,24 @@ export const createAssicurazione = async (
       values: parsedData.data,
     };
   }
+  console.log("parsedData: ", parsedData.data);
+  
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     INSERT INTO assicurazioni (id_preventivo, id_fornitore, assicurazione, netto, ricarico, numero)
-    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.id_fornitore}, ${parsedData.data.assicurazione}, ${parsedData.data.netto}, ${parsedData.data.ricarico}, ${parsedData.data.numero})
-    RETURNING *;
-    `;
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+`,
+      [
+        parsedData.data.id_preventivo,
+        parsedData.data.id_fornitore,
+        parsedData.data.assicurazione,
+        parsedData.data.netto,
+        parsedData.data.ricarico,
+        parsedData.data.numero,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in createAssicurazione: " + error);
@@ -327,8 +381,6 @@ export const createAssicurazione = async (
   }
 };
 
-
-
 export const createPreventivoAlCliente = async (
   p: PreventivoAlClienteInputGroup,
   id_preventivo: string
@@ -339,7 +391,9 @@ export const createPreventivoAlCliente = async (
   });
 
   if (!parsedData.success) {
-    console.error("Failed to create PreventivoAlCliente due to a validation error.");
+    console.error(
+      "Failed to create PreventivoAlCliente due to a validation error."
+    );
     return {
       success: false,
       errorsMessage:
@@ -349,30 +403,42 @@ export const createPreventivoAlCliente = async (
     };
   }
   try {
-    const preventivoResult = await sql`
+    const preventivoResult = await pool.query(
+      `
     INSERT INTO preventivi_al_cliente (id_preventivo, descrizione_viaggio)
-    VALUES (${parsedData.data.id_preventivo}, ${parsedData.data.descrizione_viaggio})
-    RETURNING *;
-    `;
+    VALUES ($1, $2)
+    RETURNING *
+`,
+      [parsedData.data.id_preventivo, parsedData.data.descrizione_viaggio]
+    );
 
-    // creazione delle righe 
-    const rowFirstTypePromises = p.righePrimoTipo.map(row => 
+    // creazione delle righe
+    const rowFirstTypePromises = p.righePrimoTipo.map((row) =>
       createPreventivoAlClienteRow(row, true, preventivoResult.rows[0].id)
     );
-    const rowSecondTypePromises = p.righeSecondoTipo.map(row => 
+    const rowSecondTypePromises = p.righeSecondoTipo.map((row) =>
       createPreventivoAlClienteRow(row, false, preventivoResult.rows[0].id)
     );
 
-    const rowResults = await Promise.all(rowFirstTypePromises.concat(rowSecondTypePromises))
-    .then(results => ({values: [preventivoResult.rows[0]].concat(results), success: true, errorsMessage: ""}))
-    .catch(error => {
-      console.error("Database Error in createPreventivoAlClienteRow: " + error);
-      return {
-        success: false,
-        errorsMessage: "Database Error in createPreventivoAlClienteRow: " + error,
-        values: preventivoResult.rows[0],
-      };
-    });
+    const rowResults = await Promise.all(
+      rowFirstTypePromises.concat(rowSecondTypePromises)
+    )
+      .then((results) => ({
+        values: [preventivoResult.rows[0]].concat(results),
+        success: true,
+        errorsMessage: "",
+      }))
+      .catch((error) => {
+        console.error(
+          "Database Error in createPreventivoAlClienteRow: " + error
+        );
+        return {
+          success: false,
+          errorsMessage:
+            "Database Error in createPreventivoAlClienteRow: " + error,
+          values: preventivoResult.rows[0],
+        };
+      });
     return rowResults;
   } catch (error) {
     console.error("Database Error in createPreventivoAlCliente: " + error);
@@ -398,7 +464,9 @@ export const createPreventivoAlClienteRow = async (
     numero: p.numero,
   });
   if (!parsedData.success) {
-    console.error("Failed to create PreventivoAlClienteRow due to a validation error.");
+    console.error(
+      "Failed to create PreventivoAlClienteRow due to a validation error."
+    );
     return {
       success: false,
       errorsMessage:
@@ -408,11 +476,21 @@ export const createPreventivoAlClienteRow = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     INSERT INTO preventivi_al_cliente_row (id_preventivo_al_cliente, senza_assicurazione, destinazione, descrizione, individuale, numero)
-    VALUES (${parsedData.data.id_preventivo_al_cliente}, ${parsedData.data.senza_assicurazione}, ${parsedData.data.destinazione}, ${parsedData.data.descrizione}, ${parsedData.data.individuale}, ${parsedData.data.numero})
-    RETURNING *;
-    `;
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+`,
+      [
+        parsedData.data.id_preventivo_al_cliente,
+        parsedData.data.senza_assicurazione,
+        parsedData.data.destinazione,
+        parsedData.data.descrizione,
+        parsedData.data.individuale,
+        parsedData.data.numero,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in createPreventivoAlClienteRow: " + error);
@@ -455,27 +533,44 @@ export async function submitCreatePreventivoGI(
     // if error in createPreventivo, return error
     if (!resCreatePreventivo.success) {
       return resCreatePreventivo;
-    }
-    else {
+    } else {
       idPreventivo = resCreatePreventivo.values.id;
       res.preventivo = resCreatePreventivo.values;
     }
     // create serviziATerra
-    const serviziATerraPromises = data.serviziATerra.map(s => createServizioATerra(s, idPreventivo, false))
-    const serviziAggiuntiviPromises = data.serviziAggiuntivi.map(s => createServizioATerra(s, idPreventivo, true))
-    const voliPromises = data.voli.map(v => createVolo(v, idPreventivo))
-    const assicurazioniPromises = data.assicurazioni.map(a => createAssicurazione(a, idPreventivo))
-    const preventivoAlClientePromises = data.preventivoAlCliente ? [createPreventivoAlCliente(data.preventivoAlCliente, idPreventivo)] : []
-    const results = await Promise.all([...serviziATerraPromises, ...serviziAggiuntiviPromises, ...voliPromises, ...assicurazioniPromises, ...preventivoAlClientePromises])
-    .then(results => ({values: results, success: true, errorsMessage: ""}))
-    .catch(error => {
-      console.error("Database Error in submitCreatePreventivoGI: " + error);
-      return {
-        success: false,
-        errorsMessage: "Database Error in submitCreatePreventivoGI: " + error,
-        values: res,
-      };
-    });
+    const serviziATerraPromises = data.serviziATerra.map((s) =>
+      createServizioATerra(s, idPreventivo, false)
+    );
+    const serviziAggiuntiviPromises = data.serviziAggiuntivi.map((s) =>
+      createServizioATerra(s, idPreventivo, true)
+    );
+    const voliPromises = data.voli.map((v) => createVolo(v, idPreventivo));
+    const assicurazioniPromises = data.assicurazioni.map((a) =>
+      createAssicurazione(a, idPreventivo)
+    );
+    const preventivoAlClientePromises = data.preventivoAlCliente
+      ? [createPreventivoAlCliente(data.preventivoAlCliente, idPreventivo)]
+      : [];
+    const results = await Promise.all([
+      ...serviziATerraPromises,
+      ...serviziAggiuntiviPromises,
+      ...voliPromises,
+      ...assicurazioniPromises,
+      ...preventivoAlClientePromises,
+    ])
+      .then((results) => ({
+        values: results,
+        success: true,
+        errorsMessage: "",
+      }))
+      .catch((error) => {
+        console.error("Database Error in submitCreatePreventivoGI: " + error);
+        return {
+          success: false,
+          errorsMessage: "Database Error in submitCreatePreventivoGI: " + error,
+          values: res,
+        };
+      });
     return results;
   } catch (error) {
     console.error("Database Error in submitCreatePreventivoGI: " + error);
@@ -501,7 +596,9 @@ export const addFundamentalEntity = async (
     value: value,
   });
   if (!parsedData.success) {
-    console.error("Failed to add Fundamental Entity due to a validation error.");
+    console.error(
+      "Failed to add Fundamental Entity due to a validation error."
+    );
     return {
       success: false,
       errorsMessage:
@@ -512,7 +609,7 @@ export const addFundamentalEntity = async (
   }
   try {
     const query = `INSERT INTO ${parsedData.data.tableName} (nome) VALUES ($1) RETURNING *;`;
-    const result = await sql.query(query, [parsedData.data.value]);
+    const result = await pool.query(query, [parsedData.data.value]);
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in addFundamentalEntity: " + error);
@@ -528,8 +625,10 @@ export const addFundamentalEntity = async (
 // ## GET DESTINAZIONE BY ID
 export const getDestinazioneById = async (id_destinazione: string) => {
   try {
-    const result =
-      await sql`SELECT * FROM destinazioni WHERE id = ${id_destinazione}`;
+    const result = await pool.query(
+      `SELECT * FROM destinazioni WHERE id = $1`,
+      [id_destinazione]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in getDestinazioneById: " + error);
@@ -543,8 +642,9 @@ export const getDestinazioneById = async (id_destinazione: string) => {
 };
 export const getFornitoreById = async (id_fornitore: string) => {
   try {
-    const result =
-      await sql`SELECT * FROM fornitori WHERE id = ${id_fornitore}`;
+    const result = await pool.query(`SELECT * FROM fornitori WHERE id = $1`, [
+      id_fornitore,
+    ]);
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error in getFornitoreById: " + error);
@@ -588,23 +688,29 @@ export const updateCliente = async (
     };
   }
   try {
-    await sql`
-    UPDATE clienti SET 
-    nome = ${parsedData.data.nome}, 
-    cognome = ${parsedData.data.cognome}, 
-    note = ${parsedData.data.note}, 
-    tipo = ${parsedData.data.tipo}, 
-    data_di_nascita = ${parsedData.data.data_di_nascita}, 
-    tel = ${parsedData.data.tel}, 
-    email = ${parsedData.data.email}, 
-    citta = ${parsedData.data.citta}, 
-    collegato = ${parsedData.data.collegato}, 
-    provenienza = ${parsedData.data.provenienza},
-    indirizzo = ${parsedData.data.indirizzo},
-    CAP = ${parsedData.data.cap},
-    CF = ${parsedData.data.cf}
-    WHERE id = ${id}
-    `;
+    await pool.query(
+      `
+    UPDATE clienti
+    SET nome = $1, cognome = $2, note = $3, tipo = $4, data_di_nascita = $5, tel = $6, email = $7, citta = $8, collegato = $9, provenienza = $10, indirizzo = $11, CAP = $12, CF = $13
+    WHERE id = $14
+`,
+      [
+        parsedData.data.nome,
+        parsedData.data.cognome,
+        parsedData.data.note,
+        parsedData.data.tipo,
+        parsedData.data.data_di_nascita,
+        parsedData.data.tel,
+        parsedData.data.email,
+        parsedData.data.citta,
+        parsedData.data.collegato,
+        parsedData.data.provenienza,
+        parsedData.data.indirizzo,
+        parsedData.data.cap,
+        parsedData.data.cf,
+        id,
+      ]
+    );
     return {
       success: true,
       values: parsedData.data,
@@ -621,6 +727,7 @@ export const updateCliente = async (
     };
   }
 };
+
 export const updatePreventivo = async (
   p: PreventivoInputGroup,
   idCliente: string
@@ -650,22 +757,39 @@ export const updatePreventivo = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     UPDATE preventivi SET 
-    note = ${parsedData.data.note}, 
-    brand = ${parsedData.data.brand},
-    percentuale_ricarico = ${parsedData.data.percentuale_ricarico},
-    riferimento = ${parsedData.data.riferimento}, 
-    operatore = ${parsedData.data.operatore}, 
-    feedback = ${parsedData.data.feedback}, 
-    adulti = ${parsedData.data.adulti}, 
-    bambini = ${parsedData.data.bambini}, 
-    data_partenza = ${parsedData.data.data_partenza}, 
-    data = ${parsedData.data.data}, 
-    numero_preventivo = ${parsedData.data.numero_preventivo}, 
-    stato = ${parsedData.data.stato}
-    WHERE id = ${p.id}
-  `;
+    note = $1, 
+    brand = $2,
+    percentuale_ricarico = $3,
+    riferimento = $4, 
+    operatore = $5, 
+    feedback = $6, 
+    adulti = $7, 
+    bambini = $8, 
+    data_partenza = $9, 
+    data = $10, 
+    numero_preventivo = $11, 
+    stato = $12
+    WHERE id = $13
+  `,
+      [
+        parsedData.data.note,
+        parsedData.data.brand,
+        parsedData.data.percentuale_ricarico,
+        parsedData.data.riferimento,
+        parsedData.data.operatore,
+        parsedData.data.feedback,
+        parsedData.data.adulti,
+        parsedData.data.bambini,
+        parsedData.data.data_partenza,
+        parsedData.data.data,
+        parsedData.data.numero_preventivo,
+        parsedData.data.stato,
+        p.id,
+      ]
+    );
     return { values: result.rows[0], success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error: Failed to Update Preventivo: " + error);
@@ -707,7 +831,9 @@ export const updateServiziATerra = async (
     servizio_aggiuntivo: s.servizio_aggiuntivo,
   });
   if (!parsedData.success) {
-    console.error("Failed to Update Servizio a Terra due to a validation error.");
+    console.error(
+      "Failed to Update Servizio a Terra due to a validation error."
+    );
     return {
       values: parsedData.data,
       success: false,
@@ -716,20 +842,35 @@ export const updateServiziATerra = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     UPDATE servizi_a_terra SET 
-    id_fornitore = ${id_fornitore},
-    id_destinazione = ${id_destinazione},
-    descrizione = ${parsedData.data.descrizione}, 
-    data = ${parsedData.data.data}, 
-      numero_notti = ${parsedData.data.numero_notti}, 
-    numero_camere = ${parsedData.data.numero_camere},
-    totale = ${parsedData.data.totale}, 
-    valuta = ${parsedData.data.valuta}, 
-    cambio = ${parsedData.data.cambio}, 
-    servizio_aggiuntivo = ${parsedData.data.servizio_aggiuntivo}
-    WHERE id = ${s.id}
-  `;
+    id_fornitore = $1,
+    id_destinazione = $2,
+    descrizione = $3, 
+    data = $4, 
+      numero_notti = $5, 
+    numero_camere = $6,
+    totale = $7, 
+    valuta = $8, 
+    cambio = $9, 
+    servizio_aggiuntivo = $10
+    WHERE id = $11
+  `,
+      [
+        id_fornitore,
+        id_destinazione,
+        parsedData.data.descrizione,
+        parsedData.data.data,
+        parsedData.data.numero_notti,
+        parsedData.data.numero_camere,
+        parsedData.data.totale,
+        parsedData.data.valuta,
+        parsedData.data.cambio,
+        parsedData.data.servizio_aggiuntivo,
+        s.id,
+      ]
+    );
     return {
       values: result.rows[0],
       success: true,
@@ -756,7 +897,7 @@ export const updateVoli = async (
   }
   const parsedData = schemas.UpdateVoloSchema.safeParse({
     id_fornitore: id_fornitore,
-    compagnia_aerea: v.compagnia,
+    compagnia_aerea: v.compagnia_aerea,
     descrizione: v.descrizione,
     data_partenza: v.data_partenza,
     data_arrivo: v.data_arrivo,
@@ -776,20 +917,35 @@ export const updateVoli = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     UPDATE voli SET 
-    id_fornitore = ${id_fornitore},
-    compagnia_aerea = ${parsedData.data.compagnia_aerea}, 
-    descrizione = ${parsedData.data.descrizione}, 
-    data_partenza = ${parsedData.data.data_partenza}, 
-    data_arrivo = ${parsedData.data.data_arrivo}, 
-    totale = ${parsedData.data.totale}, 
-    ricarico = ${parsedData.data.ricarico},
-    numero = ${parsedData.data.numero},
-    valuta = ${parsedData.data.valuta}, 
-    cambio = ${parsedData.data.cambio}
-    WHERE id = ${v.id}
-  `;
+    id_fornitore = $1,
+    compagnia_aerea = $2, 
+    descrizione = $3, 
+    data_partenza = $4, 
+    data_arrivo = $5, 
+    totale = $6, 
+    ricarico = $7,
+    numero = $8,
+    valuta = $9, 
+    cambio = $10
+    WHERE id = $11
+  `,
+      [
+        id_fornitore,
+        parsedData.data.compagnia_aerea,
+        parsedData.data.descrizione,
+        parsedData.data.data_partenza,
+        parsedData.data.data_arrivo,
+        parsedData.data.totale,
+        parsedData.data.ricarico,
+        parsedData.data.numero,
+        parsedData.data.valuta,
+        parsedData.data.cambio,
+        v.id,
+      ]
+    );
     return {
       values: result.rows[0],
       success: true,
@@ -830,15 +986,25 @@ export const updateAssicurazioni = async (
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     UPDATE assicurazioni SET 
-    id_fornitore = ${id_fornitore},
-    assicurazione = ${parsedData.data.assicurazione}, 
-    netto = ${parsedData.data.netto},
-    ricarico = ${parsedData.data.ricarico},
-    numero = ${parsedData.data.numero}
-    WHERE id = ${a.id}
-  `;
+    id_fornitore = $1,
+    assicurazione = $2, 
+    netto = $3,
+    ricarico = $4,
+    numero = $5
+    WHERE id = $6
+  `,
+      [
+        id_fornitore,
+        parsedData.data.assicurazione,
+        parsedData.data.netto,
+        parsedData.data.ricarico,
+        parsedData.data.numero,
+        a.id,
+      ]
+    );
     return {
       values: result.rows[0],
       success: true,
@@ -859,33 +1025,44 @@ export const updatePreventivoAlClienteDescrizione = async (
 ): Promise<DBResult<PreventivoAlClienteInputGroup>> => {
   const parsedData = schemas.UpdatePreventivoAlClienteSchema.safeParse({
     id: p.id,
-    descrizione_viaggio: p.descrizione_viaggio,
+    descrizione_viaggio: sanitizeString(p.descrizione_viaggio),
   });
+
   if (!parsedData.success) {
-    console.error("Failed to Update Preventivo Al Cliente due to a validation error.");
+    console.error(
+      "Failed to Update Preventivo Al Cliente due to a validation error."
+    );
     return {
       success: false,
-      errorsMessage: "Failed to Update Preventivo Al Cliente due to a validation error.",
+      errorsMessage:
+        "Failed to Update Preventivo Al Cliente due to a validation error.",
       errors: parsedData.error.flatten().fieldErrors,
       values: parsedData.data,
     };
   }
+
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     UPDATE preventivi_al_cliente SET 
-    descrizione_viaggio = ${parsedData.data.descrizione_viaggio}
-    WHERE id = ${p.id}
-  `;
+    descrizione_viaggio = $1
+    WHERE id = $2
+  `,
+      [parsedData.data.descrizione_viaggio, p.id]
+    );
     return {
       success: true,
       values: result.rows[0],
       errorsMessage: "",
     };
   } catch (error) {
-    console.error("Database Error: Failed to Update Preventivo Al Cliente: " + error);
+    console.error(
+      "Database Error: Failed to Update Preventivo Al Cliente: " + error
+    );
     return {
       success: false,
-      errorsMessage: "Database Error: Failed to Update Preventivo Al Cliente: " + error,
+      errorsMessage:
+        "Database Error: Failed to Update Preventivo Al Cliente: " + error,
     };
   }
 };
@@ -905,35 +1082,52 @@ export const updatePreventivoAlClienteRow = async (
     numero: p.numero,
   });
   if (!parsedData.success) {
-    console.error("Failed to Update Preventivo Al Cliente Row due to a validation error.");
+    console.error(
+      "Failed to Update Preventivo Al Cliente Row due to a validation error."
+    );
     return {
       success: false,
-      errorsMessage: "Failed to Update Preventivo Al Cliente Row due to a validation error.",
+      errorsMessage:
+        "Failed to Update Preventivo Al Cliente Row due to a validation error.",
       errors: parsedData.error.flatten().fieldErrors,
       values: parsedData.data,
     };
   }
   try {
-    const result = await sql`
+    const result = await pool.query(
+      `
     UPDATE preventivi_al_cliente_row SET 
-    id_preventivo_al_cliente = ${id_preventivo_al_cliente},
-    senza_assicurazione = ${senza_assicurazione},
-    destinazione = ${parsedData.data.destinazione},
-    descrizione = ${parsedData.data.descrizione},
-    individuale = ${parsedData.data.individuale},
-    numero = ${parsedData.data.numero}
-    WHERE id = ${p.id}
-    `;
+    id_preventivo_al_cliente = $1,
+    senza_assicurazione = $2,
+    destinazione = $3,
+    descrizione = $4,
+    individuale = $5,
+    numero = $6
+    WHERE id = $7
+  `,
+      [
+        parsedData.data.id_preventivo_al_cliente,
+        parsedData.data.senza_assicurazione,
+        parsedData.data.destinazione,
+        parsedData.data.descrizione,
+        parsedData.data.individuale,
+        parsedData.data.numero,
+        p.id,
+      ]
+    );
     return {
       success: true,
       values: result.rows[0],
       errorsMessage: "",
     };
   } catch (error) {
-    console.error("Database Error: Failed to Update Preventivo Al Cliente Row: " + error);
+    console.error(
+      "Database Error: Failed to Update Preventivo Al Cliente Row: " + error
+    );
     return {
       success: false,
-      errorsMessage: "Database Error: Failed to Update Preventivo Al Cliente Row: " + error,
+      errorsMessage:
+        "Database Error: Failed to Update Preventivo Al Cliente Row: " + error,
     };
   }
 };
@@ -941,142 +1135,54 @@ export const updatePreventivoAlClienteRow = async (
 export const searchClienti = async (
   c: ClienteInputGroup
 ): Promise<ClienteInputGroup[]> => {
-  const clientiByNome = await fetchFilteredClienti(c.nome, 1);
-  const clientiByCognome = await fetchFilteredClienti(c.cognome, 1);
-  const clientiByEmail = await fetchFilteredClienti(c.email, 1);
-  const clientiByTel = await fetchFilteredClienti(c.tel, 1);
-  const clientiByCitta = await fetchFilteredClienti(c.citta, 1);
-  const clientiByCollegato = await fetchFilteredClienti(c.collegato, 1);
-  const clientiByProvenienza = await fetchFilteredClienti(c.provenienza, 1);
-  const clientiByTipo = await fetchFilteredClienti(c.tipo, 1);
-  const clientiByIndirizzo = await fetchFilteredClienti(c.indirizzo, 1);
-  const clientiByCap = await fetchFilteredClienti(c.cap, 1);
-  const clientiByCf = await fetchFilteredClienti(c.cf, 1);
-  const clientiByDataDiNascita = await fetchFilteredClienti(
-    moment(c.data_di_nascita).format("YYYY-MM-DD"),
-    1
-  );
-  const allClienti = [
-    ...clientiByNome.values,
-    ...clientiByCognome.values,
-    ...clientiByEmail.values,
-    ...clientiByTel.values,
-    ...clientiByCitta.values,
-    ...clientiByCollegato.values,
-    ...clientiByProvenienza.values,
-    ...clientiByTipo.values,
-    ...clientiByIndirizzo.values,
-    ...clientiByCap.values,
-    ...clientiByCf.values,
-    ...clientiByDataDiNascita.values,
-  ];
+  try {
+    const allClienti = await Promise.all([
+      fetchFilteredClienti(c.nome, 1),
+      fetchFilteredClienti(c.cognome, 1),
+      fetchFilteredClienti(c.email, 1),
+    ]);
+    const clienti = Array.from(
+      new Map(
+        [...allClienti.values()]
+          .flat()
+          .map((r) => r.values)
+          .flat()
+          .map((r) => [r.id, r])
+      ).values()
+    );
 
-  /*//console.log(
-    "clientiByNome: ",
-    clientiByNome,
-    "clientiByCognome: ",
-    clientiByCognome,
-    "clientiByEmail: ",
-    clientiByEmail,
-    "clientiByTel: ",
-    clientiByTel,
-    "clientiByCitta: ",
-    clientiByCitta,
-    "clientiByCollegato: ",
-    clientiByCollegato,
-    "clientiByProvenienza: ",
-    clientiByProvenienza,
-    "clientiByTipo: ",
-    clientiByTipo
-  );
-*/
-  // Get sets of IDs from each list
-  const allIds = new Set(allClienti.map((cliente) => cliente.id));
-  const idsByNome = c.nome
-    ? new Set(clientiByNome.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByCognome = c.cognome
-    ? new Set(clientiByCognome.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByEmail = c.email
-    ? new Set(clientiByEmail.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByTel = c.tel
-    ? new Set(clientiByTel.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByCitta = c.citta
-    ? new Set(clientiByCitta.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByCollegato = c.collegato
-    ? new Set(clientiByCollegato.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByProvenienza = c.provenienza
-    ? new Set(clientiByProvenienza.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByTipo = c.tipo
-    ? new Set(clientiByTipo.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByIndirizzo = c.indirizzo
-    ? new Set(clientiByIndirizzo.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByCap = c.cap
-    ? new Set(clientiByCap.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByCf = c.cf
-    ? new Set(clientiByCf.values.map((cliente) => cliente.id))
-    : allIds;
-  const idsByDataDiNascita = c.data_di_nascita
-    ? new Set(clientiByDataDiNascita.values.map((cliente) => cliente.id))
-    : allIds;
-
-  // Compute the intersection of the IDs
-  const intersectedIds = [...allIds].filter(
-    (id) =>
-      idsByNome.has(id) &&
-      idsByCognome.has(id) &&
-      idsByEmail.has(id) &&
-      idsByTel.has(id) &&
-      idsByCitta.has(id) &&
-      idsByCollegato.has(id) &&
-      idsByProvenienza.has(id) &&
-      idsByTipo.has(id) &&
-      idsByIndirizzo.has(id) &&
-      idsByCap.has(id) &&
-      idsByCf.has(id) &&
-      idsByDataDiNascita.has(id)
-  );
-
-  ////console.log("intersectedIds: ", intersectedIds);
-
-  // Retrieve the clients corresponding to the intersected IDs
-  const clientiMap = new Map<string, Cliente>();
-  for (const cliente of allClienti) {
-    if (intersectedIds.includes(cliente.id)) {
-      clientiMap.set(cliente.id, cliente);
+    // Write to a temp file that can be read with fx
+    const dir = "./json-test";
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
-  }
+    fs.writeFileSync(
+      `${dir}/allClienti.json`,
+      JSON.stringify(clienti, null, 2)
+    );
 
-  const intersectedClienti = Array.from(clientiMap.values()).map(
-    (c) =>
-      new ClienteInputGroup(
-        c.nome,
-        c.cognome,
-        c.note,
-        c.citta,
-        c.collegato,
-        c.tipo,
-        c.data_di_nascita,
-        c.tel,
-        c.email,
-        c.provenienza,
-        c.indirizzo,
-        c.cap,
-        c.cf,
-        c.id
-      )
-  );
-  //console.log("intersectedClienti: ", intersectedClienti);
-  return intersectedClienti;
+    return clienti.map(
+      (c) =>
+        new ClienteInputGroup(
+          c.nome,
+          c.cognome,
+          c.note,
+          c.citta,
+          c.collegato,
+          c.tipo,
+          c.data_di_nascita,
+          c.tel,
+          c.email,
+          c.provenienza,
+          c.indirizzo,
+          c.cap,
+          c.cf,
+          c.id
+        )
+    );
+  } catch (error) {
+    console.error("Database Error in searchClienti:", error);
+  }
 };
 
 /** AUTHENTICATION */
@@ -1105,14 +1211,11 @@ export async function _signOut() {
 }
 
 export async function createUser(
-  prevState: State<{ name?: string[]; email?: string[]; password?: string[] }>,
+  prevState: State<{email?: string[]; password?: string[] }>,
   formData: FormData
 ) {
   const parsedData = z
     .object({
-      name: z.string({ invalid_type_error: "Please enter a username" }).min(4, {
-        message: "The username should be at least 4 characters long",
-      }),
       email: z
         .string({ invalid_type_error: "Please entre an email" })
         .email({ message: "Please enter an email" }),
@@ -1123,7 +1226,6 @@ export async function createUser(
         }),
     })
     .safeParse({
-      name: formData.get("name"),
       email: formData.get("email"),
       password: formData.get("password"),
     });
@@ -1140,10 +1242,13 @@ export async function createUser(
   const hashedPassword = await bcrypt.hash(parsedData.data.password, 10);
 
   try {
-    await sql`
-    INSERT INTO users (name, email, password)
-    VALUES (${parsedData.data.name}, ${parsedData.data.email}, ${hashedPassword})
-  `;
+    await pool.query(
+      `
+    INSERT INTO users (email, password)
+    VALUES ($1, $2)
+`,
+      [parsedData.data.email, hashedPassword]
+    );
     return {
       ...prevState,
       message: "User created successfully",
@@ -1161,36 +1266,42 @@ export async function createUser(
 // #### DELETE BY ID ####
 export const deleteServizioATerraById = async (id: string): Promise<void> => {
   try {
-    await sql.query(`DELETE FROM servizi_a_terra WHERE id = $1`, [id]);
+    await pool.query(`DELETE FROM servizi_a_terra WHERE id = $1`, [id]);
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to delete servizio a terra by id.");
   }
 };
+
 export const deleteVoloById = async (id: string): Promise<void> => {
   try {
-    await sql.query(`DELETE FROM voli WHERE id = $1`, [id]);
+    await pool.query(`DELETE FROM voli WHERE id = $1`, [id]);
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to delete volo by id.");
   }
 };
+
 export const deleteAssicurazioneById = async (id: string): Promise<void> => {
   try {
-    await sql.query(`DELETE FROM assicurazioni WHERE id = $1`, [id]);
+    await pool.query(`DELETE FROM assicurazioni WHERE id = $1`, [id]);
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to delete assicurazione by id.");
   }
 };
-export const deletePreventivoAlClienteRowById = async (id: string): Promise<void> => {
+
+export const deletePreventivoAlClienteRowById = async (
+  id: string
+): Promise<void> => {
   try {
-    await sql.query(`DELETE FROM preventivi_al_cliente_row WHERE id = $1`, [id]);
+    await pool.query(`DELETE FROM preventivi_al_cliente_row WHERE id = $1`, [id]);
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to delete preventivo al cliente row by id.");
   }
 };
+
 export const setOptionsJson = async () => {
   const fornitori = await fetchAllFornitori();
   const banche = await fetchAllBanche();

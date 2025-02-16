@@ -76,7 +76,6 @@ export default function CreaPreventivoGeneralInterface() {
         } finally {
             setIsSearchingClienti(false);
             setShowClientiTrovati(true);
-            console.log('isActiveSpinner? ', isActiveSpinner);
         }
     }, 500)
 
@@ -973,7 +972,7 @@ export default function CreaPreventivoGeneralInterface() {
                                             <div className="flex flex-row justify-between">
                                                 <div className="flex flex-row">
                                                     <InputLookup onChange={(e) => onVCVolo(e, volo.groupId, 'fornitore')} defaultValue={volo?.fornitore} label={i == 0 ? 'Fornitore' : ''} name="fornitore" options={fornitoriOptions} />
-                                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia} label={i == 0 ? 'Compagnia' : ''} name="compagnia" />
+                                                    <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'compagnia')} value={volo?.compagnia_aerea} label={i == 0 ? 'Compagnia' : ''} name="compagnia" />
                                                     <InputText onChange={(e) => onVCVolo(e, volo.groupId, 'descrizione')} value={volo?.descrizione} label={i == 0 ? 'Descrizione' : ''} name="descrizione" />
                                                     <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_partenza')} value={volo?.data_partenza ? moment(volo?.data_partenza).format('YYYY-MM-DD') : ''} label={i == 0 ? 'Partenza' : ''} name="data_partenza" />
                                                     <InputDate onChange={(e) => onVCVolo(e, volo.groupId, 'data_arrivo')} value={volo?.data_arrivo ? moment(volo?.data_arrivo).format('YYYY-MM-DD') : ''} label={i == 0 ? 'Arrivo' : ''} name="data_arrivo" />

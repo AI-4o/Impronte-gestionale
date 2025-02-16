@@ -56,8 +56,8 @@ export class PreventivoInputGroup {
         this.operatore = operatore ?? undefined;
         this.feedback = feedback ?? undefined;
         this.note = note ?? undefined;
-        this.adulti = adulti ?? undefined;
-        this.bambini = bambini ?? undefined;
+        this.adulti = adulti ?? 0;
+        this.bambini = bambini ?? 0;
         this.data_partenza = data_partenza ?? undefined;
         this.data = data ?? undefined;
         this.stato = stato ?? undefined;
@@ -85,11 +85,11 @@ export class ServizioATerraInputGroup {
         this.fornitore = fornitore ?? undefined;
         this.descrizione = descrizione ?? undefined;
         this.data = data ?? undefined;
-        this.numero_notti = numero_notti ?? undefined;
-        this.numero_camere = numero_camere ?? undefined;
+        this.numero_notti = numero_notti ?? 0;
+        this.numero_camere = numero_camere ?? 0;
         this.valuta = valuta ?? undefined;
-        this.totale = totale ?? undefined;
-        this.cambio = cambio ?? undefined;
+        this.totale = totale ?? 0;
+        this.cambio = cambio ?? 1;
         this.servizio_aggiuntivo = servizio_aggiuntivo ?? undefined;
     }
 }
@@ -98,7 +98,7 @@ export class VoloInputGroup {
     constructor(
         public groupId: number,
         public fornitore?: string,
-        public compagnia?: string,
+        public compagnia_aerea?: string,
         public descrizione?: string,
         public data_partenza?: Date,
         public data_arrivo?: Date,
@@ -111,15 +111,15 @@ export class VoloInputGroup {
     ) { 
         this.id = id ?? undefined;
         this.fornitore = fornitore ?? undefined;
-        this.compagnia = compagnia ?? undefined;
+        this.compagnia_aerea = compagnia_aerea ?? undefined;
         this.descrizione = descrizione ?? undefined;
         this.data_partenza = data_partenza ?? undefined;
         this.data_arrivo = data_arrivo ?? undefined;
-        this.totale = totale ?? undefined;
-        this.ricarico = ricarico ?? undefined;
-        this.numero = numero ?? undefined;
+        this.totale = totale ?? 0;
+        this.ricarico = ricarico ?? 0;
+        this.numero = numero ?? 0;
         this.valuta = valuta ?? undefined;
-        this.cambio = cambio ?? undefined;
+        this.cambio = cambio ?? 1;
     }
 }
 // assicurazioni interface for storing input group values
@@ -136,9 +136,9 @@ export class AssicurazioneInputGroup {
         this.id = id ?? undefined;
         this.fornitore = fornitore ?? undefined;
         this.assicurazione = assicurazione ?? undefined;
-        this.netto = netto ?? undefined;
-        this.ricarico = ricarico ?? undefined;
-        this.numero = numero ?? undefined;
+        this.netto = netto ?? 0;
+        this.ricarico = ricarico ?? 0;
+        this.numero = numero ?? 0;
     }
 }
 
@@ -155,8 +155,8 @@ export class PreventivoAlClienteRow {
         this.id = id ?? undefined;
         this.destinazione = destinazione ?? undefined;
         this.descrizione = descrizione ?? undefined;
-        this.individuale = individuale ?? undefined;
-        this.numero = numero ?? undefined;
+        this.individuale = individuale ?? 0;
+        this.numero = numero ?? 0;
     }
 }
 export class PreventivoAlClienteInputGroup {
