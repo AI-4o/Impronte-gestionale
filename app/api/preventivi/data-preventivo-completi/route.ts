@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
       fetchPreventivoAlClienteByPreventivoId(preventivoId)
     ]);
 
+    console.log("assicurazioni:JMHNGBIFUVTYCR&X%  ", assicurazioni);
+    
     // if any of the fetching fails, return the error
     if(!serviziATerra.success || !serviziAggiuntivi.success || !voli.success || !assicurazioni.success || !preventivoAlCliente.success) {
       [serviziATerra, serviziAggiuntivi, voli, assicurazioni].forEach(s => {
@@ -127,7 +129,7 @@ const getVoliInputGroup = async (voli: any[]): Promise<VoloInputGroup[]> => {
       const iG = new VoloInputGroup(
         i,
         fornitore,
-        voli[i]?.compagnia,
+        voli[i]?.compagnia_aerea,
         voli[i]?.descrizione,
         voli[i]?.data_partenza,
         voli[i]?.data_arrivo,
@@ -138,6 +140,7 @@ const getVoliInputGroup = async (voli: any[]): Promise<VoloInputGroup[]> => {
         voli[i]?.cambio,
         voli[i]?.id
     );
+    console.log("iG: ", iG);
     res.push(iG);
   }
   return res;

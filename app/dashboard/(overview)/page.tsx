@@ -7,6 +7,13 @@ export default async function ChangelogPage() {
 
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
 
+      <p className='version-paragraph'>v2.6.0</p>
+      <ul>
+        <li>Feat: add signup page for testing user-specific custom settings.</li>
+        <li>Feat: add user-specific custom settings - table config.</li>
+        <li>Feat: add user-specific custom settings - operatore config.</li>
+        <li>Feat: migration to new DB, deployment on domain.</li>
+      </ul>
       <p className='version-paragraph'>v2.5.0</p>
       <ul>
         <li>Feat: add first sketch of data table about preventivi.</li>

@@ -114,14 +114,14 @@ export const UpdateVoloSchema = z.object({
 export const AssicurazioneSchema = z.object({
   id_preventivo: z.string(),
   id_fornitore: z.string().nullable().optional(),
-  assicurazione: z.string(),
+  assicurazione: z.string().optional(),
   netto: z.number().optional(),
   ricarico: z.number().optional(),
   numero: z.number().optional()
 });
 export const UpdateAssicurazioneSchema = z.object({
   id_fornitore: z.string().nullable().optional(),
-  assicurazione: z.string(),
+  assicurazione: z.string().optional(),
   netto: z.number().optional(),
   ricarico: z.number().optional(),
   numero: z.number().optional()
