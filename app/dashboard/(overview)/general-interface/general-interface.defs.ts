@@ -14,6 +14,13 @@ export class ClienteInputGroup {
         public indirizzo?: string,
         public cap?: string,
         public cf?: string,
+        public luogo_nascita?: string,
+        public provincia_nascita?: string,
+        public numero_passaporto?: string,
+        public data_scadenza_passaporto?: Date,
+        public nazionalita?: string,
+        public provincia?: string,
+        public sesso?: 'M' | 'F',
         public id?: string,
     ) { 
         this.id = id ?? undefined;
@@ -30,6 +37,13 @@ export class ClienteInputGroup {
         this.indirizzo = indirizzo ?? undefined;
         this.cap = cap ?? undefined;
         this.cf = cf ?? undefined;
+        this.luogo_nascita = luogo_nascita ?? undefined;
+        this.provincia_nascita = provincia_nascita ?? undefined;
+        this.numero_passaporto = numero_passaporto ?? undefined;
+        this.data_scadenza_passaporto = data_scadenza_passaporto ?? undefined;
+        this.nazionalita = nazionalita ?? undefined;
+        this.provincia = provincia ?? undefined;
+        this.sesso = sesso ?? undefined;
     }
 }
 // preventivo cliente interface
@@ -47,6 +61,8 @@ export class PreventivoInputGroup {
         public data_partenza?: Date,
         public data?: Date,
         public stato?: 'da fare' | 'in trattativa' | 'confermato' | 'inviato',
+        public destinazione?: string,
+        public tipo_viaggio?: 'viaggio di nozze' | 'viaggio di lavoro' | 'altro',
         public id?: string,
     ) { 
         this.numero_preventivo = numero_preventivo ?? '0';
@@ -61,6 +77,8 @@ export class PreventivoInputGroup {
         this.data_partenza = data_partenza ?? undefined;
         this.data = data ?? undefined;
         this.stato = stato ?? undefined;
+        this.destinazione = destinazione ?? undefined;
+        this.tipo_viaggio = tipo_viaggio ?? undefined;
         this.id = id ?? undefined;
     }
 }

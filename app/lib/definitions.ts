@@ -24,39 +24,45 @@ export interface Cliente extends Entity {
   nome?: string;
   cognome?: string;
   tel?: string;
-  email?: string;
-  tipo?: string;
-  provenienza?:string;
-  collegato?: string;
+  indirizzo?: string;
+  CAP?: string;
   citta?: string;
+  CF?: string;
+  email: string;
+  tipo?: 'PRIVATO' | 'AGENZIA VIAGGI' | 'AZIENDA';
+  provenienza?: 'Passaparola' | 'Sito IWS' | 'Sito INO' | 'Telefono' | 'Email Diretta' | 'Sito ISE';
+  collegato?: string;
   note?: string;
   data_di_nascita?: Date;
-  indirizzo?: string;
-  cap?: string;
-  cf?: string;
+  luogo_nascita?: string;
+  provincia_nascita?: string;
+  numero_passaporto?: string;
+  data_scadenza_passaporto?: Date;
+  nazionalita?: string;
+  provincia?: string;
+  sesso?: 'M' | 'F';
 }
 export interface Fornitore extends Entity {
   nome: string;
   valuta?: string;
 }
-export interface Preventivo extends Entity{
+export interface Preventivo extends Entity {
   id_cliente: string;
   percentuale_ricarico?: number;
-  email: string;
-  numero_di_telefono?: string;
-  id_fornitore?: string;
   note?: string;
+  brand?: string;
   adulti?: number;
   bambini?: number;
+  destinazione?: string;
+  tipo_viaggio?: 'viaggio di nozze' | 'viaggio di lavoro' | 'altro';
+  note_operative?: string;
   riferimento?: string;
   data_partenza?: Date;
-  brand?: string;
   operatore?: string;
   feedback?: string;
-  stato?: string;
+  stato?: 'da fare' | 'in trattativa' | 'confermato' | 'inviato';
   data?: Date;
   numero_preventivo?: string;
-  confermato?: boolean;
 }
 export interface ServizioATerra extends Entity{
   id_preventivo: string;

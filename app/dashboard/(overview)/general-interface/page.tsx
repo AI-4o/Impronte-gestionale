@@ -46,6 +46,11 @@ export default function CreaPreventivoGeneralInterface() {
         'confermato',
         'inviato'
     ]
+    const tipoViaggioOptions = [
+    {value: "viaggio_di_nozze", name: "viaggio di nozze"},
+    {value: "viaggio_di_lavoro", name: "viaggio di lavoro"},
+    {value: "altro", name: "altro"}
+    ]
     const brandOptions = brandValues.brand;
     const operatoreOptions = operatoriValues.operatori;
     const valuteOptions = valuteValues.valute;
@@ -312,7 +317,7 @@ export default function CreaPreventivoGeneralInterface() {
     }
 
     // feedbacks del form
-    const [feedback, setFeedback] = useState<{success: true} | null>(null);
+    const [feedback, setFeedback] = useState<{ success: true } | null>(null);
     // errors list
     const [errorsList, setErrorsList] = useState<string[]>([]);
 
@@ -431,6 +436,7 @@ export default function CreaPreventivoGeneralInterface() {
 
     const onClickMostraListaPreventivi = async (c: ClienteInputGroup) => {
         setIsActiveSpinner(true);
+        console.log('the cliente state is: ', c);
         const response = await fetch('/api/preventivi/preventivi-by-cliente', {
             method: 'POST',
             headers: {
@@ -494,37 +500,43 @@ export default function CreaPreventivoGeneralInterface() {
     /** Call api to create a preventivo and set the feedback */
     const submitCreatePreventivo = async () => {
         setErrorsList([]);
-        const data: Data = {
-            cliente: cliente,
-            preventivo: preventivo,
-            serviziATerra: serviziATerra,
-            serviziAggiuntivi: serviziAggiuntivi,
-            voli: voli,
-            assicurazioni: assicurazioni,
-            preventivoAlCliente: preventivoAlCliente
+
+        if (preventivo.id) {
+
         }
-        const errors = dataErrors(data);
-        if (errors.length == 0) { // all required fields are filled -> CALL API
-            setIsActiveSpinner(true);
-            try {
-                const response = await fetch('/api/preventivi/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
-                await response.json();
-                showOperationSuccessfull();
-                setShowFormPreventivo(false);
-            } catch (error) {
-                setErrorsList(['Errore nella chiamata: ' + error.toString()]);
+        else {
+            const data: Data = {
+                cliente: cliente,
+                preventivo: preventivo,
+                serviziATerra: serviziATerra,
+                serviziAggiuntivi: serviziAggiuntivi,
+                voli: voli,
+                assicurazioni: assicurazioni,
+                preventivoAlCliente: preventivoAlCliente
             }
-            finally {
-                setIsActiveSpinner(false);
+            const errors = dataErrors(data);
+            if (errors.length == 0) { // all required fields are filled -> CALL API
+                setIsActiveSpinner(true);
+                try {
+                    const response = await fetch('/api/preventivi/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+                    await response.json();
+                    showOperationSuccessfull();
+                    setShowFormPreventivo(false);
+                } catch (error) {
+                    setErrorsList(['Errore nella chiamata: ' + error.toString()]);
+                }
+                finally {
+                    setIsActiveSpinner(false);
+                }
+            } else {
+                setErrorsList(errors);
             }
-        } else {
-            setErrorsList(errors);
         }
     }
 
@@ -563,8 +575,8 @@ export default function CreaPreventivoGeneralInterface() {
                 await fetch('/api/preventivi/update', {
                     method: 'POST',
                     headers: {
-                    'Content-Type': 'application/json',
-                },
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(data),
                 });
                 showOperationSuccessfull();
@@ -582,7 +594,7 @@ export default function CreaPreventivoGeneralInterface() {
 
     const showOperationSuccessfull = () => {
         setTimeout(() => {
-            setFeedback({success: true});
+            setFeedback({ success: true });
         }, 200);
         setTimeout(() => {
             setErrorsList([]);
@@ -594,6 +606,8 @@ export default function CreaPreventivoGeneralInterface() {
         console.log('the cliente state is: ', cliente);
         setShowFormAggiornaCliente(false);
         setShowPreventiviClienteList(false);
+        setShowClientiTrovati(false);
+        setShowFormPreventivo(false);
         setErrorsList([]);
     }, [cliente]);
     useEffect(() => {
@@ -649,23 +663,35 @@ export default function CreaPreventivoGeneralInterface() {
     }, [preventivoAlCliente]);
     return (
         <div className='flex flex-col'>
-            {feedback && <Feedback<any> result={feedback}/>}
+            {feedback && <Feedback<any> result={feedback} />}
             <div className="general-interface-container">
                 <h1 className={`mb-4 text-xl md:text-2xl`}>GENERAL INTERFACE PREVENTIVO</h1>
                 {/* Cliente */}
                 <div>
-                    <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
+                    <div className="flex flex-row items-center">
+                        <h3 className="text-xl md:text-2xl pt-4 pb-1">Cliente</h3>
+                        <button className="bg-blue-500 text-white mt-3 ml-3 h-8 flex items-center justify-center p-2 rounded-md" onClick={() => setCliente(undefined)}>CLEAR</button>
+                    </div>
                     <div className="flex flex-col">
                         <div className="flex flex-row">
                             <InputEmail label="Email" name="email" onChange={(e) => onVCCliente(e, 'email')} value={cliente?.email} />
                             <InputTell label="Telefono" name="tel" onChange={(e) => onVCCliente(e, 'tel')} value={cliente?.tel} />
                             <InputText label="Nome" name="nome" onChange={(e) => onVCCliente(e, 'nome')} value={cliente?.nome} />
                             <InputText label="Cognome" name="cognome" onChange={(e) => onVCCliente(e, 'cognome')} value={cliente?.cognome} />
-                            <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCCliente(e, 'indirizzo')} value={cliente?.indirizzo} />
-                            <InputText label="CAP" name="cap" onChange={(e) => onVCCliente(e, 'cap')} value={cliente?.cap} />
-                            <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
+                            <InputSelect label="Sesso" name="sesso" options={['M', 'F']} onChange={(e) => onVCCliente(e, 'sesso')} value={cliente?.sesso} />
                         </div>
                         <div className="pb-4">
+                            <div className="flex flex-row">
+                                <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCCliente(e, 'indirizzo')} value={cliente?.indirizzo} />
+                                <InputText label="CAP" name="cap" onChange={(e) => onVCCliente(e, 'cap')} value={cliente?.cap} />
+                                <InputText label="Città" name="citta" onChange={(e) => onVCCliente(e, 'citta')} value={cliente?.citta} />
+                                <InputText label="Luogo di nascita" name="luogo_nascita" onChange={(e) => onVCCliente(e, 'luogo_nascita')} value={cliente?.luogo_nascita} />
+                                <InputText label="Provincia di nascita" name="provincia_nascita" onChange={(e) => onVCCliente(e, 'provincia_nascita')} value={cliente?.provincia_nascita} />
+                                <InputText label="Numero passaporto" name="numero_passaporto" onChange={(e) => onVCCliente(e, 'numero_passaporto')} value={cliente?.numero_passaporto} />
+                                <InputDate label="Scadenza passaporto" name="data_scadenza_passaporto" onChange={(e) => onVCCliente(e, 'data_scadenza_passaporto')} value={cliente?.data_scadenza_passaporto ? moment(cliente?.data_scadenza_passaporto).format('YYYY-MM-DD') : ''} />
+                                <InputText label="Nazionalità" name="nazionalita" onChange={(e) => onVCCliente(e, 'nazionalita')} value={cliente?.nazionalita} />
+                                <InputText label="Provincia" name="provincia" onChange={(e) => onVCCliente(e, 'provincia')} value={cliente?.provincia} />
+                            </div>
                             <div className="flex flex-row">
                                 <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCCliente(e, 'tipo')} value={cliente?.tipo} />
                                 <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCCliente(e, 'provenienza')} value={cliente?.provenienza} />
@@ -719,11 +745,20 @@ export default function CreaPreventivoGeneralInterface() {
                                                 <InputTell label="Telefono" name="tel" onChange={(e) => onVCClienteDaAggiornare(e, 'tel')} value={clienteDaAggiornare?.tel} />
                                                 <InputText label="Nome" name="nome" onChange={(e) => onVCClienteDaAggiornare(e, 'nome')} value={clienteDaAggiornare?.nome} />
                                                 <InputText label="Cognome" name="cognome" onChange={(e) => onVCClienteDaAggiornare(e, 'cognome')} value={clienteDaAggiornare?.cognome} />
-                                                <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCClienteDaAggiornare(e, 'indirizzo')} value={clienteDaAggiornare?.indirizzo} />
-                                                <InputText label="CAP" name="cap" onChange={(e) => onVCClienteDaAggiornare(e, 'cap')} value={clienteDaAggiornare?.cap} />
-                                                <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
+                                                <InputSelect label="Sesso" name="sesso" options={['M', 'F']} onChange={(e) => onVCClienteDaAggiornare(e, 'sesso')} value={clienteDaAggiornare?.sesso} />
                                             </div>
                                             <div className="pb-4">
+                                                <div className="flex flex-row">
+                                                    <InputText label="Indirizzo" name="indirizzo" onChange={(e) => onVCClienteDaAggiornare(e, 'indirizzo')} value={clienteDaAggiornare?.indirizzo} />
+                                                    <InputText label="CAP" name="cap" onChange={(e) => onVCClienteDaAggiornare(e, 'cap')} value={clienteDaAggiornare?.cap} />
+                                                    <InputText label="Città" name="citta" onChange={(e) => onVCClienteDaAggiornare(e, 'citta')} value={clienteDaAggiornare?.citta} />
+                                                    <InputText label="Luogo di nascita" name="luogo_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'luogo_nascita')} value={clienteDaAggiornare?.luogo_nascita} />
+                                                    <InputText label="Provincia di nascita" name="provincia_nascita" onChange={(e) => onVCClienteDaAggiornare(e, 'provincia_nascita')} value={clienteDaAggiornare?.provincia_nascita} />
+                                                    <InputText label="Provincia" name="provincia" onChange={(e) => onVCClienteDaAggiornare(e, 'provincia')} value={clienteDaAggiornare?.provincia} />
+                                                    <InputText label="Numero passaporto" name="numero_passaporto" onChange={(e) => onVCClienteDaAggiornare(e, 'numero_passaporto')} value={clienteDaAggiornare?.numero_passaporto} />
+                                                    <InputDate label="Data scadenza passaporto" name="data_scadenza_passaporto" onChange={(e) => onVCClienteDaAggiornare(e, 'data_scadenza_passaporto')} value={clienteDaAggiornare?.data_scadenza_passaporto ? moment(clienteDaAggiornare?.data_scadenza_passaporto).format('YYYY-MM-DD') : ''} />
+                                                    <InputText label="Nazionalità" name="nazionalita" onChange={(e) => onVCClienteDaAggiornare(e, 'nazionalita')} value={clienteDaAggiornare?.nazionalita} />
+                                                </div>
                                                 <div className="flex flex-row">
                                                     <InputSelect label="Tipo" name="tipo" options={['PRIVATO', 'AGENZIA VIAGGI', 'AZIENDA']} onChange={(e) => onVCClienteDaAggiornare(e, 'tipo')} value={clienteDaAggiornare?.tipo} />
                                                     <InputSelect label="Provenienza" name="provenienza" options={provenienzaOptions} onChange={(e) => onVCClienteDaAggiornare(e, 'provenienza')} value={clienteDaAggiornare?.provenienza} />
@@ -752,7 +787,7 @@ export default function CreaPreventivoGeneralInterface() {
                                                         className="bg-blue-500 text-white h-8 flex items-center justify-center p-2 rounded-md"
                                                         onClick={() => onClickShowFormAggiornaPreventivo(c, p)}
                                                     >
-                                                        Aggiorna
+                                                        Vedi
                                                     </button>
                                                 </div>
                                             ))}
@@ -804,12 +839,19 @@ export default function CreaPreventivoGeneralInterface() {
                                 <InputNumber label="Bambini" name="bambini" onChange={(e) => onVCpreventivo(e, 'bambini')} value={preventivo?.bambini?.toString()} />
                                 <InputDate label="Data di partenza" name="data_partenza" onChange={(e) => onVCpreventivo(e, 'data_partenza')} value={preventivo?.data_partenza ? moment(preventivo?.data_partenza).format('YYYY-MM-DD') : ''} />
                             </div>
+                            <div className="flex flex-row">
+                                <InputSelect label='Destinazione' onChange={(e) => onVCpreventivo(e, 'destinazione')} value={preventivo?.destinazione} name="destinazione" options={destinazioniOptions} />
+                                <InputSelect label='Tipo Viaggio' onChange={(e) => onVCpreventivo(e, 'tipo_viaggio')} value={preventivo?.tipo_viaggio} name="tipo_viaggio" options={tipoViaggioOptions} />
+
+                            </div>
+                            <div className="flex flex-row">
+                                <InputNumber label="Percentuale ricarico" name="percentuale_ricarico" value={preventivo?.percentuale_ricarico?.toString()} onChange={(e) => onVCpreventivo(e, 'percentuale_ricarico')} />
+                            </div>
                         </div>
 
-                        {/* Percentuale Ricarico */}
-                        <div className="flex flex-row">
-                            <InputNumber label="Percentuale ricarico" name="percentuale_ricarico" value={preventivo?.percentuale_ricarico?.toString()} onChange={(e) => onVCpreventivo(e, 'percentuale_ricarico')} />
-                        </div>
+
+
+
                         {/* Servizi a terra */}
                         <div id="servizi-a-terra">
                             <div className="flex flex-row items-center justify-start">
@@ -1185,15 +1227,13 @@ export default function CreaPreventivoGeneralInterface() {
                         </div>
                     </div>
                     <div className="flex flex-row items-center justify-center pt-10 pl-5">
-                        {!preventivo?.id &&
-                            <button
-                                className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
-                                type="button"
-                                onClick={submitCreatePreventivo}
-                            >
-                                Crea preventivo
-                            </button>
-                        }
+                        <button
+                            className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
+                            type="button"
+                            onClick={submitCreatePreventivo}
+                        >
+                            Crea preventivo
+                        </button>
                         {preventivo?.id &&
                             <button
                                 className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"

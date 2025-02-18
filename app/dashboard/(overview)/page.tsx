@@ -6,12 +6,16 @@ export default async function ChangelogPage() {
       <h1 className={`mb-4 text-xl md:text-2xl`}>CHANGELOG</h1>
 
       <p><i>In questa pagina è possibile vedere le modifiche apportate ad ogni versione del progetto, distinte in 'Features' e 'Fix'. </i></p>
-
+      
       <p className='version-paragraph'>v2.6.0</p>
       <ul>
+        <li>Fix: optimize cliente research in interface.</li>
+        <li>Feat: add the following fields to preventivo entity: destinazioone, tipo_viaggio, note_operative.</li>
+        <li>Feat: add the following fields to cliente entity: luogo di nascita, provincia di nascita, numero passaporto, data scadenza passaporto, nazionalità, provincia, sesso.</li>
+        <li>Feat: add CLEAR btn to clear the preventivo interface.</li>
         <li>Feat: add signup page for testing user-specific custom settings.</li>
-        <li>Feat: add user-specific custom settings - table config.</li>
-        <li>Feat: add user-specific custom settings - operatore config.</li>
+        <li>Feat: add tabella clienti.</li>
+        <li>Feat: add tabella preventivi.</li>
         <li>Feat: migration to new DB, deployment on domain.</li>
       </ul>
       <p className='version-paragraph'>v2.5.0</p>
