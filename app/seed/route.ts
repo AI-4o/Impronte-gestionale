@@ -12,7 +12,6 @@ const pool = new Pool({
   }
 });
 
- 
 const createTableDestinazioni = async () => {
   await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
   await pool.query(`
@@ -51,6 +50,13 @@ const createTableClienti = async () => {
          collegato VARCHAR(255),
          note TEXT,
          data_di_nascita DATE,
+         luogo_nascita VARCHAR(255),
+         provincia_nascita VARCHAR(2),
+         numero_passaporto VARCHAR(50),
+         data_scadenza_passaporto DATE,
+         nazionalita VARCHAR(100),
+         provincia VARCHAR(2),
+         sesso CHAR(1) CHECK (sesso IN ('M', 'F')),
          UNIQUE (email)
       );
     `);
@@ -77,6 +83,9 @@ const createTablePreventivi = async () => {
          brand VARCHAR(255),
          adulti INT,
          bambini INT,
+         destinazione VARCHAR(255),
+         tipo_viaggio VARCHAR(20) CHECK (tipo_viaggio IN ('viaggio di nozze', 'viaggio di lavoro', 'altro')),
+         note_operative TEXT,
          riferimento VARCHAR(255),
          data_partenza DATE,
          operatore VARCHAR(255),
@@ -165,86 +174,6 @@ const createTablePreventiviAlClienteRow = async () => {
       );
     `);
 }
-const createTablePartecipanti = async () => {
-  await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-  await pool.query(`
-      CREATE TABLE IF NOT EXISTS partecipanti (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         nome VARCHAR(255),
-         cognome VARCHAR(255),
-         tot_quota FLOAT
-      );
-    `);
-}
-const createTableIncassiPartecipanti = async () => {
-  await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-  await pool.query(`
-      CREATE TABLE IF NOT EXISTS incassi_partecipanti (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_partecipante UUID NOT NULL REFERENCES partecipanti(id),
-         id_banca UUID REFERENCES banche(id),
-         importo FLOAT,
-         data_scadenza DATE,
-         data_incasso DATE
-      );
-    `);
-} 
-const createTablePagamentiServiziATerra = async () => {
-  await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-  await pool.query(`
-      CREATE TABLE IF NOT EXISTS pagamenti_servizi_a_terra (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_servizio_a_terra UUID NOT NULL REFERENCES servizi_a_terra(id),
-         id_banca UUID REFERENCES banche(id),
-         importo FLOAT,
-         data_scadenza DATE,
-         data_incasso DATE
-      );
-    `);
-}
-const createTablePagamentiVoli = async () => {
-  await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-  await pool.query(`
-      CREATE TABLE IF NOT EXISTS pagamenti_voli (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_volo UUID NOT NULL REFERENCES voli(id),
-         id_banca UUID REFERENCES banche(id),
-         importo FLOAT,
-         data_scadenza DATE,
-         data_incasso DATE
-      );
-    `);
-}
-const createTablePagamentiAssicurazioni = async () => {
-  await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-  await pool.query(`
-      CREATE TABLE IF NOT EXISTS pagamenti_assicurazioni (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_assicurazione UUID NOT NULL REFERENCES assicurazioni(id),
-         id_banca UUID REFERENCES banche(id),
-         importo FLOAT,
-         data_scadenza DATE,
-         data_incasso DATE
-      );
-    `);
-}
-const createTablePratiche = async () => {
-  await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-  await pool.query(`
-      CREATE TABLE IF NOT EXISTS pratiche (
-         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-         id_preventivo UUID NOT NULL REFERENCES preventivi(id),
-         id_cliente UUID REFERENCES clienti(id),
-         data_conferma DATE,
-         data_partenza DATE,
-         data_rientro DATE,
-         note TEXT,
-         numero_passeggeri INT,
-         totale FLOAT
-      );
-    `);
-}
 const createTableUsers = async () => {
   await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
   await pool.query(`
@@ -256,7 +185,6 @@ const createTableUsers = async () => {
       );
     `);
 }
-
 const seedDestinazioni = async () => {
   for (const nome of destinazioni.destinazioni) {
     await pool.query(`
@@ -276,9 +204,20 @@ const seedFornitori = async () => {
 const seedClienti = async () => {
   for (const cliente of clienti.clienti) {
     await pool.query(`
-      INSERT INTO clienti (nome, cognome, tel, email, tipo, provenienza, collegato, citta, note, data_di_nascita)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      ON CONFLICT (email) DO NOTHING`, [cliente.nome, cliente.cognome, cliente.tel, cliente.email, cliente.tipo, cliente.provenienza, cliente.collegato, cliente.citta, cliente.note, cliente.data_di_nascita]);
+      INSERT INTO clienti (
+        nome, cognome, tel, email, tipo, provenienza, collegato, citta, note, 
+        data_di_nascita, indirizzo, CAP, CF, luogo_nascita, provincia_nascita,
+        numero_passaporto, data_scadenza_passaporto, nazionalita, provincia, sesso
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+      ON CONFLICT (email) DO NOTHING`, [
+        cliente.nome, cliente.cognome, cliente.tel, cliente.email, cliente.tipo, 
+        cliente.provenienza, cliente.collegato, cliente.citta, cliente.note,
+        cliente.data_di_nascita, cliente.indirizzo, cliente.CAP, cliente.CF,
+        cliente.luogo_nascita, cliente.provincia_nascita, cliente.numero_passaporto,
+        cliente.data_scadenza_passaporto, cliente.nazionalita, cliente.provincia,
+        cliente.sesso
+      ]);
   }
 }
 const seedBanche = async () => {
@@ -292,54 +231,37 @@ const seedUsers = async () => {
   await pool.query(`
     INSERT INTO users (email, password) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING`, ['impronte@esempio.safari', hashedPassword]);
 }
-
 /** Delete tables */
 const deleteTables = async () => {
-  await pool.query('DROP TABLE IF EXISTS users CASCADE');
-  await pool.query('DROP TABLE IF EXISTS pratiche CASCADE');
-  await pool.query('DROP TABLE IF EXISTS pagamenti_assicurazioni CASCADE');
-  await pool.query('DROP TABLE IF EXISTS pagamenti_voli CASCADE');
-  await pool.query('DROP TABLE IF EXISTS pagamenti_servizi_a_terra CASCADE');
-  await pool.query('DROP TABLE IF EXISTS incassi_partecipanti CASCADE');
-  await pool.query('DROP TABLE IF EXISTS partecipanti CASCADE');
   await pool.query('DROP TABLE IF EXISTS preventivi_al_cliente CASCADE');
-  await pool.query('DROP TABLE IF EXISTS preventivi_mostrare_cliente CASCADE');
   await pool.query('DROP TABLE IF EXISTS assicurazioni CASCADE');
   await pool.query('DROP TABLE IF EXISTS voli CASCADE');
   await pool.query('DROP TABLE IF EXISTS servizi_a_terra CASCADE');
   await pool.query('DROP TABLE IF EXISTS preventivi CASCADE');
-  await pool.query('DROP TABLE IF EXISTS clienti CASCADE');
-  await pool.query('DROP TABLE IF EXISTS banche CASCADE');
-  await pool.query('DROP TABLE IF EXISTS fornitori CASCADE');
-  await pool.query('DROP TABLE IF EXISTS destinazioni CASCADE');
+  await Promise.all([
+    pool.query('DROP TABLE IF EXISTS users CASCADE'),
+    pool.query('DROP TABLE IF EXISTS clienti CASCADE'),
+    pool.query('DROP TABLE IF EXISTS banche CASCADE'),
+    pool.query('DROP TABLE IF EXISTS fornitori CASCADE'),
+    pool.query('DROP TABLE IF EXISTS destinazioni CASCADE')
+  ])
 }
 /** Create tables */
 const createTables = async () => {
-  await createTableUsers();
-  await createTableDestinazioni();
-  await createTableBanche();
-  await createTableClienti();
-  await createTableFornitori();
-  await createTablePreventivi();
-  await createTableServiziATerra();
-  await createTableVoli();
-  await createTableAssicurazioni();
+  await Promise.all([ createTableUsers(), createTableDestinazioni(), createTableBanche(), createTableClienti(), createTableFornitori()]);
+  await Promise.all([ createTablePreventivi(), createTableServiziATerra(), createTableVoli(), createTableAssicurazioni()]);
   await createTablePreventiviAlCliente();
   await createTablePreventiviAlClienteRow();
-  await createTablePartecipanti();
-  await createTableIncassiPartecipanti();
-  await createTablePagamentiServiziATerra();
-  await createTablePagamentiVoli();
-  await createTablePagamentiAssicurazioni();
-  await createTablePratiche();
 }
 /** Seed initial data */
 const seedDb = async () => {
-    await seedUsers();
-    await seedDestinazioni();
-    await seedFornitori();
-    await seedBanche();
-    await seedClienti();
+  await Promise.all([
+    seedUsers(),
+    seedDestinazioni(),
+    seedFornitori(),
+    seedBanche(),
+    seedClienti()
+  ]);
 }
 export async function GET() {
   try {

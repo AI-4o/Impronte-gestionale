@@ -6,7 +6,7 @@ import { lusitana } from '../fonts';
 import { NavLink } from './nav-links';
 import './sidenav.styles.css';
 
-export default function SideNav({links}: {links: NavLink[]}) {
+export default function SideNav({ links }: { links: NavLink[] }) {
   return (
     <div className="flex h-full flex-col px-3 py-4 md:px-2 sidenav">
       <Link
@@ -19,7 +19,7 @@ export default function SideNav({links}: {links: NavLink[]}) {
       </Link>
       <div className="flex grow flex-row space-x-2 md:flex-col md:space-x-0 md:space-y-2">
         <NavLinks links={links} />
-          <SignOut />
+        <SignOut />
       </div>
     </div>
   );

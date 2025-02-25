@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, ReactNode } from "react";
-import Spinner from "../ui/table/spinner/spinner";
+import Spinner from "../ui/spinner/spinner";
 import '../dashboard/(overview)/style.css';
 
 // Definizione del tipo di contesto

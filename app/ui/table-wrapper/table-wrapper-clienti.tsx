@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -60,6 +61,7 @@ import {
 import { useId, useMemo, useRef, useState } from "react";
 import { Cliente } from "@/app/lib/definitions";
 
+
 // Custom filter function for multi-column searching
 const multiColumnFilterFn: FilterFn<Cliente> = (row, columnId, filterValue) => {
   const searchableRowContent = `${row.original.nome} ${row.original.cognome} ${row.original.email}`.toLowerCase();
@@ -67,16 +69,137 @@ const multiColumnFilterFn: FilterFn<Cliente> = (row, columnId, filterValue) => {
   return searchableRowContent.includes(searchTerm);
 };
 
+const columns: ColumnDef<Cliente>[] = [
+  {
+    header: "Nome",
+    accessorKey: "nome",
+    cell: ({ row }) => <div className="font-medium">{row.getValue("nome")}</div>,
+    size: 180,
+    filterFn: multiColumnFilterFn,
+    enableHiding: false,
+  },
+  {
+    header: "Cognome",
+    accessorKey: "cognome",
+    size: 220,
+    filterFn: multiColumnFilterFn,
+  },
+  {
+    header: "Email",
+    accessorKey: "email",
+    cell: ({ row }) => (
+      <div>
+        <span className="text-lg leading-none">{row.original.email}</span>
+      </div>
+    ),
+    size: 300,
+    filterFn: multiColumnFilterFn,
+  },
+  {
+    header: "Tipo",
+    accessorKey: "tipo",
+    cell: ({ row }) => (
+      <Badge
+        className={cn(
+          row.getValue("tipo") === "PRIVATO" && "bg-muted-foreground/60 text-primary-foreground",
+        )}
+      >
+        {row.getValue("tipo")}
+      </Badge>
+    ),
+    size: 150,
+  },
+  {
+    header: "Telefono", 
+    accessorKey: "tel",
+    size: 160,
+  },
+  {
+    header: "Indirizzo",
+    accessorKey: "indirizzo",
+    size: 300,
+  },
+  {
+    header: "CAP",
+    accessorKey: "CAP",
+    size: 100,
+  },
+  {
+    header: "Città",
+    accessorKey: "citta",
+    size: 200,
+  },
+  {
+    header: "Provincia",
+    accessorKey: "provincia",
+    size: 100,
+  },
+  {
+    header: "Codice Fiscale",
+    accessorKey: "CF",
+    size: 200,
+  },
+  {
+    header: "Provenienza",
+    accessorKey: "provenienza",
+    cell: ({ row }) => (
+      <Badge>
+        {row.getValue("provenienza")}
+      </Badge>
+    ),
+    size: 200
+  },
+  {
+    header: "Collegato a",
+    accessorKey: "collegato",
+    size: 150,
+  },
+  {
+    header: "Data di Nascita",
+    accessorKey: "data_di_nascita",
+    cell: ({ row }) => row.getValue("data_di_nascita") ? new Date(row.getValue("data_di_nascita")).toLocaleDateString() : "",
+    size: 120,
+  },
+  {
+    header: "Luogo Nascita",
+    accessorKey: "luogo_nascita",
+    size: 150,
+  },
+  {
+    header: "Prov. Nascita",
+    accessorKey: "provincia_nascita",
+    size: 120,
+  },
+  {
+    header: "N° Passaporto",
+    accessorKey: "numero_passaporto",
+    size: 140,
+  },
+  {
+    header: "Scadenza Passaporto",
+    accessorKey: "data_scadenza_passaporto",
+    cell: ({ row }) => row.getValue("data_scadenza_passaporto") ? new Date(row.getValue("data_scadenza_passaporto")).toLocaleDateString() : "",
+    size: 160,
+  },
+  {
+    header: "Nazionalità",
+    accessorKey: "nazionalita",
+    size: 130,
+  },
+  {
+    header: "Sesso",
+    accessorKey: "sesso",
+    size: 80,
+  },
+  {
+    header: "Note",
+    accessorKey: "note",
+    size: 200,
+  }
 
-export default function STable<R extends Record<string, any>>({ data, columnsSize }: { data: R[], columnsSize?: number}) {
-console.log("data ricevuti: ",data)
-    const columns: ColumnDef<R>[] = 
-    Object.keys(data[0]).map((key) => ({
-        header: key as string,
-        accessorKey: key as keyof R,
-        size: columnsSize ?? 250,
-    }));
+];
 
+export default function TableClienti({ data }: { data: Cliente[] }) {
   const id = useId();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -472,4 +595,4 @@ console.log("data ricevuti: ",data)
   );
 }
 
-export { STable }
+export { TableClienti }

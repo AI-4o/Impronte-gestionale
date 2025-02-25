@@ -26,6 +26,13 @@ export const ClienteSchema = z.object({
   collegato: z.string().nullable().optional(),
   tel: z.string().nullable().optional(),
   provenienza: z.string().nullable().optional(),
+  luogo_nascita: z.string().nullable().optional(),
+  provincia_nascita: z.string().nullable().optional(),
+  numero_passaporto: z.string().nullable().optional(),
+  data_scadenza_passaporto: z.string().nullable().optional(),
+  nazionalita: z.string().nullable().optional(),
+  provincia: z.string().nullable().optional(),
+  sesso: z.string().nullable().optional(),
 });
 export const DestinazioneSchema = z.object({
   nome: z.string().min(1, { message: "Nome is required" }),
@@ -44,6 +51,9 @@ export const PreventivoSchema = z.object({
   data: z.string().nullable().optional(),
   numero_preventivo: z.string(),
   stato: z.string().nullable().optional(),
+  tipo_viaggio: z.string().nullable().optional(),
+  destinazione: z.string().nullable().optional(),
+  note_operative: z.string().nullable().optional(),
 });
 export const UpdatePreventivoSchema = z.object({
   note: z.string().nullable().optional(),
@@ -58,6 +68,9 @@ export const UpdatePreventivoSchema = z.object({
   data: z.string().nullable().optional(),
   stato: z.enum(['da fare', 'in trattativa', 'confermato', 'inviato']),
   numero_preventivo: z.string().nullable(),
+  tipo_viaggio: z.string().nullable().optional(),
+  destinazione: z.string().nullable().optional(),
+  note_operative: z.string().nullable().optional(),
 });
 export const ServizioATerraSchema = z.object({
   id_preventivo: z.string(),

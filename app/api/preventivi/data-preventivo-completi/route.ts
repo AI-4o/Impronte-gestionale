@@ -27,9 +27,8 @@ export async function POST(request: NextRequest) {
       errorsMessage: ""
     };
     const p: PreventivoInputGroup = await request.json();
-    "Dato ricevuto nell'API route di get-data-preventivo-completi:"
     const preventivoId = p.id;
-
+    console.log("preventivoId: ", preventivoId);
     // dato id preventivo vogliamo -> serviziATerra, serviziAggiuntivi, voli, assicurazioni
 
     const [serviziATerra, serviziAggiuntivi, voli, assicurazioni, preventivoAlCliente] = await Promise.all([
@@ -40,8 +39,6 @@ export async function POST(request: NextRequest) {
       fetchPreventivoAlClienteByPreventivoId(preventivoId)
     ]);
 
-    console.log("assicurazioni:JMHNGBIFUVTYCR&X%  ", assicurazioni);
-    
     // if any of the fetching fails, return the error
     if(!serviziATerra.success || !serviziAggiuntivi.success || !voli.success || !assicurazioni.success || !preventivoAlCliente.success) {
       [serviziATerra, serviziAggiuntivi, voli, assicurazioni].forEach(s => {

@@ -15,10 +15,11 @@ import {
   fetchAllFornitori,
   fetchAllBanche,
   fetchAllDestinazioni,
+  fetchAllClienti,
 } from "../data";
 import {
   AssicurazioneInputGroup,
-  ClienteInputGroup,
+  ClienteInputGroup, 
   Data,
   ERRORMESSAGE,
   PreventivoInputGroup,
@@ -63,8 +64,6 @@ export type State<A> = {
   dbError?: string;
 };
 
-
-
 // CREATE
 
 export const createCliente = async (
@@ -84,6 +83,13 @@ export const createCliente = async (
     collegato: c.collegato,
     provenienza: c.provenienza,
     tel: c.tel,
+    luogo_nascita: c.luogo_nascita,
+    provincia_nascita: c.provincia_nascita,
+    numero_passaporto: c.numero_passaporto,
+    data_scadenza_passaporto: formatDate(c.data_scadenza_passaporto),
+    nazionalita: c.nazionalita,
+    provincia: c.provincia,
+    sesso: c.sesso
   });
   if (!parsedData.success) {
     console.error("Failed to create cliente due to a validation error.");
@@ -97,8 +103,12 @@ export const createCliente = async (
   try {
     const result = await pool.query(
       `
-    INSERT INTO clienti (nome, cognome, note, tipo, data_di_nascita, indirizzo, CAP, citta, CF, collegato, provenienza, tel, email)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    INSERT INTO clienti (
+      nome, cognome, note, tipo, data_di_nascita, indirizzo, CAP, citta, CF, 
+      collegato, provenienza, tel, email, luogo_nascita, provincia_nascita,
+      numero_passaporto, data_scadenza_passaporto, nazionalita, provincia, sesso
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
     RETURNING *
 `,
       [
@@ -115,6 +125,13 @@ export const createCliente = async (
         parsedData.data.provenienza,
         parsedData.data.tel,
         parsedData.data.email,
+        parsedData.data.luogo_nascita,
+        parsedData.data.provincia_nascita,
+        parsedData.data.numero_passaporto,
+        parsedData.data.data_scadenza_passaporto,
+        parsedData.data.nazionalita,
+        parsedData.data.provincia,
+        parsedData.data.sesso
       ]
     );
     return { values: result.rows[0], success: true, errorsMessage: "" };
@@ -148,6 +165,8 @@ export const createPreventivo = async (
     data: p.data,
     numero_preventivo: p.numero_preventivo,
     stato: p.stato,
+    tipo_viaggio: p.tipo_viaggio,
+    destinazione: p.destinazione
   });
   if (!parsedData.success) {
     console.error("Failed to Create Preventivo due to a validation error.");
@@ -161,8 +180,12 @@ export const createPreventivo = async (
   try {
     const result = await pool.query(
       `
-    INSERT INTO preventivi (id_cliente, data, note, percentuale_ricarico, brand, riferimento, operatore, feedback, adulti, bambini, data_partenza, numero_preventivo, stato)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    INSERT INTO preventivi (
+      id_cliente, data, note, percentuale_ricarico, brand, riferimento, 
+      operatore, feedback, adulti, bambini, data_partenza, numero_preventivo, 
+      stato, tipo_viaggio, destinazione
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
     RETURNING *
 `,
       [
@@ -179,6 +202,8 @@ export const createPreventivo = async (
         parsedData.data.data_partenza,
         parsedData.data.numero_preventivo,
         parsedData.data.stato,
+        parsedData.data.tipo_viaggio,
+        parsedData.data.destinazione
       ]
     );
     return { values: result.rows[0], success: true, errorsMessage: "" };
@@ -352,7 +377,6 @@ export const createAssicurazione = async (
       values: parsedData.data,
     };
   }
-  console.log("parsedData: ", parsedData.data);
   
   try {
     const result = await pool.query(
@@ -665,7 +689,7 @@ export const updateCliente = async (
   const parsedData = schemas.ClienteSchema.safeParse({
     id: id,
     nome: c.nome,
-    cognome: c.cognome,
+    cognome: c.cognome, 
     note: c.note,
     tipo: c.tipo,
     data_di_nascita: formatDate(c.data_di_nascita),
@@ -677,6 +701,13 @@ export const updateCliente = async (
     indirizzo: c.indirizzo,
     cap: c.cap,
     cf: c.cf,
+    luogo_nascita: c.luogo_nascita,
+    provincia_nascita: c.provincia_nascita,
+    numero_passaporto: c.numero_passaporto,
+    data_scadenza_passaporto: formatDate(c.data_scadenza_passaporto),
+    nazionalita: c.nazionalita,
+    provincia: c.provincia,
+    sesso: c.sesso
   });
   if (!parsedData.success) {
     console.error("Failed to Update Cliente due to a validation error.");
@@ -691,8 +722,27 @@ export const updateCliente = async (
     await pool.query(
       `
     UPDATE clienti
-    SET nome = $1, cognome = $2, note = $3, tipo = $4, data_di_nascita = $5, tel = $6, email = $7, citta = $8, collegato = $9, provenienza = $10, indirizzo = $11, CAP = $12, CF = $13
-    WHERE id = $14
+    SET nome = $1, 
+        cognome = $2, 
+        note = $3, 
+        tipo = $4, 
+        data_di_nascita = $5, 
+        tel = $6, 
+        email = $7, 
+        citta = $8, 
+        collegato = $9, 
+        provenienza = $10, 
+        indirizzo = $11, 
+        CAP = $12, 
+        CF = $13, 
+        luogo_nascita = $14, 
+        provincia_nascita = $15, 
+        numero_passaporto = $16, 
+        data_scadenza_passaporto = $17, 
+        nazionalita = $18, 
+        provincia = $19,
+        sesso = $20
+    WHERE id = $21
 `,
       [
         parsedData.data.nome,
@@ -708,6 +758,13 @@ export const updateCliente = async (
         parsedData.data.indirizzo,
         parsedData.data.cap,
         parsedData.data.cf,
+        parsedData.data.luogo_nascita,
+        parsedData.data.provincia_nascita,
+        parsedData.data.numero_passaporto,
+        parsedData.data.data_scadenza_passaporto,
+        parsedData.data.nazionalita,
+        parsedData.data.provincia,
+        parsedData.data.sesso,
         id,
       ]
     );
@@ -746,6 +803,8 @@ export const updatePreventivo = async (
     data: formatDate(p.data),
     numero_preventivo: p.numero_preventivo,
     stato: p.stato,
+    tipo_viaggio: p.tipo_viaggio,
+    destinazione: p.destinazione
   });
   if (!parsedData.success) {
     console.error("Failed to Update Preventivo due to a validation error.");
@@ -771,8 +830,10 @@ export const updatePreventivo = async (
     data_partenza = $9, 
     data = $10, 
     numero_preventivo = $11, 
-    stato = $12
-    WHERE id = $13
+    stato = $12,
+    tipo_viaggio = $13,
+    destinazione = $14,
+    WHERE id = $15
   `,
       [
         parsedData.data.note,
@@ -787,6 +848,8 @@ export const updatePreventivo = async (
         parsedData.data.data,
         parsedData.data.numero_preventivo,
         parsedData.data.stato,
+        parsedData.data.tipo_viaggio,
+        parsedData.data.destinazione,
         p.id,
       ]
     );
@@ -1138,7 +1201,7 @@ export const searchClienti = async (
   try {
     const allClienti = await Promise.all([
       fetchFilteredClienti(c.nome, 1),
-      fetchFilteredClienti(c.cognome, 1),
+      fetchFilteredClienti(c.cognome, 1), 
       fetchFilteredClienti(c.email, 1),
     ]);
     const clienti = Array.from(
@@ -1165,7 +1228,7 @@ export const searchClienti = async (
       (c) =>
         new ClienteInputGroup(
           c.nome,
-          c.cognome,
+          c.cognome, 
           c.note,
           c.citta,
           c.collegato,
@@ -1177,6 +1240,13 @@ export const searchClienti = async (
           c.indirizzo,
           c.cap,
           c.cf,
+          c.luogo_nascita,
+          c.provincia_nascita,
+          c.numero_passaporto,
+          c.data_scadenza_passaporto,
+          c.nazionalita,
+          c.provincia,
+          c.sesso,
           c.id
         )
     );
@@ -1344,5 +1414,16 @@ export const setOptionsJson = async () => {
     );
   } else {
     console.error("Failed to fetch destinazioni:", destinazioni.errorsMessage);
+  }
+};
+
+export const getAllClienti = async (): Promise<Cliente[]> => {
+  try {
+    const clienti = await pool.query<Cliente>(`SELECT * FROM clienti`);
+    console.log(clienti.rows);
+    return clienti.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    return [];
   }
 };
