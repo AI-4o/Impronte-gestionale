@@ -934,35 +934,15 @@ export const fetchAssicurazioneById = async (
 // #### FETCH BY DEPENDENCY ####
 export const fetchPreventiviByIdCliente = async (
   idCliente: string
-): Promise<DBResult<PreventivoInputGroup[]>> => {
+): Promise<DBResult<Preventivo[]>> => {
   try {
     const preventivo = await pool.query<Preventivo>(
       `SELECT * FROM preventivi
       WHERE id_cliente = $1`,
       [idCliente]
     );
-    return {
-      values: preventivo.rows.map(
-        (p) =>
-          new PreventivoInputGroup(
-            p.numero_preventivo,
-            p.percentuale_ricarico,
-            p.brand,
-            p.riferimento,
-            p.operatore,
-            p.feedback,
-            p.note,
-            p.adulti,
-            p.bambini,
-            p.data_partenza,
-            p.data,
-            p.stato as "da fare" | "in trattativa" | "confermato" | "inviato",
-            p.id
-          )
-      ),
-      success: true,
-      errorsMessage: "",
-    };
+    
+    return {values: preventivo.rows, success: true, errorsMessage: ""};
   } catch (error) {
     console.error("Database Error:", error);
     return {
@@ -1209,8 +1189,8 @@ export const fetchAllPreventiviWithCliente = async (): Promise<
         citta: row.cliente_citta,
         note: row.cliente_note,
         indirizzo: row.cliente_indirizzo,
-        cap: row.cliente_cap,
-        cf: row.cliente_cf,
+        CAP: row.cliente_cap,
+        CF: row.cliente_cf,
         data_di_nascita: row.cliente_data_di_nascita,
       };
 
@@ -1241,7 +1221,7 @@ export const fetchPreventivoAlClienteByPreventivoId = async (
       WHERE id_preventivo = $1`,
       [idPreventivo]
     );
-    console.log("preventivoAlClienteQR: ", preventivoAlClienteQR.rows[0]);
+    console.log("preventivoAlClienteQR: ", idPreventivo, preventivoAlClienteQR);
     const id = preventivoAlClienteQR.rows[0].id;
     const preventivoAlClienteRowQR = await pool.query<PreventivoAlClienteRow>(
       `SELECT * FROM preventivi_al_cliente_row
@@ -1256,6 +1236,20 @@ export const fetchPreventivoAlClienteByPreventivoId = async (
       (row) => row.senza_assicurazione === false
     );
     return { values: preventivoAlCliente, success: true, errorsMessage: "" };
+  } catch (error) {
+    console.error("Database Error:", error);
+    return { success: false, errorsMessage: error };
+  }
+};
+
+export const fetchAllPreventiviAlCliente = async (): Promise<
+  DBResult<PreventivoAlCliente[]>
+> => {
+  try {
+    const preventiviAlCliente = await pool.query<PreventivoAlCliente>(
+      `SELECT * FROM preventivi_al_cliente`
+    );
+    return { values: preventiviAlCliente.rows, success: true, errorsMessage: "" };
   } catch (error) {
     console.error("Database Error:", error);
     return { success: false, errorsMessage: error };

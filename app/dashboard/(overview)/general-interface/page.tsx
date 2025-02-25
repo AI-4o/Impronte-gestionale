@@ -21,6 +21,8 @@ import { useSpinnerContext } from '@/app/context/spinner-context';
 import { useDebouncedCallback } from 'use-debounce';
 import moment from 'moment';
 import Feedback from '@/app/ui/feedback/feedback';
+import { Preventivo } from '@/app/lib/definitions';
+import { FaqSection } from '@/components/blocks/faq';
 
 
 export default function CreaPreventivoGeneralInterface() {
@@ -47,9 +49,9 @@ export default function CreaPreventivoGeneralInterface() {
         'inviato'
     ]
     const tipoViaggioOptions = [
-    {value: "viaggio_di_nozze", name: "viaggio di nozze"},
-    {value: "viaggio_di_lavoro", name: "viaggio di lavoro"},
-    {value: "altro", name: "altro"}
+        { value: "viaggio_di_nozze", name: "viaggio di nozze" },
+        { value: "viaggio_di_lavoro", name: "viaggio di lavoro" },
+        { value: "altro", name: "altro" }
     ]
     const brandOptions = brandValues.brand;
     const operatoreOptions = operatoriValues.operatori;
@@ -112,7 +114,7 @@ export default function CreaPreventivoGeneralInterface() {
 
 
     // gestione preventivo
-    const [preventivo, setPreventivo] = useState<PreventivoInputGroup>({});
+    const [preventivo, setPreventivo] = useState<PreventivoInputGroup>();
     const onVCpreventivo = (e: any, name: string) => {
         //console.log('change in a value of a preventivo <event, id, name>: ', e, name);
         setPreventivo((prevState) => {
@@ -342,6 +344,7 @@ export default function CreaPreventivoGeneralInterface() {
         }
     }
     const fetchDataPreventivoDaAggiornare = async (p: PreventivoInputGroup): Promise<Data> => {
+        console.log("p: ", p);
         const response = await fetch('/api/preventivi/data-preventivo-completi', {
             method: 'POST',
             headers: {
@@ -444,13 +447,14 @@ export default function CreaPreventivoGeneralInterface() {
             },
             body: JSON.stringify(c.id),
         });
-        const preventiviByClienteDBResult: DBResult<PreventivoInputGroup[]> = await response.json();
+        const preventiviByClienteDBResult: DBResult<Preventivo[]> = await response.json();
         console.log('data: ', preventiviByClienteDBResult);
         if (preventiviByClienteDBResult.success) { // se la chiamata all'API è andata a buon fine
             // se ci sono preventivi, mostrare la lista, altrimenti mostrare errore
             if (preventiviByClienteDBResult.values.length > 0) {
+                const preventiviInputGroup = preventiviByClienteDBResult.values.map(p => new PreventivoInputGroup(p));
                 setClienteDaAggiornare(c);
-                setPreventiviClienteList(preventiviByClienteDBResult.values);
+                setPreventiviClienteList(preventiviInputGroup);
                 setShowPreventiviClienteList(!showPreventiviClienteList);
             } else {
                 setErrorsList(['Il cliente non ha preventivi...']);
@@ -543,6 +547,7 @@ export default function CreaPreventivoGeneralInterface() {
     const onClickShowFormAggiornaPreventivo = async (c: ClienteInputGroup, p: PreventivoInputGroup) => {
         setIsActiveSpinner(true);
         const data = await fetchDataPreventivoDaAggiornare(p);
+        console.log("data lpkojihugyftdr: ", data);
         data.preventivo.numero_preventivo = numberToExcelFormat(parseInt(data.preventivo.numero_preventivo));
         if (data) {
             setCliente(c);
@@ -607,7 +612,6 @@ export default function CreaPreventivoGeneralInterface() {
         setShowFormAggiornaCliente(false);
         setShowPreventiviClienteList(false);
         setShowClientiTrovati(false);
-        setShowFormPreventivo(false);
         setErrorsList([]);
     }, [cliente]);
     useEffect(() => {
@@ -1226,7 +1230,7 @@ export default function CreaPreventivoGeneralInterface() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-row items-center justify-center pt-10 pl-5">
+                    <div className="flex flex-row items-center justify-center pt-10 pl-5 gap-5">
                         <button
                             className="bg-blue-500 text-white h-8 flex items-center justify-center rounded-md px-4"
                             type="button"
@@ -1244,6 +1248,15 @@ export default function CreaPreventivoGeneralInterface() {
                             </button >
                         }
                     </div >
+                    <FaqSection
+                        title="Nota 🎵"
+                        description={`Nel caso di preventivo già esistente, il pulsante 'crea' 
+                        creerà un nuovo preventivo con lo stesso cliente, 
+                        ma con i dati nuovi del form.
+                        Si sta implementando una versione più generale 
+                        che permette di creare un preventivo con un cliente diverso.`}
+                        items={[]}
+                    />
                 </div>
                 }
                 {/* ERRORS */}

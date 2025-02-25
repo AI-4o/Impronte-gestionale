@@ -10,6 +10,7 @@ export default async function ChangelogPage() {
       <p className='version-paragraph'>v2.6.0</p>
       <ul>
         <li>Fix: optimize cliente research in interface.</li>
+        <li>Feat: embed contratto-form html static file in the app.</li>
         <li>Feat: add the following fields to preventivo entity: destinazioone, tipo_viaggio, note_operative.</li>
         <li>Feat: add the following fields to cliente entity: luogo di nascita, provincia di nascita, numero passaporto, data scadenza passaporto, nazionalità, provincia, sesso.</li>
         <li>Feat: add CLEAR btn to clear the preventivo interface.</li>

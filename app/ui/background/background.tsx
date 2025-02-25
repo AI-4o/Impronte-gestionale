@@ -15,7 +15,7 @@ export function Background({children}: {children: React.ReactNode}) {
           duration: 0.8,
           ease: "easeInOut",
         }}
-        className="relative flex flex-col gap-4 items-center justify-center px-4"
+        className="relative flex flex-col gap-4 justify-center px-4"
       >
         {children}
       </motion.div>
